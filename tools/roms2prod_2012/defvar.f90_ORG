@@ -1,0 +1,254 @@
+  subroutine defvar(varname,ncidin,ncidout,proj_name)
+    
+    use dimensions
+
+    implicit none
+
+    character (len=40) :: varname
+    integer :: ncidin, ncidout
+    integer :: varid, status, varidin 
+    character (len=100) :: text
+    character (len=80) :: proj_name
+!    integer , dimension(:), allocatable :: testvector
+!!$    print *, 'defvar'
+!!$    allocate(testvector(3))
+    print *, trim(varname)
+    if (verify(trim(varname),"zeta").eq.0) then
+
+       status = nf_def_var(ncidout,trim(varname),NF_REAL,3,(/ nxID, nyID, outtimeID /),varid); call check_err(status)
+       write(text,'(A)') "sea_surface_elevation"
+       status = nf_put_att_text(ncidout,varid,"standard_name",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') "meters"
+       status = nf_put_att_text(ncidout,varid,"units",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') "time"
+       status = nf_put_att_text(ncidout,varid,"time",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') "longitude latitude"
+       status = nf_put_att_text(ncidout,varid,"coordinates",len_trim(text),trim(text)); call check_err(status)
+       status = nf_put_att_text(ncidout,varid,"grid_mapping",len_trim(proj_name),trim(proj_name)); call check_err(status)
+       status = nf_inq_varid(ncidin,trim(varname),varidin); call check_err(status)
+       status = nf_copy_att(ncidin,varidin,"_FillValue",ncidout,varid); call check_err(status)
+
+    elseif (verify(trim(varname),"u").eq.0) then
+
+      status = nf_def_var(ncidout,trim(varname),NF_REAL,4,(/ nxID, nyID, nzID, outtimeID /),varid); call check_err(status)
+       write(text,'(A)') "x_sea_water_velocity"
+       status = nf_put_att_text(ncidout,varid,"standard_name",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') "meter second-1"
+       status = nf_put_att_text(ncidout,varid,"units",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') "time"
+       status = nf_put_att_text(ncidout,varid,"time",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') "longitude latitude"
+       status = nf_put_att_text(ncidout,varid,"coordinates",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') "u-momentum component"
+       status = nf_put_att_text(ncidout,varid,"long_name",len_trim(text),trim(text)); call check_err(status)
+       status = nf_put_att_text(ncidout,varid,"grid_mapping",len_trim(proj_name),trim(proj_name)); call check_err(status)
+       status = nf_inq_varid(ncidin,trim(varname),varidin); call check_err(status)
+       status = nf_copy_att(ncidin,varidin,"_FillValue",ncidout,varid); call check_err(status)
+
+    elseif (verify(trim(varname),"v").eq.0) then
+
+      status = nf_def_var(ncidout,trim(varname),NF_REAL,4,(/ nxID, nyID, nzID, outtimeID /),varid); call check_err(status)
+       write(text,'(A)') "y_sea_water_velocity"
+       status = nf_put_att_text(ncidout,varid,"standard_name",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') "meter second-1"
+       status = nf_put_att_text(ncidout,varid,"units",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') "time"
+       status = nf_put_att_text(ncidout,varid,"time",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') "longitude latitude "
+       status = nf_put_att_text(ncidout,varid,"coordinates",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') "v-momentum component"
+       status = nf_put_att_text(ncidout,varid,"long_name",len_trim(text),trim(text)); call check_err(status)
+       status = nf_put_att_text(ncidout,varid,"grid_mapping",len_trim(proj_name),trim(proj_name)); call check_err(status)
+       status = nf_inq_varid(ncidin,trim(varname),varidin); call check_err(status)
+       status = nf_copy_att(ncidin,varidin,"_FillValue",ncidout,varid); call check_err(status)
+    elseif (verify(trim(varname),"ubar").eq.0) then
+
+      status = nf_def_var(ncidout,trim(varname),NF_REAL,3,(/ nxID, nyID, outtimeID /),varid); call check_err(status)
+       write(text,'(A)') "barotropic_sea_water_x_velocity"
+       status = nf_put_att_text(ncidout,varid,"standard_name",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') "meter second-1"
+       status = nf_put_att_text(ncidout,varid,"units",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') "time"
+       status = nf_put_att_text(ncidout,varid,"time",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') "longitude latitude"
+       status = nf_put_att_text(ncidout,varid,"coordinates",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') "vertically integrated u-momentum component"
+       status = nf_put_att_text(ncidout,varid,"long_name",len_trim(text),trim(text)); call check_err(status)
+       status = nf_put_att_text(ncidout,varid,"grid_mapping",len_trim(proj_name),trim(proj_name)); call check_err(status)
+       status = nf_inq_varid(ncidin,trim(varname),varidin); call check_err(status)
+       status = nf_copy_att(ncidin,varidin,"_FillValue",ncidout,varid); call check_err(status)
+
+    elseif (verify(trim(varname),"vbar").eq.0) then
+
+      status = nf_def_var(ncidout,trim(varname),NF_REAL,3,(/ nxID, nyID, outtimeID /),varid); call check_err(status)
+       write(text,'(A)') "barotropic_sea_water_y_velocity"
+       status = nf_put_att_text(ncidout,varid,"standard_name",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') "meter second-1"
+       status = nf_put_att_text(ncidout,varid,"units",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') "time"
+       status = nf_put_att_text(ncidout,varid,"time",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') "longitude latitude"
+       status = nf_put_att_text(ncidout,varid,"coordinates",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') "vertically integrated v-momentum component"
+       status = nf_put_att_text(ncidout,varid,"long_name",len_trim(text),trim(text)); call check_err(status)
+       status = nf_put_att_text(ncidout,varid,"grid_mapping",len_trim(proj_name),trim(proj_name)); call check_err(status)
+       status = nf_inq_varid(ncidin,trim(varname),varidin); call check_err(status)
+       status = nf_copy_att(ncidin,varidin,"_FillValue",ncidout,varid); call check_err(status)
+
+  elseif (verify(trim(varname),"temp").eq.0) then
+
+      status = nf_def_var(ncidout,trim(varname),NF_REAL,4,(/ nxID, nyID, nzID, outtimeID /),varid); call check_err(status)
+       write(text,'(A)') "sea_water_potential_temperature"
+       status = nf_put_att_text(ncidout,varid,"standard_name",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') "Celsius"
+       status = nf_put_att_text(ncidout,varid,"units",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') "time"
+       status = nf_put_att_text(ncidout,varid,"time",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') "longitude latitude "
+       status = nf_put_att_text(ncidout,varid,"coordinates",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') "potential temperature"
+       status = nf_put_att_text(ncidout,varid,"long_name",len_trim(text),trim(text)); call check_err(status)
+       status = nf_put_att_text(ncidout,varid,"grid_mapping",len_trim(proj_name),trim(proj_name)); call check_err(status)
+       status = nf_inq_varid(ncidin,trim(varname),varidin); call check_err(status)
+       status = nf_copy_att(ncidin,varidin,"_FillValue",ncidout,varid); call check_err(status)
+
+    elseif (verify(trim(varname),"salt").eq.0) then
+
+      status = nf_def_var(ncidout,trim(varname),NF_REAL,4,(/ nxID, nyID, nzID, outtimeID /),varid); call check_err(status)
+       write(text,'(A)') "sea_water_salinity"
+       status = nf_put_att_text(ncidout,varid,"standard_name",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') ""
+       status = nf_put_att_text(ncidout,varid,"units",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') "time"
+       status = nf_put_att_text(ncidout,varid,"time",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') "longitude latitude "
+       status = nf_put_att_text(ncidout,varid,"coordinates",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') "salinity"
+       status = nf_put_att_text(ncidout,varid,"long_name",len_trim(text),trim(text)); call check_err(status)
+       status = nf_put_att_text(ncidout,varid,"grid_mapping",len_trim(proj_name),trim(proj_name)); call check_err(status)
+       status = nf_inq_varid(ncidin,trim(varname),varidin); call check_err(status)
+       status = nf_copy_att(ncidin,varidin,"_FillValue",ncidout,varid); call check_err(status)
+
+    elseif (verify(trim(varname),"rho").eq.0) then
+
+      status = nf_def_var(ncidout,trim(varname),NF_REAL,4,(/ nxID, nyID, nzID, outtimeID /),varid); call check_err(status)
+       write(text,'(A)') "sea_water_density"
+       status = nf_put_att_text(ncidout,varid,"standard_name",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') "kilogram meter-3"
+       status = nf_put_att_text(ncidout,varid,"units",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') "time"
+       status = nf_put_att_text(ncidout,varid,"time",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') "longitude latitude "
+       status = nf_put_att_text(ncidout,varid,"coordinates",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') "density anomaly"
+       status = nf_put_att_text(ncidout,varid,"long_name",len_trim(text),trim(text)); call check_err(status)
+       status = nf_put_att_text(ncidout,varid,"grid_mapping",len_trim(proj_name),trim(proj_name)); call check_err(status)
+       status = nf_inq_varid(ncidin,trim(varname),varidin); call check_err(status)
+       status = nf_copy_att(ncidin,varidin,"_FillValue",ncidout,varid); call check_err(status)
+    elseif (verify(trim(varname),"uice").eq.0) then
+
+      status = nf_def_var(ncidout,trim(varname),NF_REAL,3,(/ nxID, nyID, outtimeID /),varid); call check_err(status)
+       write(text,'(A)') "sea_ice_x_velocity"
+       status = nf_put_att_text(ncidout,varid,"standard_name",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') "meter second-1"
+       status = nf_put_att_text(ncidout,varid,"units",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') "time"
+       status = nf_put_att_text(ncidout,varid,"time",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') "longitude latitude"
+       status = nf_put_att_text(ncidout,varid,"coordinates",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') "u-component of sea ice velocity"
+       status = nf_put_att_text(ncidout,varid,"long_name",len_trim(text),trim(text)); call check_err(status)
+       status = nf_put_att_text(ncidout,varid,"grid_mapping",len_trim(proj_name),trim(proj_name)); call check_err(status)
+       status = nf_inq_varid(ncidin,trim(varname),varidin); call check_err(status)
+       status = nf_copy_att(ncidin,varidin,"_FillValue",ncidout,varid); call check_err(status)
+
+    elseif (verify(trim(varname),"vice").eq.0) then
+
+      status = nf_def_var(ncidout,trim(varname),NF_REAL,3,(/ nxID, nyID, outtimeID /),varid); call check_err(status)
+       write(text,'(A)') "sea_ice_y_velocity"
+       status = nf_put_att_text(ncidout,varid,"standard_name",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') "meter second-1"
+       status = nf_put_att_text(ncidout,varid,"units",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') "time"
+       status = nf_put_att_text(ncidout,varid,"time",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') "longitude latitude"
+       status = nf_put_att_text(ncidout,varid,"coordinates",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') "v-component of sea ice velocity"
+       status = nf_put_att_text(ncidout,varid,"long_name",len_trim(text),trim(text)); call check_err(status)
+       status = nf_put_att_text(ncidout,varid,"grid_mapping",len_trim(proj_name),trim(proj_name)); call check_err(status)
+       status = nf_inq_varid(ncidin,trim(varname),varidin); call check_err(status)
+       status = nf_copy_att(ncidin,varidin,"_FillValue",ncidout,varid); call check_err(status)
+
+    elseif (verify(trim(varname),"aice").eq.0) then
+
+      status = nf_def_var(ncidout,trim(varname),NF_REAL,3,(/ nxID, nyID, outtimeID /),varid); call check_err(status)
+       write(text,'(A)') "sea_ice_area_fraction"
+       status = nf_put_att_text(ncidout,varid,"standard_name",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') ""
+       status = nf_put_att_text(ncidout,varid,"units",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') "time"
+       status = nf_put_att_text(ncidout,varid,"time",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') "longitude latitude"
+       status = nf_put_att_text(ncidout,varid,"coordinates",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') "fraction of cell covered by ice"
+       status = nf_put_att_text(ncidout,varid,"long_name",len_trim(text),trim(text)); call check_err(status)
+       status = nf_put_att_text(ncidout,varid,"grid_mapping",len_trim(proj_name),trim(proj_name)); call check_err(status)
+       status = nf_inq_varid(ncidin,trim(varname),varidin); call check_err(status)
+       status = nf_copy_att(ncidin,varidin,"_FillValue",ncidout,varid); call check_err(status)
+
+    elseif (verify(trim(varname),"hice").eq.0) then
+
+      status = nf_def_var(ncidout,trim(varname),NF_REAL,3,(/ nxID, nyID, outtimeID /),varid); call check_err(status)
+       write(text,'(A)') "sea_ice_thickness"
+       status = nf_put_att_text(ncidout,varid,"standard_name",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') "meter"
+       status = nf_put_att_text(ncidout,varid,"units",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') "time"
+       status = nf_put_att_text(ncidout,varid,"time",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') "longitude latitude"
+       status = nf_put_att_text(ncidout,varid,"coordinates",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') "average ice thickness in cell"
+       status = nf_put_att_text(ncidout,varid,"long_name",len_trim(text),trim(text)); call check_err(status)
+       status = nf_put_att_text(ncidout,varid,"grid_mapping",len_trim(proj_name),trim(proj_name)); call check_err(status)
+       status = nf_inq_varid(ncidin,trim(varname),varidin); call check_err(status)
+       status = nf_copy_att(ncidin,varidin,"_FillValue",ncidout,varid); call check_err(status)
+
+    elseif (verify(trim(varname),"hsn").eq.0) then
+
+      status = nf_def_var(ncidout,trim(varname),NF_REAL,3,(/ nxID, nyID, outtimeID /),varid); call check_err(status)
+       write(text,'(A)') "surface_snow_thickness"
+       status = nf_put_att_text(ncidout,varid,"standard_name",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') "meter"
+       status = nf_put_att_text(ncidout,varid,"units",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') "time"
+       status = nf_put_att_text(ncidout,varid,"time",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') "longitude latitude"
+       status = nf_put_att_text(ncidout,varid,"coordinates",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') "average thickness of snow cover in cell"
+       status = nf_put_att_text(ncidout,varid,"long_name",len_trim(text),trim(text)); call check_err(status)
+       status = nf_put_att_text(ncidout,varid,"grid_mapping",len_trim(proj_name),trim(proj_name)); call check_err(status)
+       status = nf_inq_varid(ncidin,trim(varname),varidin); call check_err(status)
+       status = nf_copy_att(ncidin,varidin,"_FillValue",ncidout,varid); call check_err(status)
+
+    elseif (verify(trim(varname),"ageice").eq.0) then
+
+      status = nf_def_var(ncidout,trim(varname),NF_REAL,3,(/ nxID, nyID, outtimeID /),varid); call check_err(status)
+       write(text,'(A)') "sea_ice_age"
+       status = nf_put_att_text(ncidout,varid,"standard_name",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') "days"
+       status = nf_put_att_text(ncidout,varid,"units",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') "time"
+       status = nf_put_att_text(ncidout,varid,"time",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') "longitude latitude"
+       status = nf_put_att_text(ncidout,varid,"coordinates",len_trim(text),trim(text)); call check_err(status)
+       write(text,'(A)') "age of the ice"
+       status = nf_put_att_text(ncidout,varid,"long_name",len_trim(text),trim(text)); call check_err(status)
+       status = nf_put_att_text(ncidout,varid,"grid_mapping",len_trim(proj_name),trim(proj_name)); call check_err(status)
+       status = nf_copy_att(ncidin,varidin,"_FillValue",ncidout,varid); call check_err(status)
+    else
+
+       print *, "Program not coded for ",trim(varname),". Please modify defvar.f90 to include it"
+       stop
+
+    end if
+  end subroutine defvar

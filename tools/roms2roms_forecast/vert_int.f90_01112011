@@ -1,0 +1,58 @@
+subroutine vert_int(array_in,Mp,Lp,Ni,No,z_ri,array_out,z_ro,undef,maski,masko,tx,critx,cor,mxs)
+!Denne subroutine er uavhengig av Vtransform og Vstretching, kun z_ri og z_ro
+!10.05.2011: Removed fill, this is now handled by FIMEX
+  implicit none
+  integer, intent(in) :: Mp,Lp,No,Ni,maski(Lp,Mp),masko(Lp,Mp),mxs
+  real   , intent(in) :: undef,z_ri(Lp,Mp,Ni),z_ro(Lp,Mp,No),tx,critx,cor,array_in(Lp,Mp,Ni)
+  real   , intent(out) :: array_out(Lp,Mp,No)
+  integer	:: i,j,k,kT,nvalue
+  real		:: rz1,rz2,scr(Lp,Mp),array_in_temp(Lp,Mp,Ni)
+  REAL          :: work(Lp,Mp),z_ri_swap(Lp,Mp,Ni),z_rii(Lp,Mp,Ni)
+  REAL          :: error(Lp,Mp)
+
+  ! Test which direction the values for depth are
+  write (*,*) 'e'
+  !z_ro(100,100,:)
+  !  if (z_ri(1,1,2).lt.z_ri(1,1,1)) then
+  !     write (*,*) 'swapper dyp...'
+  ! , z_ri(1,1,2), z_ri(1,1,1)
+  !      do k=1,Ni
+  !         array_in_temp(:,:,k)=array_in(:,:,(Ni-k+1))
+  !         z_ri_swap(:,:,k)=z_ri(:,:,(Ni-k+1))
+  !      end do
+  ! !     array_in=array_in_temp
+  ! !     z_rii=z_ri_swap
+  !   else
+  !      write (*,*) 'no swap'
+  ! !     z_rii=z_ri
+  !  end if
+  
+  ! Vertical interpolation
+  array_out = undef
+  where(z_ro==undef) array_out=0.0
+  DO j=1,Mp
+     DO i=1,Lp
+	DO k=1,No
+           !write(*,*) z_ro(200,200,k)
+           !write(*,*) z_ri(200,200,1)
+           IF(z_ro(i,j,k).LE.z_ri(i,j,1).and.z_ro(i,j,k).ne.undef) THEN
+	      array_out(i,j,k) = array_in(i,j,1)
+           ELSEIF(z_ro(i,j,k).GE.z_ri(i,j,Ni).and.z_ro(i,j,k).ne.undef) THEN
+	      array_out(i,j,k) = array_in(i,j,Ni)
+           ELSE
+	      DO kT=1,Ni
+                 IF(z_ro(i,j,k).LT.z_ri(i,j,kT+1).AND.z_ro(i,j,k).GE.z_ri(i,j,kT)) THEN
+		    rz2 = (z_ro(i,j,k)-z_ri(i,j,kT))/(z_ri(i,j,kT+1)-z_ri(i,j,kT))
+		    rz1 = 1.0-rz2 
+		    array_out(i,j,k) = rz1*array_in(i,j,kT) + rz2*array_in(i,j,kT+1)
+		    !EXIT
+                 ENDIF
+	      ENDDO
+           ENDIF
+	ENDDO
+     ENDDO
+  ENDDO
+  
+  
+  
+end subroutine vert_int

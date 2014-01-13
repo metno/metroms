@@ -1,0 +1,32 @@
+#
+#                                 Makefile for producing ROMS forcing
+FC = gfortran
+FFLAGS = -O #-Wunused #-Bstatic -g
+#
+LIBPATH = /home/metno_op/roms/testdir/NETCDF_gfortran/lib
+#
+INCLUDE = /home/metno_op/roms/testdir/NETCDF_gfortran/include
+#
+LIBRARY = netcdf
+#
+TARGETS = all clean
+EXECS   = roms2roms
+#
+#
+all: $(EXECS)
+
+roms2roms: roms2roms.o
+	$(FC) $(FFLAGS) -o $@ roms2roms.f90 -O3 getvar.f90 spec_vert_grid.f90 vert_int.f90 handle_err.f90 fill.f90 fill_mod.f90 creep_fill.f90 -I$(INCLUDE) -L$(LIBPATH) -l$(LIBRARY)
+
+roms2roms.o: roms2roms.f90
+getvar.o: getvar.f90
+spec_vert_grid.o: spec_vert_grid.f90
+vert_int.o: vert_int.f90
+fill.o: fill.f90
+creep_fill.o: creep_fill.f90
+handle_err.o: handle_err.f90
+
+clean:
+	@for name in $(EXECS) ; do\
+	(rm -f $$name $$name.o); done
+

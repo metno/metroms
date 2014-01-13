@@ -1,0 +1,40 @@
+#!/usr/bin/sh
+#PBS -o /prod/forecast/run/Arctic-20km/tmp/Arctic-20km00f.log
+#PBS -j oe
+#PBS -k oe
+#PBS -N A20km-run
+#PBS -l select=16:ncpus=16:mpiprocs=8
+#PBS -l walltime=01:00:00
+#PBS -V
+#-----------------------------------------------
+#-----------------------------------------------
+#
+#
+# >>>> met.no/FoU dd.10.2008 H.Engedahl ... Run ROMS for the chosen model set up
+# >>>> met.no/FOU nilsmk (17.10.2011)
+#
+exec 1>/prod/forecast/run/Arctic-20km/Arctic-20km00f.log 2>&1
+set -x
+#
+##exec 2>>1
+#
+# Load modules needed
+. /usr/share/modules/init/bash
+module load nco proj udunits netcdf/3.6.2 boost hdf5 mpt
+cd /prod/forecast/sea/ROMS/trunk/Apps/Arctic-20km
+jobdir=`pwd`
+rundir=/prod/forecast/run/Arctic-20km
+#
+#
+#
+##########################################################################
+#
+# R U N   T H E   R O M S   O C E A N   M O D E L
+# ===============================================
+#
+cd $rundir  
+mpiexec_mpt -np 128 $jobdir/oceanM $rundir/roms_forecast.in
+#
+echo "ROMS run completed" > $rundir/run_ROMS.end_msg
+#
+exit
