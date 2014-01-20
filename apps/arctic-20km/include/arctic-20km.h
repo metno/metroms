@@ -9,7 +9,7 @@
 **
 *******************************************************************************
 **
-**  Options for Arctic-20km
+**  Options for ROMS
 */
 
 #undef  RST_SINGLE         /* define if single precision restart fields */
@@ -44,7 +44,7 @@
 #undef  TS_SMAGORINSKY     /* define if Smagorinsky-like diffusion */
 
 #define MIX_GEO_TS         /* mixing on geopotential (constant Z) surfaces, Frode undef */
-#undef MIX_S_UV           /* mixing along constant S-surfaces,   Frode -*/
+#undef  MIX_S_UV           /* mixing along constant S-surfaces,   Frode -*/
 
 #define SALINITY           /* define if using salinity */
 #define SOLVE3D            /* define if solving 3D primitive equations */
@@ -90,7 +90,7 @@
 
 #undef  WESTERN_WALL
 #undef  NORTHERN_WALL
-#define  SOUTHERN_WALL
+#define SOUTHERN_WALL
 #undef  EASTERN_WALL
 
 #define EAST_FSCHAPMAN     /* free-surface Chapman condition */
@@ -134,7 +134,7 @@
 
 /* ATMOSPHERIC FORCING */
 #define BULK_FLUXES        /* turn ON or OFF bulk fluxes computation */
-#ifdef BULK_FLUXES
+#ifdef  BULK_FLUXES
 # undef  ANA_RAIN          /* analytical rain fall rate */
 # undef  ANA_PAIR          /* analytical surface air pressure */
 # undef  ANA_HUMIDITY      /* analytical surface air humidity */
