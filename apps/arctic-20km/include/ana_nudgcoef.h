@@ -181,7 +181,7 @@
 !!
 !!#elif defined ???
 
-#elif defined ARCTIC20KM || defined NORDIC4KM || defined SKAGCOD4KM
+#elif defined OBC_NUDGING
 !
       cff1=1.0_r8/(5.0_r8*86400.0_r8)
       cff2=0.0_r8

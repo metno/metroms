@@ -128,6 +128,7 @@
 #undef  M2CLM_NUDGING
 #define M3CLM_NUDGING      /* nudging 3D momentum climatology */
 #define TCLM_NUDGING       /* nudging tracers climatology */
+#define OBC_NUDGING
 
 #undef  WRF_COUPLING       /* coupling to WRF atmospheric model */
 
@@ -147,7 +148,7 @@
 # undef  LONGWAVE_OUT      /* compute outgoing longwave radiation */
 # define LONGWAVE          /* Compute net longwave radiation internally */
 # define COOL_SKIN         /* turn ON or OFF cool skin correction *//* Ikke def hos Frode*/
-# undef SHORTWAVE
+# undef  SHORTWAVE
 #endif
 
 #define ATM_PRESS          /* use to impose atmospheric pressure onto sea surface */
@@ -159,8 +160,8 @@
 #define UV_TIDES           /* turn on computation of tidal currents */
 #define ADD_FSOBC          /* Add tidal elevation to processed OBC data, default define */
 #define ADD_M2OBC          /* Add tidal currents  to processed OBC data */
-#define  ADD_FS_INV_BARO
-#define  RAMP_TIDES         /* Spin up tidal forcing */
+#define ADD_FS_INV_BARO
+#define RAMP_TIDES         /* Spin up tidal forcing */
 
 
 /* ELVER */
