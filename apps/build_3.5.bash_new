@@ -239,11 +239,11 @@ export          COMPILERS=${MY_ROMS_SRC}/Compilers
 # out. Any string value (including off) will evaluate to TRUE in
 # conditional if-stamentents.
 
- export           USE_MPI=on
- export        USE_MPIF90=on
+# export           USE_MPI=on
+# export        USE_MPIF90=on
  export              FORT=gfortran
 
- export        USE_OpenMP=
+ export        USE_OpenMP=on
 
 #export         USE_DEBUG=on
  export         USE_LARGE=on
@@ -484,7 +484,7 @@ fi
 
 # Put the binary to execute in the following directory.
 
- export            BINDIR=${tup}/tmproms
+ export            BINDIR=${tup}/tmproms/run/${ROMS_APPLICATION}
 
 # Put the f90 files in a project specific Build directory to avoid conflict
 # with other projects.

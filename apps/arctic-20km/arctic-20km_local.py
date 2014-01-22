@@ -1,16 +1,15 @@
 #!/usr/bin/python
 import numpy as np
 import os
+from ModelRun import *
 from params import *
-from roms_utils import *
 ########################################################################
-print "Running ROMS in directory: "+rundir[1]+"\n\n"
-os.chdir(rundir[1])
-# Prepare roms input-file, replace keywords:
-replace_keywords_roms_in(keywordpath+"/"+keywordfile, romsinfile, keywordlist)
-# Run the ROMS model:
-execute_roms_mpi(int(xcpu[1])*int(ycpu[1]),romsinfile)
-# Output to std.out that model has finished:
-print "\nROMS run finished"
-########################################################################
+class Arctic20(ModelRun):
+    # def run_roms(self,runoption=SERIAL,debugoption=NODEBUG):
+    #     print "hello"
+    #     super(Arctic20,self).run_roms(runoption,debugoption)
+    def preprocess(self):
+        super(Arctic20,self).preprocess()  #To expand method in superclass
+        print "hello"
 
+Arctic20().run_roms(DRY,NODEBUG,MET64)

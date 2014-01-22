@@ -2,8 +2,8 @@ import numpy as np
 ########################################################################
 # Name of roms.in keyword-file:
 ########################################################################
-keywordfile="roms_keyword.in"
-keywordpath="/disk1/METROMS/apps/common/origfiles"
+keywordfile="roms_keyword.in_local"
+keywordpath="/disk1/METROMS/apps/arctic-20km/origfiles"
 ########################################################################
 # List of keywords:
 ########################################################################
@@ -15,7 +15,7 @@ ypoints=['YPOINTS',"240"]
 nlevels=['NLEVELS',"35"]
 xcpu=['XCPU',"2"]
 ycpu=['YCPU',"2"]
-tsteps=['TSTEPS',"72"]
+tsteps=['TSTEPS',"288"]
 dt=['DELTAT',"300"]
 ndtfast=['RATIO',"30"]
 nrrec=['IRESTART',"-1"]
@@ -24,7 +24,7 @@ nsta=['STASTEP',"12"]
 ninfo=['INFOSTEP',"12"]
 nhis=['HISSTEPP',"12"]
 ndefhis=['DEFHISSTEP',"0"]     #if 0; all output in one his-file
-navg=['AVGSTEPP',"72"]
+navg=['AVGSTEPP',"288"]
 ntsavg=['STARTAVG',"0"]
 ndefavg=['DEFAVGSTEP',"0"]     #if 0; all output in one avg-file
 dstart=['STARTTIME',"8506.0"]
@@ -37,19 +37,6 @@ tidedir=['TIDEDIR',rundir[1]]
 atmdir=['ATMDIR',rundir[1]]
 riverfile=['RIVERFILE',"/disk1/METROMS/apps/common/rivers/A20_rivers_openBering35.nc"]
 nffiles=['FORCEFILES',"4"]
-########################################################################
-MPI=0
-OPENMP=1
-SERIAL=2
-DRY=3
-########################################################################
-NODEBUG=0
-DEBUG=1
-########################################################################
-MET64=0
-MET32=1
-VILJE=2
-BYVIND=3
 ########################################################################
 romsinfile=rundir[1]+"/roms.in"
 ########################################################################
