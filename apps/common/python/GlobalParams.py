@@ -1,13 +1,9 @@
+COMMONPATH="/disk1/METROMS/apps/common"
+COMMONORIGPATH=COMMONPATH+"/origfiles"
 ########################################################################
-MPI=0
-OPENMP=1
-SERIAL=2
-DRY=3
+# Internal files:
 ########################################################################
-NODEBUG=0
-DEBUG=1
-########################################################################
-MET64=0
-MET32=1
-VILJE=2
-BYVIND=3
+FELT2NC_CONFIG=COMMONORIGPATH+"/felt2nc.xml"
+IN_CLMFILE="ocean_clm_in.nc"
+CLMFILE="ocean_clm.nc"
+INIFILE="ocean_ini.nc"

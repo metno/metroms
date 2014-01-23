@@ -1,19 +1,31 @@
 from subprocess import call
+from abc import abstractmethod
 import os
-from params import *
+from params import Params
+from Constants import *
+from GlobalParams import *
 ########################################################################
 # Define:
 ########################################################################
 class ModelRun(object):
+    _params=None
+    _clmfileoption=None
+    _atmfileoption=None
+
+    def __init__(self,params,clmoption=NC,atmoption=NC):
+        self._params=params
+        self._clmfileoption=clmoption
+        self._atmfileoption=atmoption
+
     def run_roms(self,runoption=SERIAL,debugoption=NODEBUG,architecture=MET64):
         """
         About this...
         """
-        print "Running ROMS in directory: "+rundir[1]+"\n\n"
-        os.chdir(rundir[1])
-        self.preprocess()
-        self.run(runoption,debugoption,architecture)
-        self.postprocess()
+        print "Running ROMS in directory: "+self._params.RUNPATH+"\n\n"
+        os.chdir(self._params.RUNPATH)
+        # Prepare roms input-file, replace keywords:
+        self._replace_keywords_roms_in()
+        self._run(runoption,debugoption,architecture)
         # Output to std.out that model has finished:
         print "\nROMS run finished"
 
@@ -21,59 +33,32 @@ class ModelRun(object):
         """
         Contains collection of preprocessors common for all models.
         """
-        #self._fimex_felt2nc(infile,outfile,configfile) #Comment out? Need hor.interp...
-        self._verticalinterp("ocean_clm_in.nc","ocean_clm.nc")
-        self._bry_from_clm(None,None)
-        self._ini_from_clm(None,None)
+        os.chdir(self._params.RUNPATH)
+        self._make_OBC()
         self._tpxo2romstide(None,None,None)
         self._make_atm_force()
-        # Prepare roms input-file, replace keywords:
-        self._replace_keywords_roms_in(keywordpath+"/"+keywordfile, romsinfile, keywordlist)
 
-    def run(self,runoption=SERIAL,debugoption=NODEBUG,architecture=MET64):
-        """
-        """
-        # Run the ROMS model:
-        if architecture==MET64:
-            if runoption==MPI:
-                self._execute_roms_mpi(int(xcpu[1])*int(ycpu[1]),romsinfile,debugoption)
-            elif runoption==OPENMP:
-                self._execute_roms_openmp(int(xcpu[1])*int(ycpu[1]),romsinfile,debugoption)
-            elif runoption==SERIAL:
-                self._execute_roms_serial(romsinfile,debugoption)
-            elif runoption==DRY:
-                pass
-            else:
-                print "No valid runoption!"
-                exit(1)
-        elif architecture in (MET32,VILJE,BYVIND):
-            print "Unsupported architecture..."
-            exit(1)
-        else:
-            print "Unsupported architecture..."
-            exit(1)
-            
     def postprocess(self):
         """
         """
-        pass
+        os.chdir(self._params.RUNPATH)
+        #pass
 
 ########################################################################
 # PRIVATE METHODS:
 ########################################################################
 
-    def _replace_keywords_roms_in(self,roms_keyword_infile,roms_infile,keywordlist):
+    def _replace_keywords_roms_in(self):
         """
         This function will replace the keywords in the given 
         keyword.in-file.
         """
-        file = open(roms_keyword_infile)
-        newlines = file.read()
-        for n in range(len(keywordlist[:,0])):
-            newlines = newlines.replace(keywordlist[n,0],keywordlist[n,1])
-        with open(roms_infile, 'w') as f:
-            for line in newlines:
-                f.write(line)    
+        with open(self._params.KEYWORDFILE, 'r') as f:
+            newlines = f.read()
+        for key,value in self._params.KEYWORDLIST:
+            newlines = newlines.replace(key,value)
+        with open(self._params.ROMSINFILE, 'w') as f:
+            f.write(newlines)    
 
     def _execute_roms_mpi(self,ncpus,infile,debugoption=NODEBUG):
         """
@@ -137,3 +122,40 @@ class ModelRun(object):
         self._dew2spec(None)
         print "make_atm_force end"
 
+    def _make_OBC(self):
+        self._verticalinterp(self.get_clmfile(),CLMFILE)
+        self._bry_from_clm(CLMFILE,None)
+        self._ini_from_clm(CLMFILE,None)
+
+    def get_clmfile(self): 
+        if self._clmfileoption==FELT:
+            self._fimex_felt2nc(self._params.FELT_CLMFILE,IN_CLMFILE,FELT2NC_CONFIG)
+        elif self._clmfileoption==NC:
+            self._fimex_horinterp()
+        else:
+            print "Illegal clmfileoption."
+            exit(1)
+        return IN_CLMFILE
+
+    def _run(self,runoption=SERIAL,debugoption=NODEBUG,architecture=MET64):
+        """
+        """
+        # Run the ROMS model:
+        if architecture==MET64:
+            if runoption==MPI:
+                self._execute_roms_mpi(int(xcpu[1])*int(ycpu[1]),ROMSINFILE,debugoption)
+            elif runoption==OPENMP:
+                self._execute_roms_openmp(int(xcpu[1])*int(ycpu[1]),ROMSINFILE,debugoption)
+            elif runoption==SERIAL:
+                self._execute_roms_serial(ROMSINFILE,debugoption)
+            elif runoption==DRY:
+                pass
+            else:
+                print "No valid runoption!"
+                exit(1)
+        elif architecture in (MET32,VILJE,BYVIND):
+            print "Unsupported architecture..."
+            exit(1)
+        else:
+            print "Unsupported architecture..."
+            exit(1)
