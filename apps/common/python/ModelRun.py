@@ -143,11 +143,11 @@ class ModelRun(object):
         # Run the ROMS model:
         if architecture==MET64:
             if runoption==MPI:
-                self._execute_roms_mpi(int(xcpu[1])*int(ycpu[1]),ROMSINFILE,debugoption)
+                self._execute_roms_mpi(int(self._params.xcpu[1])*int(self._params.ycpu[1]),self._params.ROMSINFILE,debugoption)
             elif runoption==OPENMP:
-                self._execute_roms_openmp(int(xcpu[1])*int(ycpu[1]),ROMSINFILE,debugoption)
+                self._execute_roms_openmp(int(self._params.xcpu[1])*int(self._params.ycpu[1]),self._params.ROMSINFILE,debugoption)
             elif runoption==SERIAL:
-                self._execute_roms_serial(ROMSINFILE,debugoption)
+                self._execute_roms_serial(self._params.ROMSINFILE,debugoption)
             elif runoption==DRY:
                 pass
             else:
