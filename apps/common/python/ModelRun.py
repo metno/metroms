@@ -1,7 +1,7 @@
 from subprocess import call
 from abc import abstractmethod
 import os
-from params import Params
+from Params import Params
 from Constants import *
 from GlobalParams import *
 ########################################################################
