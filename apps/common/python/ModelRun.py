@@ -1,7 +1,7 @@
-from subprocess import call
-from abc import abstractmethod
+#from subprocess import call
+#from abc import abstractmethod
 import os
-from Params import Params
+#from Params import Params
 from Constants import *
 from GlobalParams import *
 ########################################################################
@@ -12,12 +12,13 @@ class ModelRun(object):
     _clmfileoption=None
     _atmfileoption=None
 
-    def __init__(self,params,clmoption=NC,atmoption=NC):
+    def __init__(self,params,clmoption=Constants.NC,atmoption=Constants.NC):
         self._params=params
         self._clmfileoption=clmoption
         self._atmfileoption=atmoption
 
-    def run_roms(self,runoption=SERIAL,debugoption=NODEBUG,architecture=MET64):
+    def run_roms(self,runoption=Constants.SERIAL,debugoption=Constants.NODEBUG,
+                 architecture=Constants.MET64):
         """
         About this...
         """
@@ -60,27 +61,27 @@ class ModelRun(object):
         with open(self._params.ROMSINFILE, 'w') as f:
             f.write(newlines)    
 
-    def _execute_roms_mpi(self,ncpus,infile,debugoption=NODEBUG):
+    def _execute_roms_mpi(self,ncpus,infile,debugoption=Constants.NODEBUG):
         """
         Execute the ROMS model itself using MPI.
         """
-        executable="oceanM" if debugoption==NODEBUG else "oceanG"
+        executable="oceanM" if debugoption==Constants.NODEBUG else "oceanG"
         os.system("mpirun -np "+str(ncpus)+" "+executable+" "+infile)
         #call(["mpirun", "-np", str(ncpus), "oceanM", infile])
 
-    def _execute_roms_openmp(self,ncpus,infile,debugoption=NODEBUG):
+    def _execute_roms_openmp(self,ncpus,infile,debugoption=Constants.NODEBUG):
         """
         Execute the ROMS model itself using OpenMP.
         """
-        executable="oceanO" if debugoption==NODEBUG else "oceanG"
+        executable="oceanO" if debugoption==Constants.NODEBUG else "oceanG"
         os.environ['OMP_NUM_THREADS'] = str(ncpus)
         os.system("./"+executable+" < "+infile)
 
-    def _execute_roms_serial(self,infile,debugoption=NODEBUG):
+    def _execute_roms_serial(self,infile,debugoption=Constants.NODEBUG):
         """
         Execute the ROMS model itself in serial mode.
         """
-        executable="oceanS" if debugoption==NODEBUG else "oceanG"
+        executable="oceanS" if debugoption==Constants.NODEBUG else "oceanG"
         os.system("./"+executable+" < "+infile)
 
     def _fimex_hor_interp(self,ncfilein,ncfileout):
@@ -123,38 +124,40 @@ class ModelRun(object):
         print "make_atm_force end"
 
     def _make_OBC(self):
-        self._verticalinterp(self.get_clmfile(),CLMFILE)
-        self._bry_from_clm(CLMFILE,None)
-        self._ini_from_clm(CLMFILE,None)
+        self._verticalinterp(self.get_clmfile(),GlobalParams.CLMFILE)
+        self._bry_from_clm(GlobalParams.CLMFILE,None)
+        self._ini_from_clm(GlobalParams.CLMFILE,None)
 
     def get_clmfile(self): 
-        if self._clmfileoption==FELT:
-            self._fimex_felt2nc(self._params.FELT_CLMFILE,IN_CLMFILE,FELT2NC_CONFIG)
-        elif self._clmfileoption==NC:
+        if self._clmfileoption==Constants.FELT:
+            self._fimex_felt2nc(self._params.FELT_CLMFILE,GlobalParams.IN_CLMFILE,GlobalParams.FELT2NC_CONFIG)
+        elif self._clmfileoption==Constants.NC:
             self._fimex_horinterp()
         else:
             print "Illegal clmfileoption."
             exit(1)
-        return IN_CLMFILE
+        return GlobalParams.IN_CLMFILE
 
-    def _run(self,runoption=SERIAL,debugoption=NODEBUG,architecture=MET64):
+    def _run(self,runoption=Constants.SERIAL,debugoption=Constants.NODEBUG,architecture=Constants.MET64):
         """
         """
         # Run the ROMS model:
-        if architecture==MET64:
-            if runoption==MPI:
-                self._execute_roms_mpi(int(self._params.xcpu[1])*int(self._params.ycpu[1]),self._params.ROMSINFILE,debugoption)
-            elif runoption==OPENMP:
-                self._execute_roms_openmp(int(self._params.xcpu[1])*int(self._params.ycpu[1]),self._params.ROMSINFILE,debugoption)
-            elif runoption==SERIAL:
+        if architecture==Constants.MET64:
+            if runoption==Constants.MPI:
+                self._execute_roms_mpi(int(self._params.XCPU)*int(self._params.YCPU),
+                                       self._params.ROMSINFILE,debugoption)
+            elif runoption==Constants.OPENMP:
+                self._execute_roms_openmp(int(self._params.XCPU)*int(self._params.XCPU),
+                                          self._params.ROMSINFILE,debugoption)
+            elif runoption==Constants.SERIAL:
                 self._execute_roms_serial(self._params.ROMSINFILE,debugoption)
-            elif runoption==DRY:
+            elif runoption==Constants.DRY:
                 pass
             else:
                 print "No valid runoption!"
                 exit(1)
-        elif architecture in (MET32,VILJE,BYVIND):
-            print "Unsupported architecture..."
+        elif architecture in (Constants.MET32,Constants.VILJE,Constants.BYVIND):
+            print "Currently unsupported architecture..."
             exit(1)
         else:
             print "Unsupported architecture..."
