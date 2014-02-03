@@ -1,12 +1,7 @@
-#from subprocess import call
-#from abc import abstractmethod
 import os
-#from Params import Params
-from Constants import *
+import Constants
 from GlobalParams import *
-########################################################################
-# Define:
-########################################################################
+
 class ModelRun(object):
     _params=None
     _clmfileoption=None

@@ -1,15 +1,23 @@
 #!/usr/bin/python
 import numpy as np
 import os
-from ModelRun import *
-from params import *
-########################################################################
-class Arctic20(ModelRun):
-    # def run_roms(self,runoption=SERIAL,debugoption=NODEBUG):
-    #     print "hello"
-    #     super(Arctic20,self).run_roms(runoption,debugoption)
-    def preprocess(self):
-        super(Arctic20,self).preprocess()  #To expand method in superclass
-        print "hello"
+import Constants
 
-Arctic20().run_roms(DRY,NODEBUG,MET64)
+from GlobalParams import *
+from Params import *
+from ModelRun import *
+########################################################################
+
+rundir="/disk1/tmproms/run/arctic-20km"
+
+xcpu=2
+ycpu=2
+
+a20params=Params(rundir,xcpu,ycpu,tsteps=720,irestart=-1)
+a20params.ROMSINFILE=a20params.RUNPATH+"/roms.in"
+
+modelrun=ModelRun(a20params,Constants.FELT,Constants.FELT)
+
+modelrun.preprocess()
+modelrun.run_roms(Constants.OPENMP,Constants.NODEBUG,Constants.MET64) #24h hindcast
+modelrun.postprocess()
