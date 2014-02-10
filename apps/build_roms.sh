@@ -199,7 +199,9 @@ rollback() {
 }
 trap 'rollback; exit 99' 0
 
-# Activate Data Access Protocol (like OPeNDAP) support for input
+# Activate Data Access ProtocoESMF_DIR=/disk1/tmproms1/esmf/
+ESMF_COMM=mpiuni
+ESMF_COMPILER=gfortranl (like OPeNDAP) support for input
 # NetCDF files.  This is only possible for NetCDF library version
 # 4.1.1 or higher. Also, add the path of the "curl-config" script
 # that includes all linking libraries for DAP support.
