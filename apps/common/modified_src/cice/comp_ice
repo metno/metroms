@@ -1,0 +1,130 @@
+#! /bin/csh -f
+
+### Change these to your own site and user directory! 
+### You will need to create a Makefile Macro in bld/ and a run_ice script 
+### in input_templates/.
+#setenv SITE LANL.coyote
+setenv SITE Ubuntu
+#setenv SITE NAVO.kraken
+#setenv SITE NCAR.bluevista
+#setenv SITE LLNL.atlas
+
+### SYSTEM_USERDIR is predefined on ORNL machines
+setenv SYSTEM_USERDIR ${CICE_DIR}
+#setenv SYSTEM_USERDIR /scr/eclare                # kraken
+#setenv SYSTEM_USERDIR /ptmp/eclare               # bluevista
+#setenv SYSTEM_USERDIR /p/lscratchb/hunke1        # atlas
+
+### Grid resolution
+#setenv RES gx3 ; setenv GRID 100x116
+#setenv RES gx1 ; setenv GRID 320x384
+#setenv RES tx1 ; setenv GRID 360x240
+setenv RES col ; setenv GRID 5x5
+
+set NXGLOB = `echo $GRID | sed s/x.\*//`
+set NYGLOB = `echo $GRID | sed s/.\*x//`
+
+# Recommendations:
+#   NTASK equals nprocs in ice_in 
+#   use processor_shape = slenderX1 or slenderX2 in ice_in
+#   one per processor with distribution_type='cartesian' or
+#   squarish blocks with distribution_type='rake'
+# If BLCKX (BLCKY) does not divide NXGLOB (NYGLOB) evenly, padding 
+# will be used on the right (top) of the grid.
+if ($RES == 'col') then   # for column configuration:
+   setenv NTASK      1       # total number of processors
+   setenv BLCKX      5       # x-dimension of blocks ( not including )
+   setenv BLCKY      5       # y-dimension of blocks (  ghost cells  )
+else                      # test problem: gx3
+   setenv NTASK      4       # total number of processors
+   setenv BLCKX     25       # x-dimension of blocks ( not including )
+   setenv BLCKY     29       # y-dimension of blocks (  ghost cells  )
+endif
+
+# may need to increase MXBLCKS with rake distribution or padding
+@ a = $NXGLOB * $NYGLOB ; @ b = $BLCKX * $BLCKY * $NTASK  
+@ m = $a / $b ; setenv MXBLCKS $m ; if ($MXBLCKS == 0) setenv MXBLCKS 1
+#setenv MXBLCKS 37 # if necessary (code will print proper value)
+
+### Specialty code
+setenv USE_ESMF no        # set to yes for ESMF runs
+setenv CAM_ICE  no        # set to yes for CAM runs (single column) 
+setenv SHRDIR   csm_share # location of CCSM shared code
+setenv NETCDF   yes       # set to no if netcdf library is unavailable
+setenv DITTO    no        # reproducible diagnostics
+
+### Set SRCDIR and EXEDIR to your own paths!
+setenv SRCDIR ${CICE_DIR}
+#setenv SRCDIR $HOME/cice                                  # kraken
+#setenv SRCDIR /g/g21/hunke1/cice                          # atlas
+#setenv SRCDIR /ptmp/eclare/cice                           # bluevista
+
+setenv EXEDIR $SYSTEM_USERDIR/rundir4
+                                          if !(-d $EXEDIR) mkdir -p $EXEDIR
+setenv CBLD   $SRCDIR/bld
+setenv OBJDIR $EXEDIR/compile           ; if !(-d $OBJDIR) mkdir -p $OBJDIR
+setenv RSTDIR $EXEDIR/restart           ; if !(-d $RSTDIR) mkdir -p $RSTDIR
+setenv HSTDIR $EXEDIR/history           ; if !(-d $HSTDIR) mkdir -p $HSTDIR
+
+setenv ARCH `uname -s`
+if ( $ARCH == 'UNICOS/mp') setenv ARCH UNICOS
+if ( $ARCH == 'UNICOS') then
+   cp -f $CBLD/Makefile.$ARCH $CBLD/Makefile
+else
+   cp -f $CBLD/Makefile.std $CBLD/Makefile
+endif
+setenv ARCH $ARCH.$SITE
+
+cd $SRCDIR/source
+
+cd $EXEDIR
+
+if !($RES == 'col') then
+if !(-e grid)    cp $SRCDIR/input_templates/$RES/global_$RES.grid grid
+if !(-e kmt)     cp $SRCDIR/input_templates/$RES/global_$RES.kmt kmt
+endif
+if !(-e ice_in)  cp $SRCDIR/input_templates/$RES/ice_in .
+if !(-e run_ice) cp $SRCDIR/input_templates/run_ice.$ARCH run_ice
+
+cd $RSTDIR
+
+cp $SRCDIR/input_templates/$RES/iced_$RES* .
+if !(-e ice.restart_file) cp $SRCDIR/input_templates/$RES/ice.restart_file .
+
+cd $OBJDIR
+
+if ($NTASK == 1) then
+   setenv COMMDIR serial
+else
+   setenv COMMDIR mpi 
+endif
+
+if ($USE_ESMF == 'yes') then
+  setenv DRVDIR esmf
+else
+  setenv DRVDIR cice4
+endif
+
+### List of source code directories (in order of importance).
+cat >! Filepath << EOF
+$SRCDIR/drivers/$DRVDIR
+$SRCDIR/source
+$SRCDIR/$COMMDIR
+$SRCDIR/$SHRDIR
+EOF
+
+cc -o makdep $CBLD/makdep.c                         || exit 2
+
+make VPFILE=Filepath EXEC=$EXEDIR/cice \
+           NXGLOB=$NXGLOB NYGLOB=$NYGLOB \
+           BLCKX=$BLCKX BLCKY=$BLCKY MXBLCKS=$MXBLCKS \
+      -f  $CBLD/Makefile MACFILE=$CBLD/Macros.$ARCH || exit 2
+
+cd ..
+pwd                                         
+echo NTASK = $NTASK
+echo "global N, block_size" 
+echo "x    $NXGLOB,    $BLCKX"
+echo "y    $NYGLOB,    $BLCKY"
+echo max_blocks = $MXBLCKS
+
