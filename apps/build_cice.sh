@@ -7,7 +7,7 @@ metroms_base=${PWD}
 cd ../
 tup=${PWD}
 
-# Build ESMF
+# Build CICE
 cd ${tup}/tmproms
 mkdir cice
 export CICE_DIR=${tup}/tmproms/cice/

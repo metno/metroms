@@ -47,7 +47,7 @@ endif
 #setenv MXBLCKS 37 # if necessary (code will print proper value)
 
 ### Specialty code
-setenv USE_ESMF no        # set to yes for ESMF runs
+setenv USE_ESMF yes        # set to yes for ESMF runs
 setenv CAM_ICE  no        # set to yes for CAM runs (single column) 
 setenv SHRDIR   csm_share # location of CCSM shared code
 setenv NETCDF   yes       # set to no if netcdf library is unavailable

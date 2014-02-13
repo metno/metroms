@@ -199,12 +199,8 @@ rollback() {
 }
 trap 'rollback; exit 99' 0
 
-# Activate Data Access ProtocoESMF_DIR=/disk1/tmproms1/esmf/
-ESMF_COMM=mpiuni
-ESMF_COMPILER=gfortranl (like OPeNDAP) support for input
-# NetCDF files.  This is only possible for NetCDF library version
-# 4.1.1 or higher. Also, add the path of the "curl-config" script
-# that includes all linking libraries for DAP support.
+export ESMF_DIR=${tup}/tmproms/esmf/
+source $ESMF_DIR/lib/libO/Linux.gfortran.64.mpiuni.default/esmf.mk
 
 if [ -n "${USE_NETCDF4:+1}" ]; then
  export USE_DAP=on
