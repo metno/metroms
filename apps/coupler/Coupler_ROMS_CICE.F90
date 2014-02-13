@@ -8,9 +8,8 @@ program ConcurrentComponent
     use ESMF
     use ESMF_TestMod
 
-    use user_model1, only : userm1_setvm, userm1_register
-    use user_model2, only : userm2_setvm, userm2_register
-    use user_coupler, only : usercpl_setvm, usercpl_register
+    use CICE_ComponentMod
+    use ESMF_ROMS
 
     implicit none
 
