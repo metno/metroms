@@ -22,7 +22,7 @@
 #
 # First the defaults
 #
-               FC := gfortran
+               FC := gfortran -I/disk1/altika/MCT/mct
            FFLAGS := -frepack-arrays
               CPP := /usr/bin/cpp
          CPPFLAGS := -P -traditional
@@ -81,14 +81,16 @@ else
 endif
 
 ifdef USE_MCT
-       MCT_INCDIR ?= /usr/local/mct/include
-       MCT_LIBDIR ?= /usr/local/mct/lib
+       MCT_INCDIR := /disk1/altika/MCT/mct
+       MCT_LIBDIR := /disk1/altika/MCT/mct
            FFLAGS += -I$(MCT_INCDIR)
              LIBS += -L$(MCT_LIBDIR) -lmct -lmpeu
 endif
 
 ifdef USE_ESMF
-      ESMF_SUBDIR := $(ESMF_OS).$(ESMF_COMPILER).$(ESMF_ABI).$(ESMF_COMM).$(ESMF_SITE)
+	  ESMF_BOPT   := O
+      ESMF_SUBDIR := Linux.gfortran.64.mpiuni.default
+#      $(ESMF_OS).$(ESMF_COMPILER).$(ESMF_ABI).$(ESMF_COMM).$(ESMF_SITE)
       ESMF_MK_DIR ?= $(ESMF_DIR)/lib/lib$(ESMF_BOPT)/$(ESMF_SUBDIR)
                      include $(ESMF_MK_DIR)/esmf.mk
            FFLAGS += $(ESMF_F90COMPILEPATHS)
@@ -98,7 +100,7 @@ endif
 #
 # Use full path of compiler.
 #
-               FC := $(shell which ${FC})
+#               FC := $(shell which ${FC})
                LD := $(FC)
 
 #

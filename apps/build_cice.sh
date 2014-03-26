@@ -19,6 +19,8 @@ tar -xf ${metroms_base}/static_libs/cice_4_1.tar.gz
 # Copy modified source files
 cp -auv $workingdir/common/modified_src/cice ${tup}/tmproms
 
+export USE_ESMF=yes
+
 ./comp_ice
 
 set +x

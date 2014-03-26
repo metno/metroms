@@ -64,7 +64,9 @@ metroms_base=${PWD}
 cd ../
 tup=${PWD}
 
-export MY_ROMS_SRC=${tup}/tmproms/roms_src
+tmpdir=tmproms1
+
+export MY_ROMS_SRC=${tup}/${tmpdir}/roms_src
 mkdir -p ${MY_ROMS_SRC}
 cd ${MY_ROMS_SRC}
 tar -xf ${metroms_base}/static_libs/roms-3.5.tar.gz
@@ -108,7 +110,7 @@ export NestedGrids=1
 
 export MY_ROOT_DIR=${workingdir}/${ROMS_APPLICATION}/
 export MY_PROJECT_DIR=${workingdir}/${ROMS_APPLICATION}/
-export SCRATCH_DIR=${tup}/tmproms/build
+export SCRATCH_DIR=${tup}/${tmpdir}/build
 
 cd ${MY_PROJECT_DIR}
 
@@ -199,8 +201,11 @@ rollback() {
 }
 trap 'rollback; exit 99' 0
 
-export ESMF_DIR=${tup}/tmproms/esmf/
-source $ESMF_DIR/lib/libO/Linux.gfortran.64.mpiuni.default/esmf.mk
+export MCT_DIR=/disk1/altika/MCT/mct
+#${tup}/${tmpdir}/esmf/
+export MY_CPP_FLAGS="${MY_CPP_FLAGS} -DMODEL_COUPLING -DUSE_MCT=on -DMCT_COUPLING -DMCT_LIB=${MCT_DIR}"
+#source $ESMF_DIR/lib/libO/Linux.gfortran.64.mpiuni.default/esmf.mk
+export USE_MY_LIBS=on
 
 if [ -n "${USE_NETCDF4:+1}" ]; then
  export USE_DAP=on
@@ -212,7 +217,7 @@ export MY_ANALYTICAL_DIR=${MY_HEADER_DIR}
 
 # Put the binary to execute in the following directory.
 
-export BINDIR=${tup}/tmproms/run/${ROMS_APPLICATION}
+export BINDIR=${tup}/${tmpdir}/run/${ROMS_APPLICATION}
 mkdir -p $BINDIR
 
 cd ${MY_ROMS_SRC}
@@ -231,6 +236,6 @@ fi
 
 # Clean up unpacked static code:
 cd  ${MY_PROJECT_DIR}
-rm -rf ${MY_ROMS_SRC}
+#rm -rf ${MY_ROMS_SRC}
 
 set +x
