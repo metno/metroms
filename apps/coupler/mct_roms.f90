@@ -118,4 +118,4 @@
 
       STOP
 
-      END PROGRAM mct_coupler
+      END PROGRAM mct_roms
