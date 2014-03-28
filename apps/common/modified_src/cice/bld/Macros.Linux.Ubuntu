@@ -25,7 +25,7 @@ MOD_SUFFIX := mod
 LD         := $(FC)
 LDFLAGS    := $(FFLAGS) -v
 
-    CPPDEFS :=  $(CPPDEFS) -DUSE_ESMF=1 -DNXGLOB=$(NXGLOB) -DNYGLOB=$(NYGLOB) \
+    CPPDEFS :=  $(CPPDEFS) -DUSE_ESMF=0 -DNXGLOB=$(NXGLOB) -DNYGLOB=$(NYGLOB) \
                 -DBLCKX=$(BLCKX) -DBLCKY=$(BLCKY) -DMXBLCKS=$(MXBLCKS) \
                 -DNICELYR=$(NICELYR) -DNSNWLYR=$(NSNWLYR) -DNICECAT=$(NICECAT) \
                 -DTRAGE=$(TRAGE) -DTRFY=$(TRFY) -DTRLVL=$(TRLVL) -DTRPND=$(TRPND) \
@@ -42,7 +42,6 @@ ifeq ($(IO_TYPE), netcdf)
    SLIBS   := $(SLIBS) -lnetcdf -lnetcdff
 endif
 
-INCLDIR := $(INCLDIR) -I /disk1/tmproms/esmf/mod/modO/Linux.gfortran.64.mpiuni.default \
-           -I /disk1/tmproms/esmf/obj/objO/Linux.gfortran.64.mpiuni.default
+INCLDIR := $(INCLDIR)
 ### note this file does not include PIO capability
 ### see Macros.Linux.LANL.conejo

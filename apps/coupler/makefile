@@ -54,9 +54,8 @@ endif
 OBJS  := $(addsuffix .o, $(sort $(basename $(notdir $(SRCS)))))
 RM    := rm
 FC    := gfortran
-#INCLDIR := -I ${BUILD_DIR}/esmf/obj/objO/Linux.gfortran.64.mpiuni.default:${BUILD_DIR}/esmf/mod/modO/Linux.gfortran.64.mpiuni.default
 INCLDIR := -I ${BUILD_DIR}/build \
-           -I ${BUILD_DIR}/esmf/mod/modO/Linux.gfortran.64.mpiuni.default \
+           -I ${BUILD_DIR}/MCT/mct \
            -I ${BUILD_DIR}/cice/rundir4/compile
 
 .SUFFIXES:

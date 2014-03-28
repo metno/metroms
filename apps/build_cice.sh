@@ -14,12 +14,12 @@ export CICE_DIR=${tup}/tmproms/cice/
 cd $CICE_DIR
 
 # Unpack standard source files
-tar -xf ${metroms_base}/static_libs/cice_4_1.tar.gz
+tar -xf ${metroms_base}/static_libs/cice5.tar.gz
 
 # Copy modified source files
 cp -auv $workingdir/common/modified_src/cice ${tup}/tmproms
 
-export USE_ESMF=yes
+export USE_ESMF=no
 
 ./comp_ice
 
