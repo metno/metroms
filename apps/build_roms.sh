@@ -213,13 +213,18 @@ fi
 export MY_HEADER_DIR=${MY_PROJECT_DIR}/include
 export MY_ANALYTICAL_DIR=${MY_HEADER_DIR}
 
-# Put the binary to execute in the following directory.
 
+# Build MCT first (use version bundled with ROMS)
+cd ${MY_ROMS_SRC}/Lib/MCT
+./configure --prefix=${MY_ROMS_SRC}/Lib/MCT
+make install
+
+# Build ROMS
+# Put the binary to execute in the following directory.
 export BINDIR=${tup}/${tmpdir}/run/${ROMS_APPLICATION}
 mkdir -p $BINDIR
 
 cd ${MY_ROMS_SRC}
-
 if [ $clean -eq 1 ]; then
   make clean
 fi
