@@ -119,7 +119,7 @@ cd ${MY_PROJECT_DIR}
 
 if [ -s modified_src ]; then
     cd modified_src
-    gotModifiedSource=`ls *.F *.h *.mk`
+    gotModifiedSource=`ls *.F *.h *.mk *.in`
     cd ..
 fi
 
@@ -202,7 +202,7 @@ rollback() {
 trap 'rollback; exit 99' 0
 
 export USE_MCT=on
-export MY_CPP_FLAGS="${MY_CPP_FLAGS} -DUSE_MCT -DMCT_COUPLING -DMCT_LIB -DSWAN_COUPLING"
+export MY_CPP_FLAGS="${MY_CPP_FLAGS} -DMODEL_COUPLING -DUSE_MCT -DMCT_COUPLING -DMCT_LIB -DCICE_COUPLING"
 export USE_MY_LIBS=on
 
 if [ -n "${USE_NETCDF4:+1}" ]; then
@@ -230,7 +230,6 @@ if [ $clean -eq 1 ]; then
 fi
 
 # Compile (the binary will go to BINDIR set above).
-
 if [ $parallel -eq 1 ]; then
   make $NCPUS
 else
