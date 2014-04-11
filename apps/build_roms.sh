@@ -49,10 +49,10 @@ fi
 
 export ROMS_APPLICATION=$1
 
-# export USE_MPI=on
-# export USE_MPIF90=on
+export USE_MPI=on
+export USE_MPIF90=on
 export FORT=gfortran
-export USE_OpenMP=on
+#export USE_OpenMP=on
 export USE_LARGE=on
 
 #export USE_DEBUG=on
@@ -64,7 +64,7 @@ metroms_base=${PWD}
 cd ../
 tup=${PWD}
 
-tmpdir=tmproms1
+tmpdir=tmproms
 
 export MY_ROMS_SRC=${tup}/${tmpdir}/roms_src
 mkdir -p ${MY_ROMS_SRC}
@@ -201,10 +201,8 @@ rollback() {
 }
 trap 'rollback; exit 99' 0
 
-export MCT_DIR=/disk1/altika/MCT/mct
-#${tup}/${tmpdir}/esmf/
-export MY_CPP_FLAGS="${MY_CPP_FLAGS} -DMODEL_COUPLING -DUSE_MCT=on -DMCT_COUPLING -DMCT_LIB=${MCT_DIR}"
-#source $ESMF_DIR/lib/libO/Linux.gfortran.64.mpiuni.default/esmf.mk
+export USE_MCT=on
+export MY_CPP_FLAGS="${MY_CPP_FLAGS} -DUSE_MCT -DMCT_COUPLING -DMCT_LIB -DSWAN_COUPLING"
 export USE_MY_LIBS=on
 
 if [ -n "${USE_NETCDF4:+1}" ]; then

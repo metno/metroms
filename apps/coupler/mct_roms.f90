@@ -1,11 +1,5 @@
       PROGRAM mct_roms
-!=======================================================================
-!                                                                      !
-!  Master program to couple ROMS/TOMS to other models using the Model  !
-!  Coupling Toolkit (MCT) library.                                     !
-!                                                                      !
-!=======================================================================
-!
+
       USE mod_param
       USE mod_parallel
       USE mod_coupler
@@ -24,7 +18,7 @@
 !
       logical, save :: first
 
-      integer :: MyColor, MyCOMM, MyError, MyKey, Nnodes
+      integer :: color, COMM, error, key, nodes, rank
       integer :: ng
 
       real(r4) :: CouplingTime             ! single precision
@@ -35,13 +29,13 @@
 !
 !  Initialize MPI execution environment.
 !
-      CALL mpi_init (MyError)
+      CALL mpi_init(error)
 !
 !  Get rank of the local process in the group associated with the
 !  comminicator.
 !
-      CALL mpi_comm_size (MPI_COMM_WORLD, Nnodes, MyError)
-      CALL mpi_comm_rank (MPI_COMM_WORLD, MyRank, MyError)
+      CALL mpi_comm_size(MPI_COMM_WORLD, nodes, error)
+      CALL mpi_comm_rank(MPI_COMM_WORLD, rank, error)
 !
 !  Set temporarily the ocean communicator to current handle before
 !  splitting so the input coupling script name can be broadcasted to
@@ -51,70 +45,55 @@
 !
 !  Read in coupled model parameters from standard input.
 !
-      CALL read_CouplePar (iNLM)
+      CALL read_CouplePar(iNLM)
 !
-!  Allocate several coupling variables.
+!  Allocate coupling variables.
 !
-      CALL allocate_coupler (Nnodes)
+      CALL allocate_coupler(nodes)
 !
 !  Split the communicator into coupled models sub-groups based
 !  on color and key.
 !
-      MyKey=0
-      IF ((pets(Iocean)%val(1).le.MyRank).and.                          &
-     &    (MyRank.le.pets(Iocean)%val(Nthreads(Iocean)))) THEN
-        MyColor=OCNid
+      key=0
+      IF ((pets(Iocean)%val(1) .le. rank) .and. (rank .le. pets(Iocean)%val(Nthreads(Iocean)))) THEN
+        color = OCNid
       END IF
-!ifdef AIR_OCEAN
-!      IF ((pets(Iatmos)%val(1).le.MyRank).and.                          &
-!     &    (MyRank.le.pets(Iatmos)%val(Nthreads(Iatmos)))) THEN
-!        MyColor=ATMid
-!      END IF
-!endif
+      IF ((pets(Icice)%val(1) .le. rank) .and. (rank .le. pets(Iice)%val(Nthreads(Iice)))) THEN
+        MyColor = CICEid
+      END IF
 
-      CALL mpi_comm_split (MPI_COMM_WORLD, MyColor, MyKey, MyCOMM,      &
-     &                     MyError)
+      CALL mpi_comm_split (MPI_COMM_WORLD, color, key, COMM, error)
 !
 !-----------------------------------------------------------------------
 !  Run coupled models according to the processor rank.
 !-----------------------------------------------------------------------
 !
-!#ifdef WRF_COUPLING
-!      IF (MyColor.eq.ATMid) THEN
-!        CouplingTime=REAL(TimeInterval(Iocean,Iatmos))
-!!      CALL module_wrf_top_mp_wrf_init (MyCOMM)
-!!      CALL module_wrf_top_mp_wrf_run (TimeInterval(Iocean,Iwaves))
-!!      CALL module_wrf_top_mp_wrf_finalize
-!        CALL module_wrf_top_wrf_init (MyCOMM)
-!        CALL module_wrf_top_wrf_run (CouplingTime)
-!        CALL module_wrf_top_wrf_finalize
-!      END IF
-!#endif
+      IF (MyColor .eq. CICEid) THEN
+        CouplingTime=REAL(TimeInterval(Iocean,Icice))
+        CALL module_cice_init(COMM)
+        CALL module_cice_run(CouplingTime)
+        CALL module_cice_wrf_finalize()
+      END IF
+
       IF (MyColor.eq.OCNid) THEN
         first=.TRUE.
         IF (exit_flag.eq.NoError) THEN
-          CALL ROMS_initialize (first, mpiCOMM=MyCOMM)
+          CALL ROMS_initialize(first, mpiCOMM=MyCOMM)
           run_time=0.0_r8
           DO ng=1,Ngrids
             run_time=MAX(run_time, dt(ng)*ntimes(ng))
           END DO
         END IF
         IF (exit_flag.eq.NoError) THEN
-          CALL ROMS_run (run_time)
+          CALL ROMS_run(run_time)
         END IF
-        CALL ROMS_finalize
-!#ifdef WRF_COUPLING
-!        CALL finalize_ocn2atm_coupling
-!#endif
+        CALL ROMS_finalize()
+        CALL finalize_ocn2cice_coupling()
       END IF
-!
-!-----------------------------------------------------------------------
-!  Terminates all the mpi-processing and coupling.
-!-----------------------------------------------------------------------
-!
-      CALL mpi_barrier (MPI_COMM_WORLD)
-      CALL MCTWorld_clean ()
-      CALL mpi_finalize (MyError)
+
+      CALL mpi_barrier(MPI_COMM_WORLD)
+      CALL MCTWorld_clean()
+      CALL mpi_finalize(error)
 
       STOP
 

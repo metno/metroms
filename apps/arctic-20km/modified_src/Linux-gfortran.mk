@@ -22,7 +22,7 @@
 #
 # First the defaults
 #
-               FC := gfortran -I/disk1/altika/MCT/mct
+               FC := gfortran
            FFLAGS := -frepack-arrays
               CPP := /usr/bin/cpp
          CPPFLAGS := -P -traditional
@@ -63,9 +63,10 @@ endif
 ifdef USE_MPI
          CPPFLAGS += -DMPI
  ifdef USE_MPIF90
-               FC := mpif90
+               FC := mpif90 
  else
              LIBS += -lfmpi -lmpi
+ #            LIBS += -lmpi
  endif
 endif
 
@@ -81,8 +82,8 @@ else
 endif
 
 ifdef USE_MCT
-       MCT_INCDIR := /disk1/altika/MCT/mct
-       MCT_LIBDIR := /disk1/altika/MCT/mct
+       MCT_INCDIR := $(MY_ROMS_SRC)/Lib/MCT/include
+       MCT_LIBDIR := $(MY_ROMS_SRC)/Lib/MCT/lib
            FFLAGS += -I$(MCT_INCDIR)
              LIBS += -L$(MCT_LIBDIR) -lmct -lmpeu
 endif
