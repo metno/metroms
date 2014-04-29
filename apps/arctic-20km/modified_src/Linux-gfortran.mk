@@ -88,6 +88,13 @@ ifdef USE_MCT
              LIBS += -L$(MCT_LIBDIR) -lmct -lmpeu
 endif
 
+ifdef USE_CICE
+       CICE_INCDIR := $(MY_ROMS_SRC)/../cice/rundir/compile
+       CICE_LIBDIR := $(MY_ROMS_SRC)/../cice/rundir/compile
+           FFLAGS += -I$(CICE_INCDIR)
+             LIBS += -L$(CICE_LIBDIR) 
+endif
+
 ifdef USE_ESMF
 	  ESMF_BOPT   := O
       ESMF_SUBDIR := Linux.gfortran.64.mpiuni.default
