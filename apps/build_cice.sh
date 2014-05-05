@@ -13,7 +13,7 @@ cd ${tup}/tmproms
 # Unpack standard source files
 tar -xf ${metroms_base}/static_libs/cice5.tar.gz
 export CICE_DIR=${tup}/tmproms/
-cd $CICE_DIR
+cd $CICE_DIR/cice
 
 
 # Copy modified source files
