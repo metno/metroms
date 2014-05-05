@@ -8,6 +8,7 @@ cd ../
 tup=${PWD}
 
 # Build CICE
+mkdir -p ${tup}/tmproms
 cd ${tup}/tmproms
 # Unpack standard source files
 tar -xf ${metroms_base}/static_libs/cice5.tar.gz
@@ -16,7 +17,7 @@ cd $CICE_DIR
 
 
 # Copy modified source files
-#cp -auv $workingdir/common/modified_src/cice ${tup}/tmproms
+cp -auv $workingdir/common/modified_src/cice ${tup}/tmproms/cice
 
 ./comp_ice
 

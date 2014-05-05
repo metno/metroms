@@ -7,8 +7,7 @@ setenv SITE Ubuntu   # also works for mustang
 #setenv SITE LANL.bigsuze
 
 ### SYSTEM_USERDIR is predefined on ORNL machines
-setenv SYSTEM_USERDIR /disk1/cice  # conejo
-#setenv SYSTEM_USERDIR /Users/akt/Work/MPAS-CICE/Column_Package/cice_package/run_dirs
+setenv SYSTEM_USERDIR $CICE_DIR
 
 ### Grid resolution
 setenv RES col ; setenv GRID 5x5
