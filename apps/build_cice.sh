@@ -12,12 +12,12 @@ mkdir -p ${tup}/tmproms
 cd ${tup}/tmproms
 # Unpack standard source files
 tar -xf ${metroms_base}/static_libs/cice5.tar.gz
-export CICE_DIR=${tup}/tmproms/
-cd $CICE_DIR/cice
+export CICE_DIR=${tup}/tmproms/cice
+cd $CICE_DIR
 
 
 # Copy modified source files
-cp -auv $workingdir/common/modified_src/cice ${tup}/tmproms/cice
+cp -auv $workingdir/common/modified_src/cice ${tup}/tmproms
 
 ./comp_ice
 
