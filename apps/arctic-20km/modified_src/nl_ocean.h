@@ -104,8 +104,7 @@
 !  initialize variables in several modules after the number of nested
 !  grids and dimension parameters are known.
 !
-		WRITE (stdout,10)
- 10     FORMAT (/,' Calling inp_par',/)
+		WRITE (stdout,*) ' Calling inp_par'
         CALL inp_par (iNLM)
         IF (exit_flag.ne.NoError) RETURN
 !
@@ -113,8 +112,7 @@
 !  includes processing standard input because several parameters are
 !  needed to allocate clock variables.
 !
-        WRITE (stdout,11)
- 11     FORMAT (/,' Init clocks',/)
+        WRITE (stdout,*) ' Init clocks'
 !
         DO ng=1,Ngrids
 !$OMP PARALLEL DO PRIVATE(thread) SHARED(numthreads)
@@ -126,8 +124,7 @@
 !
 !  Allocate and initialize all model state arrays.
 !
-		WRITE (stdout,12)
- 12     FORMAT (/,' Allocate arrays',/)
+		WRITE (stdout,*) ' Allocate arrays'
         CALL mod_arrays (allocate_vars)
 
 #ifdef VERIFICATION
@@ -144,8 +141,7 @@
 !  Initialize coupling streams between model(s).
 !-----------------------------------------------------------------------
 !
-      WRITE (stdout,13)
- 13   FORMAT (/,' Initialize coupling streams',/)
+      WRITE (stdout,*) ' Initialize coupling streams'
       DO ng=1,Ngrids
 # ifdef AIR_OCEAN
         CALL initialize_ocn2atm_coupling (ng, MyRank)
