@@ -304,8 +304,9 @@
 
       call get_fileunit(nu_nml)
 
-      write (nu_diag,*) 'Reading ice init file'
+      write (nu_diag,*) 'Reading ice init file: ', nml_filename
       if (my_task == master_task) then
+         write (nu_diag,*) 'Master reading ice init file: ', nml_filename
          open (nu_nml, file=nml_filename, status='old',iostat=nml_error)
          if (nml_error /= 0) then
             nml_error = -1
