@@ -60,7 +60,7 @@
          nu_hdr        , &  ! header file for binary history output
          nu_diag            ! diagnostics output file
 
-      character (6), public :: &
+      character (200), public :: &
          nml_filename = 'ice_in' ! namelist input file name
 
       integer (kind=int_kind), parameter, public :: &
