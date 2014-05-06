@@ -206,7 +206,7 @@
 !  Read in variable information.  Ignore blank and comment [char(33)=!]
 !  input lines.
 !
-      WRITE (stdout,*) ' Reading coupeling variable information file'
+      WRITE (stdout,*) ' Reading coupling variable information file'
       varid=0
       DO WHILE (.TRUE.)
         READ (inp,*,ERR=30,END=40) Vinfo(1)
@@ -379,6 +379,8 @@
               string='Waves Model MPI nodes:'
             ELSE IF (model.eq.Iatmos) THEN
               string='Atmos Model MPI nodes:'
+            ELSE IF (model.eq.Icice) THEN
+              string='CICE MPI nodes:'
             END IF
             WRITE (stdout,100) TRIM(string),                            &
      &                         pets(model)%val(1),                      &
@@ -395,6 +397,8 @@
             string='Waves Export:'
           ELSE IF (model.eq.Iatmos) THEN
             string='Atmos Export:'
+          ELSE IF (model.eq.Icice) THEN
+            string='CICE Export:'
           END IF
           WRITE (stdout,110) TRIM(string), TRIM(ExportList(model))
         END DO
