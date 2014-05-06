@@ -101,15 +101,18 @@
 !
 !  Read in coupled model parameters from standard input.
 !
+      WRITE (stdout,*) ' Calling inp_par'
       CALL read_CouplePar (iNLM)
 !
 !  Allocate several coupling variables.
 !
+      WRITE (stdout,*) ' Allocate coupler'
       CALL allocate_coupler (Nnodes)
 !
 !  Split the communicator into coupled models sub-groups based
 !  on color and key.
 !
+      WRITE (stdout,*) ' Assigning color'
       MyKey=0
       IF ((pets(Iocean)%val(1).le.MyRank).and.                          &
      &    (MyRank.le.pets(Iocean)%val(Nthreads(Iocean)))) THEN
