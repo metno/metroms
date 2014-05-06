@@ -60,7 +60,7 @@ class Params(object):
         ['ATMDIR',self.RUNPATH],
         ['RIVERFILE',GlobalParams.COMMONPATH+"/rivers/A20_rivers_openBering35.nc"],
         ['FORCEFILES',"4"],
-        ['CPLname', GlobalParams.COMMONPATH + "/../../tmproms/roms_src/ROMS/External/coupling.dat"]
+        ['ROMS/External/coupling.dat', GlobalParams.COMMONPATH + "/../../tmproms/roms_src/ROMS/External/coupling.dat"]
         ]
         ########################################################################
         ########################################################################
