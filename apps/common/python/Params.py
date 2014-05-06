@@ -61,7 +61,7 @@ class Params(object):
         ['RIVERFILE',GlobalParams.COMMONPATH+"/rivers/A20_rivers_openBering35.nc"],
         ['FORCEFILES',"4"],
         ['ROMS/External/coupling.dat', GlobalParams.COMMONPATH + "/../../../tmproms/roms_src/ROMS/External/coupling.dat"]
-        ['ocean.in', self.ROMSINFILE ]
+        ['ocean.in', self.ROMSINFILE ],
         ['cice.in', GlobalParams.COMMONPATH + "/../../../tmproms/cice/rundir/ice_in" ]
         ]
         ########################################################################
