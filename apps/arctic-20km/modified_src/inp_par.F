@@ -944,7 +944,6 @@
                 Import(Iatmos)%code(Nval)=TRIM(ADJUSTL(Cval(Nval)))
               END IF
             END IF
-          END IF
           ELSE IF (TRIM(KeyWord).eq.'Import(cice)') THEN
             IF (.not.allocated(Import)) THEN
               allocate ( Import(Nmodels) )
