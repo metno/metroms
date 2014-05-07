@@ -380,7 +380,7 @@
             ELSE IF (model.eq.Iatmos) THEN
               string='Atmos Model MPI nodes:'
             ELSE IF (model.eq.Icice) THEN
-              string='CICE MPI nodes:'
+              string='CICE Model  MPI nodes:'
             END IF
             WRITE (stdout,100) TRIM(string),                            &
      &                         pets(model)%val(1),                      &

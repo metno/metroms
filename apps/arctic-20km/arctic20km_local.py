@@ -11,7 +11,7 @@ from ModelRun import *
 rundir="/disk1/tmproms/run/arctic-20km"
 
 xcpu=2
-ycpu=2
+ycpu=4
 
 a20params=Params(rundir,xcpu,ycpu,tsteps=720,irestart=-1)
 a20params.ROMSINFILE=a20params.RUNPATH+"/roms.in"

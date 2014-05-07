@@ -1377,15 +1377,18 @@ Dout(iTvdif) == F F                        ! vertical diffusion
 
 ! Number of models to couple.
 
-        Nmodels = 4
+        Nmodels = 2
 
 ! Coupled models order label used to process information arrays, [1:Nmodels]
 ! string values are expected. The order is arbitrary, the indices below are
 ! ordered from bottom to top grids.
+!
+!     OrderLabel = ocean \
+!                  waves \
+!                  atmos \
+!                  cice
 
      OrderLabel = ocean \
-                  waves \
-                  atmos \
                   cice
 
 ! Number of parallel threads assigned to each model in the coupled system,
@@ -1393,10 +1396,10 @@ Dout(iTvdif) == F F                        ! vertical diffusion
 ! in parenthesis. The sum of all entries must be equal to the total number
 ! of processors.
 
-Nthreads(ocean) = 1
-Nthreads(waves) = 1
-Nthreads(atmos) = 1
-Nthreads(cice) = 1
+Nthreads(ocean) = 4
+!Nthreads(waves) = 1
+!Nthreads(atmos) = 1
+Nthreads(cice) = 4
 
 ! Time interval (seconds) between coupling of models, [1:Nmodels] real
 ! values are expected corresponding to the entries of a lower triangular
@@ -1417,8 +1420,8 @@ Nthreads(cice) = 1
 ! expected with the label code in parenthesis.
 
  INPname(ocean) = ocean.in
- INPname(waves) = waves.in
- INPname(atmos) = atmos.in
+ !INPname(waves) = waves.in
+ !INPname(atmos) = atmos.in
  INPname(cice)  = cice.in
 
 ! Coupled models variables information file name.
@@ -1466,8 +1469,8 @@ Nthreads(cice) = 1
 !       Export(...) = NONE
 
  Nexport(ocean) = 5
- Nexport(waves) = 5
- Nexport(atmos) = 9
+ !Nexport(waves) = 5
+ !Nexport(atmos) = 9
  Nexport(cice)  = 1
 
   Export(ocean) = SST   \
@@ -1476,21 +1479,21 @@ Nthreads(cice) = 1
                   Ubar  \
                   Vbar
 
-  Export(waves) = Wdir  \
-                  Wamp  \
-                  Wlen  \
-                  Wptop \
-                  Wpbot
-
-  Export(atmos) = Pair  \
-                  Tair  \
-                  Hair  \
-                  cloud \
-                  SWrad \
-                  LWrad \
-                  rain  \
-                  Uwind \
-                  Vwind
+!  Export(waves) = Wdir  \
+!                  Wamp  \
+!                  Wlen  \
+!                  Wptop \
+!                  Wpbot
+!
+!  Export(atmos) = Pair  \
+!                  Tair  \
+!                  Hair  \
+!                  cloud \
+!                  SWrad \
+!                  LWrad \
+!                  rain  \
+!                  Uwind \
+!                 Vwind
 
   Export(cice) = Pair  \
 
@@ -1502,8 +1505,8 @@ Nthreads(cice) = 1
 !       Import(...) = NONE
 
  Nimport(ocean) = 14
- Nimport(waves) = 6
- Nimport(atmos) = 1
+! Nimport(waves) = 6
+! Nimport(atmos) = 1
  Nimport(ciec)  = 1
 
   Import(ocean) = Pair  \
@@ -1521,14 +1524,14 @@ Nthreads(cice) = 1
                   Wptop \
                   Wpbot
 
-  Import(waves) = Uwind \
-                  Vwind \
-                  bath  \
-                  SSH   \
-                  Ubar  \
-                  Vbar
-
-  Import(atmos) = SST
+!  Import(waves) = Uwind \
+!                  Vwind \
+!                  bath  \
+!                  SSH   \
+!                  Ubar  \
+!                  Vbar
+!
+!  Import(atmos) = SST
 
   Import(cice) = SST
 
