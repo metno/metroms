@@ -10,7 +10,6 @@
 ! Oct. 2004: Adapted from POP version by William H. Lipscomb, LANL
 
    use ice_kinds_mod
-   use mod_coupler
 
    implicit none
    private
@@ -23,6 +22,8 @@
    integer (int_kind), public :: &
       CICE_COMM_WORLD,          &
       nprocs,                   &
+      CICEid,                   &
+      Nmodels,                  &
       MPI_COMM_ICE,             &! MPI communicator for ice comms
       mpiR16,                   &! MPI type for r16_kind
       mpiR8,                    &! MPI type for dbl_kind

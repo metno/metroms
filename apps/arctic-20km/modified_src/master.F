@@ -63,6 +63,8 @@
 #endif
 #if defined CICE_COUPLING
       USE ocean_coupler_mod, ONLY : finalize_ocn2cice_coupling
+      USE ice_communicate, ONLY: ice_Nmodels => Nmodels
+      USE ice_communicate, ONLY: ice_CICEid => CICEid
       USE ice_fileunits, ONLY: nml_filename
       USE cice_initmod, ONLY: cice_initialize
       USE cice_runmod, ONLY: cice_run
@@ -174,6 +176,8 @@
       IF (MyColor.eq.CICEid) THEN
 !!        CouplingTime=REAL(TimeInterval(Iocean,Icice))
         nml_filename=INPname(Icice)
+        ice_Nmodels=Nmodels
+        ice_CICEid=CICEid
         CALL CICE_INITIALIZE
         CALL CICE_RUN
         CALL CICE_FINALIZE
