@@ -3,7 +3,7 @@
 # Geophysical Institute, University of Alaska Fairbanks
 #==============================================================================
 
-INCLDIR    :=
+INCLDIR    := -I$(MCT_INCDIR)
 SLIBS      := -L$(MCT_LIBDIR) -lmct -lmpeu
 ULIBS      := 
 CPP        := cpp
