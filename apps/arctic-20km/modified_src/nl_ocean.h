@@ -53,6 +53,9 @@
 # ifdef WAVES_OCEAN
       USE ocean_coupler_mod, ONLY : initialize_ocn2wav_coupling
 # endif
+# ifdef CICE_OCEAN
+      USE ocean_coupler_mod, ONLY : initialize_ocn2cice_coupling
+# endif
 #endif
 !
 !  Imported variable declarations.
@@ -148,6 +151,9 @@
 # endif
 # ifdef WAVES_OCEAN
         CALL initialize_ocn2wav_coupling (ng, MyRank)
+# endif
+# ifdef CICE_OCEAN
+        CALL initialize_ocn2cice_coupling (ng, MyRank)
 # endif
       END DO
 #endif
