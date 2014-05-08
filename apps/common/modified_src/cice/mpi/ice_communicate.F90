@@ -10,6 +10,7 @@
 ! Oct. 2004: Adapted from POP version by William H. Lipscomb, LANL
 
    use ice_kinds_mod
+   USE m_MCTWorld, ONLY : MCTWorld_init => init
 
    implicit none
    private

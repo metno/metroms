@@ -4,7 +4,7 @@
 #==============================================================================
 
 INCLDIR    :=
-SLIBS      :=
+SLIBS      := -L$(MCT_LIBDIR) -lmct -lmpeu
 ULIBS      := 
 CPP        := cpp
 CPPFLAGS   := -P -traditional
