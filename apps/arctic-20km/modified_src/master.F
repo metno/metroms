@@ -175,7 +175,7 @@
 #if defined CICE_COUPLING
       IF (MyColor.eq.CICEid) THEN
 !!        CouplingTime=REAL(TimeInterval(Iocean,Icice))
-        WRITE (stdout,*) ' I'm CICE node: calling CICE_INITIALIZE: ', MyRank
+        WRITE (stdout,*) ' I am CICE node: calling CICE_INITIALIZE: ', MyRank
         nml_filename=INPname(Icice)
         ice_Nmodels=Nmodels
         ice_CICEid=CICEid
@@ -185,7 +185,7 @@
       END IF
 #endif
       IF (MyColor.eq.OCNid) THEN
-        WRITE (stdout,*) ' I'm Ocean node: ', MyRank
+        WRITE (stdout,*) ' I am Ocean node: ', MyRank
         first=.TRUE.
         IF (exit_flag.eq.NoError) THEN
         WRITE (stdout,*) ' Calling ROMS_INITIALIZE: ', MyRank
