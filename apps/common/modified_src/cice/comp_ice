@@ -10,8 +10,8 @@ setenv SITE Ubuntu   # also works for mustang
 setenv SYSTEM_USERDIR $CICE_DIR
 
 ### Grid resolution
-setenv RES col ; setenv GRID 5x5
-#setenv RES gx3 ; setenv GRID 100x116
+#setenv RES col ; setenv GRID 5x5
+setenv RES gx3 ; setenv GRID 100x116
 #setenv RES gx1 ; setenv GRID 320x384
 #setenv RES tx1 ; setenv GRID 360x240
 
