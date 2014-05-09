@@ -109,8 +109,9 @@
 !  grids and dimension parameters are known.
 !
 		WRITE (stdout,*) ' Calling inp_par'
-        CALL inp_par (iNLM)
-        IF (exit_flag.ne.NoError) RETURN
+!        CALL inp_par (iNLM)
+!        IF (exit_flag.ne.NoError) RETURN
+
 !
 !  Initialize internal wall clocks. Notice that the timings does not
 !  includes processing standard input because several parameters are
@@ -121,7 +122,7 @@
         DO ng=1,Ngrids
 !$OMP PARALLEL DO PRIVATE(thread) SHARED(numthreads)
           DO thread=0,numthreads-1
-            CALL wclock_on (ng, iNLM, 0)
+!            CALL wclock_on (ng, iNLM, 0)
           END DO
 !$OMP END PARALLEL DO
         END DO
@@ -129,7 +130,7 @@
 !  Allocate and initialize all model state arrays.
 !
 		WRITE (stdout,*) ' Allocate arrays'
-        CALL mod_arrays (allocate_vars)
+!        CALL mod_arrays (allocate_vars)
 
 #ifdef VERIFICATION
 !
@@ -139,7 +140,7 @@
 #endif
       END IF
 
-#if defined MCT_LIB && (defined AIR_OCEAN || defined WAVES_OCEAN)
+#if defined MCT_LIB
 !
 !-----------------------------------------------------------------------
 !  Initialize coupling streams between model(s).
