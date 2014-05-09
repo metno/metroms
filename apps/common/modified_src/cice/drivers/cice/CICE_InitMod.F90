@@ -83,11 +83,11 @@
       use drv_forcing, only: sst_sss
 #endif
 
-      WRITE (stdout,*) ' CICE: init_communicate '
+      WRITE (6,*) ' CICE: init_communicate '
       call init_communicate     ! initial setup for message passing
-      WRITE (stdout,*) ' CICE: init_fileunits '
+      WRITE (6,*) ' CICE: init_fileunits '
       call init_fileunits       ! unit numbers
-      WRITE (stdout,*) ' CICE: input_data  '
+      WRITE (6,*) ' CICE: input_data  '
       call input_data           ! namelist variables
       if (trim(runid) == 'bering') call check_finished_file
       call init_zbgc            ! vertical biogeochemistry namelist
