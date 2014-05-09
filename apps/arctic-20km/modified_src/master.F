@@ -63,6 +63,7 @@
 #endif
 #if defined CICE_COUPLING
       USE ocean_coupler_mod, ONLY : finalize_ocn2cice_coupling
+      USE ice_communicate, ONLY: CICE_COMM_WORLD
       USE ice_communicate, ONLY: ice_Nmodels => Nmodels
       USE ice_communicate, ONLY: ice_CICEid => CICEid
       USE ice_fileunits, ONLY: nml_filename
@@ -139,6 +140,8 @@
         MyColor=CICEid
       END IF
 #endif
+
+
       CALL mpi_comm_split (MPI_COMM_WORLD, MyColor, MyKey, MyCOMM,      &
      &                     MyError)
 !
@@ -177,6 +180,7 @@
 !!        CouplingTime=REAL(TimeInterval(Iocean,Icice))
         WRITE (stdout,*) ' I am CICE node: calling CICE_INITIALIZE: ', MyRank
         nml_filename=INPname(Icice)
+        CICE_COMM_WORLD=MyCOMM
         ice_Nmodels=Nmodels
         ice_CICEid=CICEid
         CALL CICE_INITIALIZE

@@ -86,6 +86,7 @@
       END IF
       CALL mpi_comm_rank (OCN_COMM_WORLD, MyRank, MyError)
       CALL mpi_comm_size (OCN_COMM_WORLD, MySize, MyError)
+	  WRITE (stdout,*) ' DISTRIBUTE is ON, OCN_COMM_WORLD=', OCN_COMM_WORLD, ' rank=', MyRank
 #endif
 !
 !-----------------------------------------------------------------------
