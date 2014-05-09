@@ -21,7 +21,7 @@
               create_communicator
 
    integer (int_kind), public :: &
-      CICE_COMM_WORLD,          &
+      MPI_COMM_ICE,             &! MPI communicator for ice comms
       nprocs,                   &
       CICEid,                   &
       Nmodels,                  &
@@ -66,14 +66,14 @@
 
       WRITE (6,*) ' CICE: init_communicate  '
 
-   CALL mpi_comm_rank (CICE_COMM_WORLD, my_task, ierr)
+   CALL mpi_comm_rank (MPI_COMM_ICE, my_task, ierr)
       WRITE (6,*) ' CICE: init_communicate my_task=',my_task
-   CALL mpi_comm_size (CICE_COMM_WORLD, nprocs, ierr)
+   CALL mpi_comm_size (MPI_COMM_ICE, nprocs, ierr)
       WRITE (6,*) ' CICE: init_communicate nprocs=',nprocs
 !
 !  Initialize MCT coupled model registry.
 !
-   CALL MCTWorld_init (Nmodels, MPI_COMM_WORLD, CICE_COMM_WORLD, CICEid)
+   CALL MCTWorld_init (Nmodels, MPI_COMM_WORLD, MPI_COMM_ICE, CICEid)
       WRITE (6,*) ' CICE: MCTWorld_init called'
 
 !   call MPI_BARRIER (ice_comm, ierr)
