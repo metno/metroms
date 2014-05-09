@@ -147,7 +147,7 @@
 !-----------------------------------------------------------------------
 !
       WRITE (stdout,*) ' Initialize coupling streams'
-      DO ng=1,Ngrids
+      DO ng=1,2!Ngrids
 # ifdef AIR_OCEAN
         CALL initialize_ocn2atm_coupling (ng, MyRank)
 # endif
