@@ -25,7 +25,6 @@
       nprocs,                   &
       CICEid,                   &
       Nmodels,                  &
-      MPI_COMM_ICE,             &! MPI communicator for ice comms
       mpiR16,                   &! MPI type for r16_kind
       mpiR8,                    &! MPI type for dbl_kind
       mpiR4,                    &! MPI type for real_kind
