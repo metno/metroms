@@ -156,12 +156,14 @@
 !
 !  Get communicator local rank and size.
 !
+      WRITE (6,*) ' ROMS Ocean Coupler: mpi_comm_rank'
       CALL mpi_comm_rank (OCN_COMM_WORLD, MyRank, MyError)
+      WRITE (6,*) ' ROMS Ocean Coupler: mpi_comm_size'
       CALL mpi_comm_size (OCN_COMM_WORLD, nprocs, MyError)
 !
 !  Initialize MCT coupled model registry.
 !
-      WRITE (6,*) ' ROMS: calling MCTWorld_init'
+      WRITE (6,*) ' ROMS Ocean Coupler: calling MCTWorld_init'
       CALL MCTWorld_init (Nmodels, MPI_COMM_WORLD, OCN_COMM_WORLD,      &
      &                    OCNid)
 !
