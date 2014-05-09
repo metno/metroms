@@ -151,6 +151,21 @@
       integer, allocatable :: start(:)
 !
 !-----------------------------------------------------------------------
+!  Begin initialization phase.
+!-----------------------------------------------------------------------
+!
+!  Get communicator local rank and size.
+!
+      CALL mpi_comm_rank (OCN_COMM_WORLD, MyRank, MyError)
+      CALL mpi_comm_size (OCN_COMM_WORLD, nprocs, MyError)
+!
+!  Initialize MCT coupled model registry.
+!
+      WRITE (6,*) ' ROMS: calling MCTWorld_init'
+      CALL MCTWorld_init (Nmodels, MPI_COMM_WORLD, OCN_COMM_WORLD,      &
+     &                    OCNid)
+!
+!-----------------------------------------------------------------------
 !  Compute lower and upper bounds over a particular domain partition or
 !  tile for RHO-, U-, and V-variables. Notice that "set_bounds.h" is
 !  not used here because of implementation of periodicity in other
@@ -182,21 +197,6 @@
       ELSE
         JendR=BOUNDS(ng)%Jend(tile)
       END IF
-!
-!-----------------------------------------------------------------------
-!  Begin initialization phase.
-!-----------------------------------------------------------------------
-!
-!  Get communicator local rank and size.
-!
-      CALL mpi_comm_rank (OCN_COMM_WORLD, MyRank, MyError)
-      CALL mpi_comm_size (OCN_COMM_WORLD, nprocs, MyError)
-!
-!  Initialize MCT coupled model registry.
-!
-      WRITE (6,*) ' ROMS: calling MCTWorld_init'
-      CALL MCTWorld_init (Nmodels, MPI_COMM_WORLD, OCN_COMM_WORLD,      &
-     &                    OCNid)
 !
 !  Determine start and lengths for domain decomposition.
 !
