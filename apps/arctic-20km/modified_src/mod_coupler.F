@@ -73,10 +73,10 @@
 !
 !  Coupled model components IDs.
 !
-      integer :: CICEid = 4
-      integer :: ATMid = 3
-      integer :: WAVid = 2
       integer :: OCNid = 1
+      integer :: CICEid = 2
+      integer :: ATMid = 3
+      integer :: WAVid = 4
 !
 !  Logical switch to report verbose import/export field ranges.
 !
