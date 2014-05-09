@@ -166,6 +166,7 @@
       WRITE (6,*) ' ROMS Ocean Coupler: calling MCTWorld_init'
       CALL MCTWorld_init (Nmodels, MPI_COMM_WORLD, OCN_COMM_WORLD,      &
      &                    OCNid)
+      WRITE (6,*) ' Done: ROMS Ocean Coupler: calling MCTWorld_init'
 !
 !-----------------------------------------------------------------------
 !  Compute lower and upper bounds over a particular domain partition or
