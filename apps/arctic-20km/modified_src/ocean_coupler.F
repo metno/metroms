@@ -194,6 +194,7 @@
 !
 !  Initialize MCT coupled model registry.
 !
+      WRITE (6,*) ' ROMS: calling MCTWorld_init'
       CALL MCTWorld_init (Nmodels, MPI_COMM_WORLD, OCN_COMM_WORLD,      &
      &                    OCNid)
 !

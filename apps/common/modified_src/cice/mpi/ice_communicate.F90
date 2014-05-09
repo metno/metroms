@@ -64,13 +64,17 @@
 !
 !-----------------------------------------------------------------------
 
+      WRITE (6,*) ' CICE: init_communicate  '
 
    CALL mpi_comm_rank (CICE_COMM_WORLD, my_task, ierr)
+      WRITE (6,*) ' CICE: init_communicate my_task=',my_task
    CALL mpi_comm_size (CICE_COMM_WORLD, nprocs, ierr)
+      WRITE (6,*) ' CICE: init_communicate nprocs=',nprocs
 !
 !  Initialize MCT coupled model registry.
 !
    CALL MCTWorld_init (Nmodels, MPI_COMM_WORLD, CICE_COMM_WORLD, CICEid)
+      WRITE (6,*) ' CICE: MCTWorld_init called'
 
 !   call MPI_BARRIER (ice_comm, ierr)
 !   call MPI_COMM_DUP(ice_comm, MPI_COMM_ICE, ierr)
