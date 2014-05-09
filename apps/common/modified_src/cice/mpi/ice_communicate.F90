@@ -75,7 +75,7 @@
 !   call MPI_BARRIER (ice_comm, ierr)
 !   call MPI_COMM_DUP(ice_comm, MPI_COMM_ICE, ierr)
 
-!   master_task = 0
+   master_task = 0
 !   call MPI_COMM_RANK  (MPI_COMM_ICE, my_task, ierr)
 
    mpiR16 = MPI_REAL16
