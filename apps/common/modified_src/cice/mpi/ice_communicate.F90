@@ -22,6 +22,7 @@
 
    integer (int_kind), public :: &
       MPI_COMM_ICE,             &! MPI communicator for ice comms
+      ice_comm,
       nprocs,                   &
       CICEid,                   &
       Nmodels,                  &
@@ -75,11 +76,12 @@
    CALL MCTWorld_init (Nmodels, MPI_COMM_WORLD, MPI_COMM_ICE, CICEid)
       WRITE (6,*) ' CICE: MCTWorld_init called'
 
-!   call MPI_BARRIER (ice_comm, ierr)
-!   call MPI_COMM_DUP(ice_comm, MPI_COMM_ICE, ierr)
+   ice_comm = MPI_COMM_ICE
+   call MPI_BARRIER (ice_comm, ierr)
+   call MPI_COMM_DUP(ice_comm, MPI_COMM_ICE, ierr)
 
    master_task = 0
-!   call MPI_COMM_RANK  (MPI_COMM_ICE, my_task, ierr)
+   call MPI_COMM_RANK  (MPI_COMM_ICE, my_task, ierr)
 
    mpiR16 = MPI_REAL16
    mpiR8  = MPI_REAL8
