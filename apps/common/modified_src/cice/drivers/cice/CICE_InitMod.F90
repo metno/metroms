@@ -45,7 +45,7 @@
 
 
       ! Make cice pause for a while to see if ROMS runs..
-      sleep(1000)
+      call sleep(1000)
 
       end subroutine CICE_Initialize
 
