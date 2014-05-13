@@ -802,7 +802,7 @@ contains
           else
 
              ! solution is inconsistent
-             call two_stage_inconsistency(1, Tsf1, c0, fcondtop, fsurfn)
+             !call two_stage_inconsistency(1, Tsf1, c0, fcondtop, fsurfn)
              return
 
           endif ! surface flux consistency
@@ -897,7 +897,7 @@ contains
 
              ! solution is inconsistent
              ! failed to find a solution so need to refine solutions until consistency found
-             call two_stage_inconsistency(2, Tsf, c0, fcondtop1, fsurfn1)
+             !call two_stage_inconsistency(2, Tsf, c0, fcondtop1, fsurfn1)
              return
 
           endif ! surface temperature consistency
@@ -1100,7 +1100,7 @@ contains
           else
 
              ! solution is inconsistent
-             call two_stage_inconsistency(3, Tsf1, Tmlt, fcondtop, fsurfn)
+             !call two_stage_inconsistency(3, Tsf1, Tmlt, fcondtop, fsurfn)
              return
 
           endif
@@ -1193,7 +1193,7 @@ contains
           else
 
              ! solution is inconsistent
-             call two_stage_inconsistency(4, Tsf, Tmlt, fcondtop1, fsurfn1)
+             !call two_stage_inconsistency(4, Tsf, Tmlt, fcondtop1, fsurfn1)
              return
 
           endif
