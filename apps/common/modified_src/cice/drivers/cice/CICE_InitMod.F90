@@ -83,6 +83,8 @@
       use drv_forcing, only: sst_sss
 #endif
 
+      CALL chdir("/disk1/geiraw/tmproms/cice/rundir") ! Temporary hack
+
       WRITE (6,*) ' CICE: init_communicate '
       call init_communicate     ! initial setup for message passing
       WRITE (6,*) ' CICE: init_fileunits '
