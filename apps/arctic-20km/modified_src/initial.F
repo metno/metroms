@@ -508,6 +508,7 @@
 !-----------------------------------------------------------------------
 !
 !$OMP PARALLEL DO PRIVATE(thread,subs,tile) SHARED(numthreads)
+      write(6,*) 'ROMS initial.F: Compute initial time-evolving depths'
       DO thread=0,numthreads-1
         subs=NtileX(ng)*NtileE(ng)/numthreads
         DO tile=subs*thread,subs*(thread+1)-1
@@ -521,6 +522,7 @@
 !-----------------------------------------------------------------------
 !
 !$OMP PARALLEL DO PRIVATE(thread,subs,tile) SHARED(numthreads)
+      write(6,*) 'ROMS initial.F: Compute initial horizontal mass fluxes'
       DO thread=0,numthreads-1
         subs=NtileX(ng)*NtileE(ng)/numthreads
         DO tile=subs*thread,subs*(thread+1)-1
@@ -537,6 +539,7 @@
 !-----------------------------------------------------------------------
 !
 !$OMP PARALLEL DO PRIVATE(thread,subs,tile) SHARED(numthreads)
+      write(6,*) 'ROMS initial.F: Compute initial S-coordinates vertical velocity'
       DO thread=0,numthreads-1
         subs=NtileX(ng)*NtileE(ng)/numthreads
         DO tile=subs*thread,subs*(thread+1)-1
@@ -588,7 +591,9 @@
 # endif
       CALL get_data (ng)
 # ifdef DISTRIBUTE
+      write(6,*) 'ROMS initial.F: Broadcast input data'
       CALL mp_bcasti (ng, iNLM, exit_flag)
+      write(6,*) 'ROMS initial.F: Broadcast input data. Done.'
 # endif
       IF (exit_flag.ne.NoError) RETURN
 #endif
@@ -728,5 +733,6 @@
       END DO
 !$OMP END PARALLEL DO
 #endif
+      write(6,*) 'ROMS: initial.F is done
       RETURN
       END SUBROUTINE initial
