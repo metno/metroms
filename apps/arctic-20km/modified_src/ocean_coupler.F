@@ -216,6 +216,7 @@
         start (jc)=j*(Lm(ng)+2)+IstrR+1
         length(jc)=(IendR-IstrR+1)
       END DO
+      WRITE (6,*) ' ROMS Ocean Coupler: calling GlobalSegMap_init'
       CALL GlobalSegMap_init (GSMapROMS, start, length, 0,              &
      &                        OCN_COMM_WORLD, OCNid)
 !
@@ -224,6 +225,7 @@
 !  processor.
 !
       Asize=GlobalSegMap_lsize(GSMapROMS, OCN_COMM_WORLD)
+      WRITE (6,*) ' ROMS Ocean Coupler: calling AttrVect_init'
       CALL AttrVect_init (cice2ocn_AV, rList=TRIM(ExportList(Iwaves)),   &
      &                    lsize=Asize)
 !
@@ -233,10 +235,9 @@
       CALL AttrVect_init (ocn2cice_AV, rList=TRIM(ExportList(Iocean)),   &
      &                    lsize=Asize)
       CALL AttrVect_zero (ocn2cice_AV)
-!
-!  Initialize a router to the wave model component.
-!
-      CALL Router_init (CICEid, GSMapROMS, OCN_COMM_WORLD, ROMStoCICE)
+
+      WRITE (6,*) ' ROMS Ocean Coupler: calling Router_init'
+!      CALL Router_init (CICEid, GSMapROMS, OCN_COMM_WORLD, ROMStoCICE)
 !
 !  Deallocate working arrays.
 !
