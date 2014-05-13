@@ -438,8 +438,10 @@
 !
 !  Read in initial conditions from initial NetCDF file.
 !
+      write(6,*) 'ROMS initial.F: INI_FILE, Calling get_state'
       CALL get_state (ng, iNLM, 1, INI(ng)%name, IniRec, Tindex)
 # ifdef DISTRIBUTE
+      write(6,*) 'ROMS initial.F: INI_FILE, Calling mp_bcasti'
       CALL mp_bcasti (ng, iNLM, exit_flag)
 # endif
       IF (exit_flag.ne.NoError) RETURN
@@ -448,8 +450,10 @@
 !  If restart, read in initial conditions restart NetCDF file.
 !
       IF (nrrec(ng).ne.0) THEN
+        write(6,*) 'ROMS initial.F: RESTART_FILE, Calling get_state'
         CALL get_state (ng, 0, 1, INI(ng)%name, IniRec, Tindex)
 # ifdef DISTRIBUTE
+        write(6,*) 'ROMS initial.F: RESTART_FILE, Calling mp_bcasti'
         CALL mp_bcasti (ng, iNLM, exit_flag)
 # endif
         IF (exit_flag.ne.NoError) RETURN
