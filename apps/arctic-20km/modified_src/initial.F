@@ -733,6 +733,6 @@
       END DO
 !$OMP END PARALLEL DO
 #endif
-      write(6,*) 'ROMS: initial.F is done
+      write(6,*) 'ROMS: initial.F is done'
       RETURN
       END SUBROUTINE initial
