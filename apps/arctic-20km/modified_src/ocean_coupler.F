@@ -221,12 +221,12 @@
      &                        OCN_COMM_WORLD, OCNid)
 !
 !  Initialize attribute vector holding the export data code strings of
-!  the wave model. The Asize is the number of grid point on this
+!  the cice model. The Asize is the number of grid point on this
 !  processor.
 !
       Asize=GlobalSegMap_lsize(GSMapROMS, OCN_COMM_WORLD)
       WRITE (6,*) ' ROMS Ocean Coupler: calling AttrVect_init'
-      CALL AttrVect_init (cice2ocn_AV, rList=TRIM(ExportList(Iwaves)),   &
+      CALL AttrVect_init (cice2ocn_AV, rList=TRIM(ExportList(Icice)),   &
      &                    lsize=Asize)
 !
 !  Initialize attribute vector holding the export data code string of
@@ -237,7 +237,8 @@
       CALL AttrVect_zero (ocn2cice_AV)
 
       WRITE (6,*) ' ROMS Ocean Coupler: calling Router_init'
-!      CALL Router_init (CICEid, GSMapROMS, OCN_COMM_WORLD, ROMStoCICE)
+      CALL Router_init (CICEid, GSMapROMS, OCN_COMM_WORLD, ROMStoCICE)
+      WRITE (6,*) ' ROMS Ocean Coupler: calling Router_init. Done'
 !
 !  Deallocate working arrays.
 !
