@@ -168,7 +168,9 @@
 !-----------------------------------------------------------------------
 !
       DO ng=1,Ngrids
+	    WRITE (stdout,*) ' Initialize nonlinear model state'
         CALL initial (ng)
+        WRITE (stdout,*) ' Done: Initialize nonlinear model state'
         IF (exit_flag.ne.NoError) RETURN
       END DO
 !

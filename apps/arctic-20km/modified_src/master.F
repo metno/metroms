@@ -200,6 +200,7 @@
           END DO
         END IF
         IF (exit_flag.eq.NoError) THEN
+          WRITE (stdout,*) ' Calling ROMS_run: ', MyRank
           CALL ROMS_run (run_time)
         END IF
         CALL ROMS_finalize
