@@ -22,7 +22,7 @@
 
    integer (int_kind), public :: &
       MPI_COMM_ICE,             &! MPI communicator for ice comms
-      ice_comm,
+      ice_comm,                 &
       nprocs,                   &
       CICEid,                   &
       Nmodels,                  &
