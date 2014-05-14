@@ -205,16 +205,18 @@
 !
       Jsize=JendR-JstrR+1
       IF (.not.allocated(start)) THEN
-        allocate ( start(Jsize) )
+!        allocate ( start(Jsize) )
+        allocate ( start(1) )
       END IF
       IF (.not.allocated(length)) THEN
-        allocate ( length(Jsize) )
+!        allocate ( length(Jsize) )
+        allocate ( length(1) )
       END IF
       jc=0
       DO j=JstrR,JendR
         jc=jc+1
-        start (jc)=j*(Lm(ng)+2)+IstrR+1
-        length(jc)=(IendR-IstrR+1)
+!        start (jc)=j*(Lm(ng)+2)+IstrR+1
+!        length(jc)=(IendR-IstrR+1)
       END DO
       WRITE (6,*) ' ROMS Ocean Coupler: calling GlobalSegMap_init'
       CALL GlobalSegMap_init (GSMapROMS, start, length, 0,              &
@@ -226,14 +228,14 @@
 !
       Asize=GlobalSegMap_lsize(GSMapROMS, OCN_COMM_WORLD)
       WRITE (6,*) ' ROMS Ocean Coupler: calling AttrVect_init'
-      CALL AttrVect_init (cice2ocn_AV, rList=TRIM(ExportList(Icice)),   &
-     &                    lsize=Asize)
+      CALL AttrVect_init (cice2ocn_AV, rList='SST', &!TRIM(ExportList(Icice)),   &
+     &                    lsize=10)!Asize)
 !
 !  Initialize attribute vector holding the export data code string of
 !  the ocean model.
 !
-      CALL AttrVect_init (ocn2cice_AV, rList=TRIM(ExportList(Iocean)),   &
-     &                    lsize=Asize)
+      CALL AttrVect_init (ocn2cice_AV, rList='SST', &!rList=TRIM(ExportList(Iocean)),   &
+     &                    lsize=10)!Asize)
       CALL AttrVect_zero (ocn2cice_AV)
 
       WRITE (6,*) ' ROMS Ocean Coupler: calling Router_init'
