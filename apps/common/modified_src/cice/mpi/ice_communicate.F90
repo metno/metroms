@@ -133,14 +133,14 @@
    mpiR4  = MPI_REAL4
    allocate(start(1))
    allocate(length(1))
-   gsmsize=0
+   gsmsize=10
    exportList=''
       WRITE (6,*) ' CICE: GlobalSegMap_init'
    call GlobalSegMap_init (GSMapCICE, start, length, 0, MPI_COMM_ICE, CICEid)
       WRITE (6,*) ' CICE: AttrVect_init'
-   call AttrVect_init (cice2ocn_AV, rlist=exportList, lsize=gsmsize)
+   call AttrVect_init (cice2ocn_AV, rlist='SST', lsize=gsmsize)
    call AttrVect_zero (cice2ocn_AV)
-   call AttrVect_init (ocn2cice_AV, rList=exportList, lsize=gsmsize)
+   call AttrVect_init (ocn2cice_AV, rList='SST', lsize=gsmsize)
    call AttrVect_zero (ocn2cice_AV)
       WRITE (6,*) ' CICE: Router_init'
    call Router_init (OCNid, GSMapCICE, MPI_COMM_ICE, CICEtoROMS)
