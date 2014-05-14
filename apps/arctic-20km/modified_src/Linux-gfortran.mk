@@ -23,7 +23,7 @@
 # First the defaults
 #
                FC := gfortran
-           FFLAGS := -frepack-arrays
+           FFLAGS := -frepack-arrays -fconvert=big-endian
               CPP := /usr/bin/cpp
          CPPFLAGS := -P -traditional
           LDFLAGS :=
