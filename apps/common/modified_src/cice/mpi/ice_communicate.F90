@@ -60,6 +60,7 @@
       ice_comm,                 &
       nprocs,                   &
       CICEid,                   &
+      OCNid,                    &
       Nmodels,                  &
       mpiR16,                   &! MPI type for r16_kind
       mpiR8,                    &! MPI type for dbl_kind
