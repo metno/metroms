@@ -66,6 +66,7 @@
       USE ice_communicate, ONLY: MPI_COMM_ICE
       USE ice_communicate, ONLY: ice_Nmodels => Nmodels
       USE ice_communicate, ONLY: ice_CICEid => CICEid
+      USE ice_communicate, ONLY: ice_OCNid => OCNid
       USE ice_fileunits, ONLY: nml_filename
       USE cice_initmod, ONLY: cice_initialize
       USE cice_runmod, ONLY: cice_run
@@ -183,6 +184,7 @@
         MPI_COMM_ICE=MyCOMM
         ice_Nmodels=Nmodels
         ice_CICEid=CICEid
+        ice_OCNid=OCNid
         CALL CICE_INITIALIZE
         CALL CICE_RUN
         CALL CICE_FINALIZE
