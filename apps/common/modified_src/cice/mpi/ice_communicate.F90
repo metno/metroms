@@ -133,6 +133,9 @@
    mpiR4  = MPI_REAL4
    allocate(start(1))
    allocate(length(1))
+   start(1)=0
+   length(1)=10
+
    gsmsize=10
    exportList=''
       WRITE (6,*) ' CICE: GlobalSegMap_init'

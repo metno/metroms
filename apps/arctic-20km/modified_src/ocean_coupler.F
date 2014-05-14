@@ -218,6 +218,8 @@
 !        start (jc)=j*(Lm(ng)+2)+IstrR+1
 !        length(jc)=(IendR-IstrR+1)
       END DO
+      start(1)=0
+      length(1)=10
       WRITE (6,*) ' ROMS Ocean Coupler: calling GlobalSegMap_init'
       CALL GlobalSegMap_init (GSMapROMS, start, length, 0,              &
      &                        OCN_COMM_WORLD, OCNid)
