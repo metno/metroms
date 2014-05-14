@@ -10,7 +10,42 @@
 ! Oct. 2004: Adapted from POP version by William H. Lipscomb, LANL
 
    use ice_kinds_mod
-   USE m_MCTWorld, ONLY : MCTWorld_init => init
+!
+!  Componenet model registry.
+!
+      USE m_MCTWorld, ONLY : MCTWorld_init => init
+      USE m_MCTWorld, ONLY : MCTWorld_clean => clean
+!
+!  Domain decompositin descriptor datatype and assocoiated methods.
+!
+      USE m_GlobalSegMap, ONLY : GlobalSegMap
+      USE m_GlobalSegMap, ONLY : GlobalSegMap_init => init
+      USE m_GlobalSegMap, ONLY : GlobalSegMap_lsize => lsize
+      USE m_GlobalSegMap, ONLY : GlobalSegMap_clean => clean
+      USE m_GlobalSegMap, ONLY : GlobalSegMap_Ordpnts => OrderedPoints
+!
+!  Field storage data types and associated methods.
+!
+      USE m_AttrVect, ONLY : AttrVect
+      USE m_AttrVect, ONLY : AttrVect_init => init
+      USE m_AttrVect, ONLY : AttrVect_zero => zero
+      USE m_AttrVect, ONLY : AttrVect_clean => clean
+      USE m_AttrVect, ONLY : AttrVect_indxR => indexRA
+      USE m_AttrVect, ONLY : AttrVect_importRAttr => importRAttr
+      USE m_AttrVect, ONLY : AttrVect_exportRAttr => exportRAttr
+!
+!  Intercomponent communitcations scheduler.
+!
+      USE m_Router, ONLY : Router
+      USE m_Router, ONLY : Router_init => init
+      USE m_Router, ONLY : Router_clean => clean
+!
+!  Intercomponent transfer.
+!
+      USE m_Transfer, ONLY : MCT_Send => send
+      USE m_Transfer, ONLY : MCT_Recv => recv
+!
+
 
    implicit none
    private
@@ -36,6 +71,12 @@
       mpitagHalo            = 1,    &! MPI tags for various
       mpitag_gs             = 1000   ! communication patterns
 
+   type(GlobalSegMap) :: GSMapCICE         ! GloabalSegMap variables
+
+   type(AttrVect) :: cice2ocn_AV            ! AttrVect variables
+   type(AttrVect) :: ocn2cice_AV
+   type(Router)   :: CICEtoROMS            ! Router variables
+
 !***********************************************************************
 
  contains
@@ -56,6 +97,9 @@
    include 'mpif.h'   ! MPI Fortran include file
 
    integer (int_kind) :: ierr  ! MPI error flag
+   integer, pointer :: start(:), length(:)
+   integer :: gsmsize
+   character (len=240) :: exportList
 
 !-----------------------------------------------------------------------
 !
@@ -86,6 +130,21 @@
    mpiR16 = MPI_REAL16
    mpiR8  = MPI_REAL8
    mpiR4  = MPI_REAL4
+   allocate(start(1))
+   allocate(length(1))
+   gsmsize=0
+   exportList=''
+      WRITE (6,*) ' CICE: GlobalSegMap_init'
+   call GlobalSegMap_init (GSMapCICE, start, length, 0, MPI_COMM_ICE, CICEid)
+      WRITE (6,*) ' CICE: AttrVect_init'
+   call AttrVect_init (cice2ocn_AV, rlist=exportList, lsize=gsmsize)
+   call AttrVect_zero (cice2ocn_AV)
+   call AttrVect_init (ocn2cice_AV, rList=exportList, lsize=gsmsize)
+   call AttrVect_zero (ocn2cice_AV)
+      WRITE (6,*) ' CICE: Router_init'
+   call Router_init (OCNid, GSMapCICE, MPI_COMM_ICE, CICEtoROMS)
+      WRITE (6,*) ' CICE: Router_init. Done.'
+
 
 !-----------------------------------------------------------------------
 
