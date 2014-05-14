@@ -73,8 +73,8 @@
 !
 !  Coupled model components IDs.
 !
-      integer :: OCNid = 1
-      integer :: CICEid = 2
+      integer :: OCNid = 2
+      integer :: CICEid = 1
       integer :: ATMid = 3
       integer :: WAVid = 4
 !

@@ -1388,8 +1388,8 @@ Dout(iTvdif) == F F                        ! vertical diffusion
 !                  atmos \
 !                  cice
 
-     OrderLabel = ocean \
-                  cice
+     OrderLabel = cice \
+                  ocean
 
 ! Number of parallel threads assigned to each model in the coupled system,
 ! [1:Nmodels] KEYWORD entries are expected with the order label (OrderLabel)
