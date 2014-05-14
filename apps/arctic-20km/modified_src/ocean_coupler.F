@@ -237,7 +237,7 @@
       CALL AttrVect_zero (ocn2cice_AV)
 
       WRITE (6,*) ' ROMS Ocean Coupler: calling Router_init'
-      !CALL Router_init (CICEid, GSMapROMS, OCN_COMM_WORLD, ROMStoCICE)
+      CALL Router_init (CICEid, GSMapROMS, OCN_COMM_WORLD, ROMStoCICE)
       WRITE (6,*) ' ROMS Ocean Coupler: calling Router_init. Done'
 !
 !  Deallocate working arrays.
