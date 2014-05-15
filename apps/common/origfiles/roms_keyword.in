@@ -1414,7 +1414,9 @@ Nthreads(cice) = 4
 !
 !  TimeInterval = v(1) v(2) v(3)
 
-   TimeInterval = 60.0d0 10.0d0  10.0d0
+!   TimeInterval = 60.0d0 10.0d0  10.0d0
+
+TimeInterval = 60.0d0
 
 ! Coupled model standard input file name, [1:Nmodels] KEYWORD entries are
 ! expected with the label code in parenthesis.
