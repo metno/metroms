@@ -87,13 +87,8 @@
       use drv_forcing, only: sst_sss
 #endif
 
-      CALL chdir("/disk1/geiraw/tmproms/cice/rundir") ! Temporary hack
-
-      WRITE (6,*) ' CICE: init_communicate '
       call init_communicate     ! initial setup for message passing
-      WRITE (6,*) ' CICE: init_fileunits '
       call init_fileunits       ! unit numbers
-      WRITE (6,*) ' CICE: input_data  '
       call input_data           ! namelist variables
       if (trim(runid) == 'bering') call check_finished_file
       call init_zbgc            ! vertical biogeochemistry namelist
