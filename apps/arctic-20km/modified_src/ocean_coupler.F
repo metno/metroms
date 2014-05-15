@@ -269,9 +269,9 @@
 !
 #include "tile.h"
       write(6,*) ''
-      write(6,*) '   **********************  '
-      write(6,*) '    Ocean - CICE: couplling routine called from ROMS'
-      write(6,*) '   **********************  '
+      write(6,*) '   *****************************************************  '
+      write(6,*) '    Ocean - CICE: coupling routine called from ROMS'
+      write(6,*) '   *****************************************************  '
       write(6,*) ''
       RETURN
       END SUBROUTINE ocn2cice_coupling
