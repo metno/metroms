@@ -47,7 +47,7 @@
       use ice_zbgc_shared, only: skl_bgc
       use ice_communicate, only: GSMapCICE, cice2ocn_AV, ocn2cice_AV, CICEtoROMS
 
-
+      real (kind=dbl_kind) ::   TimeInterval, tcoupling
    !--------------------------------------------------------------------
    !  initialize error code and step timer
    !--------------------------------------------------------------------
