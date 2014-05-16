@@ -287,7 +287,7 @@
 
       allocate(avdata(10))
       avdata=0.0_r8
-      avdata(1)=5.0
+      avdata(1)=100.0 + MyRank
 
       CALL AttrVect_importRAttr (ocn2cice_AV, 'SST', avdata)
 

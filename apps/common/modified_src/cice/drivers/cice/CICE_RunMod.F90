@@ -114,7 +114,7 @@
                 write(6,*) 'CICE rank ', my_task, ' received: ', avdata(1)
 !            END IF
 
-            avdata(1)=7.0
+            avdata(1)=200.0 + my_task
 
             CALL AttrVect_importRAttr (cice2ocn_AV, 'SST', avdata)
 
