@@ -57,7 +57,7 @@
 
       real (kind=dbl_kind) ::   TimeInterval, tcoupling
       integer :: MyError
-      real(r8), pointer :: avdata(:)
+      real(kind=dbl_kind), pointer :: avdata(:)
    !--------------------------------------------------------------------
    !  initialize error code and step timer
    !--------------------------------------------------------------------
@@ -102,8 +102,9 @@
             END IF
 
             allocate(avdata(10))
-            avdata=0.0_r8
-            CALL AttrVect_exportRAttr (ocn2wav_AV, TRIM(code),avdata, gsmsize)
+            avdata=0.0
+
+            CALL AttrVect_exportRAttr(ocn2cice_AV, 'SST',avdata, 10)
 
             IF (my_task == master_task) THEN
                 write(6,*) 'CICE received: ', avdata(1)
