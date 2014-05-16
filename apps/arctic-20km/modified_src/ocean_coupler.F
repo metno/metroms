@@ -302,8 +302,8 @@
       END IF
       CALL AttrVect_exportRAttr(cice2ocn_AV, 'SST', avdata)
 
-!      IF (my_task == master_task) THEN
-          write(6,*) 'ROMS rank ', my_task, ' received: ', avdata(1)
+!      IF (Master) THEN
+          write(6,*) 'ROMS rank ', MyRank, ' received: ', avdata(1)
 !      END IF
 
 
