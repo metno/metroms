@@ -111,10 +111,10 @@
             CALL AttrVect_exportRAttr(ocn2cice_AV, 'SST', avdata)
 
 !            IF (my_task == master_task) THEN
-                write(6,*) 'CICE rank ', my_task, ' received: ', avdata(my_task)
+                write(6,*) 'CICE rank ', my_task, ' received: ', avdata(my_task+1)
 !            END IF
 
-            avdata(my_task)=200.0 + my_task
+            avdata(my_task+1)=200.0 + my_task
 
             CALL AttrVect_importRAttr (cice2ocn_AV, 'SST', avdata)
 
