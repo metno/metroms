@@ -287,7 +287,7 @@
 
       allocate(avdata(10))
       avdata=0.0_r8
-      avdata(1)=100.0 + MyRank
+      avdata(MyRank)=100.0 + MyRank
 
       CALL AttrVect_importRAttr (ocn2cice_AV, 'SST', avdata)
 
@@ -303,7 +303,7 @@
       CALL AttrVect_exportRAttr(cice2ocn_AV, 'SST', avdata)
 
 !      IF (Master) THEN
-          write(6,*) 'ROMS rank ', MyRank, ' received: ', avdata(1)
+          write(6,*) 'ROMS rank ', MyRank, ' received: ', avdata(MyRank)
 !      END IF
 
 
