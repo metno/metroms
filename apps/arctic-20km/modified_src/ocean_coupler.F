@@ -273,6 +273,16 @@
       write(6,*) '    Ocean - CICE: coupling routine called from ROMS'
       write(6,*) '   *****************************************************  '
       write(6,*) ''
+      CALL MCT_Send(ocn2cice_AV, ROMStoCICE, MyError)
+      IF (MyError.ne.0) THEN
+          WRITE (6,*) 'ROMS could not send data to CICE: MyError = ', MyError
+      END IF
+      CALL MCT_Recv(cice2ocn_AV, ROMStoCICE, MyError)
+      IF (MyError.ne.0) THEN
+          WRITE (6,*) 'ROMS could not receive data from CICE: MyError = ', MyError
+      END IF
+
+
       RETURN
       END SUBROUTINE ocn2cice_coupling
 

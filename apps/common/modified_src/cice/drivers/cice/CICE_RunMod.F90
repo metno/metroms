@@ -45,7 +45,7 @@
       use ice_timers, only: ice_timer_start, ice_timer_stop, &
           timer_couple, timer_step
       use ice_zbgc_shared, only: skl_bgc
-      use ice_communicate, only: GSMapCICE, cice2ocn_AV, ocn2cice_AV, CICEtoROMS
+      use ice_communicate, only: GSMapCICE, cice2ocn_AV, ocn2cice_AV, CICEtoROMS, my_task, master_task
 
       real (kind=dbl_kind) ::   TimeInterval, tcoupling
    !--------------------------------------------------------------------
@@ -81,9 +81,20 @@
          TimeInterval = 7200.0
          tcoupling = tcoupling + dt
          IF (tcoupling.ge.TimeInterval) THEN
-            write(6,*) '*****************************************************'
-            write(6,*) 'Ocean - CICE: coupling routine called from ROMS'
-            write(6,*) '*****************************************************'
+            IF (my_task == master_task) THEN
+                write(6,*) '*****************************************************'
+                write(6,*) 'CICE - Ocean: coupling routine called from CICE'
+                write(6,*) '*****************************************************'
+            END IF
+            CALL MCT_Recv(ocn2cice_AV, CICEtoROMS, MyError)
+            IF (MyError.ne.0) THEN
+                WRITE (6,*) 'CICE could not receive data from ROMS: MyError = ', MyError
+            END IF
+
+            CALL MCT_Send(cice2ocn_AV, CICEtoROMS, MyError)
+            IF (MyError.ne.0) THEN
+                WRITE (6,*) 'CICE could not send data to ROMS: MyError = ', MyError
+            END IF
 
             tcoupling = 0
          END IF
