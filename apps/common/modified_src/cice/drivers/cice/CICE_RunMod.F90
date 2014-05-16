@@ -110,10 +110,13 @@
 
             CALL AttrVect_exportRAttr(ocn2cice_AV, 'SST', avdata)
 
-            IF (my_task == master_task) THEN
-                write(6,*) 'CICE received: ', avdata(1)
-            END IF
+!            IF (my_task == master_task) THEN
+                write(6,*) 'CICE rank ', my_task, ' received: ', avdata(1)
+!            END IF
 
+            avdata(1)=7.0
+
+            CALL AttrVect_importRAttr (cice2ocn_AV, 'SST', avdata)
 
             CALL MCT_Send(cice2ocn_AV, CICEtoROMS, MyError)
             IF (MyError.ne.0) THEN

@@ -300,6 +300,11 @@
       IF (MyError.ne.0) THEN
           WRITE (6,*) 'ROMS could not receive data from CICE: MyError = ', MyError
       END IF
+      CALL AttrVect_exportRAttr(cice2ocn_AV, 'SST', avdata)
+
+!      IF (my_task == master_task) THEN
+          write(6,*) 'ROMS rank ', my_task, ' received: ', avdata(1)
+!      END IF
 
 
       RETURN
