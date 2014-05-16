@@ -23,6 +23,9 @@
       USE m_Router, ONLY : Router
       USE m_Transfer, ONLY : MCT_Send => send
       USE m_Transfer, ONLY : MCT_Recv => recv
+      USE m_AttrVect, ONLY : AttrVect_importRAttr => importRAttr
+      USE m_AttrVect, ONLY : AttrVect_exportRAttr => exportRAttr
+
 !
 
       implicit none
