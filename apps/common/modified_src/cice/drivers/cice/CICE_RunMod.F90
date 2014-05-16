@@ -98,6 +98,7 @@
                 write(6,*) '*****************************************************'
                 write(6,*) 'CICE - Ocean: coupling routine called from CICE'
                 write(6,*) '*****************************************************'
+                flush(6)
             END IF
             CALL MCT_Recv(ocn2cice_AV, CICEtoROMS, MyError)
             IF (MyError.ne.0) THEN
