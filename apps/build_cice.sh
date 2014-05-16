@@ -22,6 +22,9 @@ export MCT_LIBDIR=${tup}/tmproms/roms_src/Lib/MCT/lib
 # Copy modified source files
 cp -auv $workingdir/common/modified_src/cice ${tup}/tmproms
 
+# Remove old binaries
+rm -rf ${tup}/tmproms/cice/rundir/compile
+
 ./comp_ice
 
 # Build a library (for use in the ROMS build)
