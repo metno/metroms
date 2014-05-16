@@ -258,6 +258,11 @@
 
       SUBROUTINE ocn2cice_coupling (ng, tile)
       USE mod_param
+      USE mod_parallel
+      USE mod_coupler
+      USE mod_forces
+      USE mod_kinds
+      USE mod_scalars
 !
       implicit none
 !
