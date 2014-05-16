@@ -263,17 +263,29 @@
 !
 !  Imported variable declarations.
 !
-      integer, intent(in) :: ng, tile
-      integer :: MyError
 !
 !  Local variable declarations.
 !
+      integer, intent(in) :: ng, tile
+      integer :: MyError
+      real(r8), pointer :: avdata(:)
+
+!
 #include "tile.h"
-      write(6,*) ''
-      write(6,*) '   *****************************************************  '
-      write(6,*) '    Ocean - CICE: coupling routine called from ROMS'
-      write(6,*) '   *****************************************************  '
-      write(6,*) ''
+      IF (Master) THEN
+          write(6,*) ''
+          write(6,*) '   *****************************************************  '
+          write(6,*) '    Ocean - CICE: coupling routine called from ROMS'
+          write(6,*) '   *****************************************************  '
+          write(6,*) ''
+      END IF
+
+      allocate(avdata(10))
+      avdata=0.0_r8
+      avdata(1)=5.0
+
+      CALL AttrVect_importRAttr (ocn2cice_AV, 'SSH', avdata)
+
       CALL MCT_Send(ocn2cice_AV, ROMStoCICE, MyError)
       IF (MyError.ne.0) THEN
           WRITE (6,*) 'ROMS could not send data to CICE: MyError = ', MyError

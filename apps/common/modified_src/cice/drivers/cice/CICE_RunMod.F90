@@ -57,6 +57,7 @@
 
       real (kind=dbl_kind) ::   TimeInterval, tcoupling
       integer :: MyError
+      real(r8), pointer :: avdata(:)
    !--------------------------------------------------------------------
    !  initialize error code and step timer
    !--------------------------------------------------------------------
@@ -99,6 +100,15 @@
             IF (MyError.ne.0) THEN
                 WRITE (6,*) 'CICE could not receive data from ROMS: MyError = ', MyError
             END IF
+
+            allocate(avdata(10))
+            avdata=0.0_r8
+            CALL AttrVect_exportRAttr (ocn2wav_AV, TRIM(code),avdata, gsmsize)
+
+            IF (my_task == master_task) THEN
+                write(6,*) 'CICE received: ', avdata(1)
+            END IF
+
 
             CALL MCT_Send(cice2ocn_AV, CICEtoROMS, MyError)
             IF (MyError.ne.0) THEN
