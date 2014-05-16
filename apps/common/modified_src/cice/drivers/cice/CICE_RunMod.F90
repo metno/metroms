@@ -56,6 +56,7 @@
       use ice_communicate, only: GSMapCICE, cice2ocn_AV, ocn2cice_AV, CICEtoROMS, my_task, master_task
 
       real (kind=dbl_kind) ::   TimeInterval, tcoupling
+      integer :: MyError
    !--------------------------------------------------------------------
    !  initialize error code and step timer
    !--------------------------------------------------------------------
