@@ -53,7 +53,11 @@
 
    public  :: init_communicate,          &
               get_num_procs,             &
-              create_communicator
+              create_communicator,       &
+              GSMapCICE,                 &
+              cice2ocn_AV,               &
+              ocn2cice_AV,               &
+              CICEtoROMS
 
    integer (int_kind), public :: &
       MPI_COMM_ICE,             &! MPI communicator for ice comms

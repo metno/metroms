@@ -45,6 +45,8 @@
       use ice_timers, only: ice_timer_start, ice_timer_stop, &
           timer_couple, timer_step
       use ice_zbgc_shared, only: skl_bgc
+      use ice_communicate, only: GSMapCICE, cice2ocn_AV, ocn2cice_AV, CICEtoROMS
+
 
    !--------------------------------------------------------------------
    !  initialize error code and step timer
@@ -68,15 +70,31 @@
 
          if (stop_now >= 1) exit timeLoop
 
-#ifndef coupled
          call ice_timer_start(timer_couple)  ! atm/ocn coupling
          call get_forcing_atmo     ! atmospheric forcing from data
          call get_forcing_ocn(dt)  ! ocean forcing from data
+
+!        ***********************************
+!             ROMS coupling
+!        ***********************************
+!
+         TimeInterval = 7200.0
+         tcoupling = tcoupling + dt
+         IF (tcoupling.ge.TimeInterval) THEN
+            write(6,*) '*****************************************************'
+            write(6,*) 'Ocean - CICE: coupling routine called from ROMS'
+            write(6,*) '*****************************************************'
+
+            tcoupling = 0
+         END IF
+
+
+!        ***********************************
+
          ! if (tr_aero) call faero_data       ! aerosols
          if (tr_aero)  call faero_default     ! aerosols
          if (skl_bgc)  call get_forcing_bgc   ! biogeochemistry
          call ice_timer_stop(timer_couple)    ! atm/ocn coupling
-#endif
 
          call init_flux_atm     ! initialize atmosphere fluxes sent to coupler
          call init_flux_ocn     ! initialize ocean fluxes sent to coupler
@@ -90,6 +108,9 @@
       call ice_timer_stop(timer_step)   ! end timestepping loop timer
 
       end subroutine CICE_Run
+
+
+
 
 !=======================================================================
 !
