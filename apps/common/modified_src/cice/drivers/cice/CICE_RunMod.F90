@@ -107,7 +107,7 @@
             allocate(avdata(10))
             avdata=0.0
 
-            CALL AttrVect_exportRAttr(ocn2cice_AV, 'SST',avdata, 10)
+            CALL AttrVect_exportRAttr(ocn2cice_AV, 'SST', avdata)
 
             IF (my_task == master_task) THEN
                 write(6,*) 'CICE received: ', avdata(1)
