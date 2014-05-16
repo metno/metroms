@@ -264,6 +264,7 @@
 !  Imported variable declarations.
 !
       integer, intent(in) :: ng, tile
+      integer :: MyError
 !
 !  Local variable declarations.
 !
