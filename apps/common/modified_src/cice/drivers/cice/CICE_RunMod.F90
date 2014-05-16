@@ -17,6 +17,14 @@
 
       use ice_kinds_mod
 
+!     MCT couling modules
+      USE m_GlobalSegMap, ONLY : GlobalSegMap
+      USE m_AttrVect, ONLY : AttrVect
+      USE m_Router, ONLY : Router
+      USE m_Transfer, ONLY : MCT_Send => send
+      USE m_Transfer, ONLY : MCT_Recv => recv
+!
+
       implicit none
       private
       public :: CICE_Run, ice_step
