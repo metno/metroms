@@ -289,7 +289,7 @@
       avdata=0.0_r8
       avdata(1)=5.0
 
-      CALL AttrVect_importRAttr (ocn2cice_AV, 'SSH', avdata)
+      CALL AttrVect_importRAttr (ocn2cice_AV, 'SST', avdata)
 
       CALL MCT_Send(ocn2cice_AV, ROMStoCICE, MyError)
       IF (MyError.ne.0) THEN
