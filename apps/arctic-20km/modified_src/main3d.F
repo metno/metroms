@@ -318,7 +318,7 @@
             DO thread=0,numthreads-1
               subs=NtileX(ng)*NtileE(ng)/numthreads
               DO tile=subs*thread,subs*(thread+1)-1,+1
-!                CALL ocn2cice_coupling (ng, TILE)
+                CALL ocn2cice_coupling (ng, TILE)
               END DO
             END DO
 !$OMP END PARALLEL DO
