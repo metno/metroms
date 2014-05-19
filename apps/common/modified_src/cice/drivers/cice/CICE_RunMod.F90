@@ -91,40 +91,40 @@
 !             ROMS coupling
 !        ***********************************
 !
-         TimeInterval = 7200.0
-         tcoupling = tcoupling + dt
-         IF (tcoupling.ge.TimeInterval) THEN
-            IF (my_task == master_task) THEN
-                write(6,*) '*****************************************************'
-                write(6,*) 'CICE - Ocean: coupling routine called from CICE'
-                write(6,*) '*****************************************************'
-                flush(6)
-            END IF
-            CALL MCT_Recv(ocn2cice_AV, CICEtoROMS, MyError)
-            IF (MyError.ne.0) THEN
-                WRITE (6,*) 'CICE could not receive data from ROMS: MyError = ', MyError
-            END IF
-
-            allocate(avdata(10))
-            avdata=0.0
-
-            CALL AttrVect_exportRAttr(ocn2cice_AV, 'SST', avdata)
+!         TimeInterval = 7200.0
+!         tcoupling = tcoupling + dt
+!         IF (tcoupling.ge.TimeInterval) THEN
+!            IF (my_task == master_task) THEN
+!                write(6,*) '*****************************************************'
+!                write(6,*) 'CICE - Ocean: coupling routine called from CICE'
+!                write(6,*) '*****************************************************'
+!                flush(6)
+!            END IF
+!            CALL MCT_Recv(ocn2cice_AV, CICEtoROMS, MyError)
+!            IF (MyError.ne.0) THEN
+!                WRITE (6,*) 'CICE could not receive data from ROMS: MyError = ', MyError
+!            END IF
+!
+!            allocate(avdata(10))
+!            avdata=0.0
+!
+!            CALL AttrVect_exportRAttr(ocn2cice_AV, 'SST', avdata)
 
 !            IF (my_task == master_task) THEN
-                write(6,*) 'CICE rank ', my_task, ' received: ', avdata(my_task+1)
+!                write(6,*) 'CICE rank ', my_task, ' received: ', avdata(my_task+1)
 !            END IF
 
-            avdata(my_task+1)=200.0 + my_task
+!            avdata(my_task+1)=200.0 + my_task
 
-            CALL AttrVect_importRAttr (cice2ocn_AV, 'SST', avdata)
+!            CALL AttrVect_importRAttr (cice2ocn_AV, 'SST', avdata)
 
-            CALL MCT_Send(cice2ocn_AV, CICEtoROMS, MyError)
-            IF (MyError.ne.0) THEN
-                WRITE (6,*) 'CICE could not send data to ROMS: MyError = ', MyError
-            END IF
+!           CALL MCT_Send(cice2ocn_AV, CICEtoROMS, MyError)
+!            IF (MyError.ne.0) THEN
+!                WRITE (6,*) 'CICE could not send data to ROMS: MyError = ', MyError
+!            END IF
 
-            tcoupling = 0
-         END IF
+!            tcoupling = 0
+!         END IF
 
 
 !        ***********************************
