@@ -265,11 +265,11 @@
       END DO
 # endif
 #endif
-#if defined EW_PERIODIC || defined NS_PERIODIC
+IF (EWperiodic(ng).or.NSperiodic(ng)) THEN
       CALL exchange_r2d_tile (ng, tile,                                 &
      &                        LBi, UBi, LBj, UBj,                       &
      &                        srflx)
-#endif
+END IF
 #ifdef DISTRIBUTE
       CALL mp_exchange2d (ng, tile, model, 1,                           &
      &                    LBi, UBi, LBj, UBj,                           &
