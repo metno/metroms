@@ -19,5 +19,5 @@ a20params.ROMSINFILE=a20params.RUNPATH+"/roms.in"
 modelrun=ModelRun(a20params,Constants.FELT,Constants.FELT)
 
 modelrun.preprocess()
-modelrun.run_roms(Constants.OPENMP,Constants.NODEBUG,Constants.MET64) #24h hindcast
+modelrun.run_roms(Constants.MPI,Constants.NODEBUG,Constants.MET64) #24h hindcast
 modelrun.postprocess()
