@@ -69,7 +69,7 @@ tmpdir=tmproms
 export MY_ROMS_SRC=${tup}/${tmpdir}/roms_src
 mkdir -p ${MY_ROMS_SRC}
 cd ${MY_ROMS_SRC}
-tar -xf ${metroms_base}/static_libs/roms-3.5.tar.gz
+tar -xf ${metroms_base}/static_libs/roms-3.6.tar.gz
 
 # Set path of the directory containing makefile configuration (*.mk) files.
 # The user has the option to specify a customized version of these files
