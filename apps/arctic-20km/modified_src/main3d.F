@@ -294,7 +294,7 @@
           IF ((iic(ng).ne.ntstart(ng)).and.                             &
      &        MOD(iic(ng)-1,CoupleSteps(Iwaves,ng)).eq.0) THEN
             DO tile=first_tile(ng),last_tile(ng),+1
-              CALL CALL ocn2cice_coupling (ng, TILE)
+              CALL ocn2cice_coupling (ng, TILE)
             END DO
 !$OMP BARRIER
           END IF
