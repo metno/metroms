@@ -78,8 +78,8 @@ endif
 ifdef USE_DEBUG
            FFLAGS += -g -fbounds-check
 else
-           FFLAGS += -fbacktrace -g
-#           FFLAGS += -O3 -ffast-math
+#           FFLAGS += -fbacktrace -g
+           FFLAGS += -O3 -ffast-math
 endif
 
 ifdef USE_MCT
