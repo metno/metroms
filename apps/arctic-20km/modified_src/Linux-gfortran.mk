@@ -78,7 +78,7 @@ endif
 ifdef USE_DEBUG
            FFLAGS += -g -fbounds-check
 else
-           FFLAGS += -fbacktrace -g -fbounds-check
+           FFLAGS += -fbacktrace -g
 #           FFLAGS += -O3 -ffast-math
 endif
 
