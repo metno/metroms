@@ -83,8 +83,8 @@ else
 endif
 
 ifdef USE_MCT
-       MCT_INCDIR := $(MY_ROMS_SRC)/Lib/MCT/include
-       MCT_LIBDIR := $(MY_ROMS_SRC)/Lib/MCT/lib
+       MCT_INCDIR := $(MY_ROMS_SRC)/../MCT/include
+       MCT_LIBDIR := $(MY_ROMS_SRC)/../MCT/lib
            FFLAGS += -I$(MCT_INCDIR)
              LIBS += -L$(MCT_LIBDIR) -lmct -lmpeu
 endif
