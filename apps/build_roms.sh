@@ -52,6 +52,7 @@ export ROMS_APPLICATION=$1
 export USE_MPI=on
 export USE_MPIF90=on
 export FORT=gfortran
+#export FORT=ifort
 #export USE_OpenMP=on
 export USE_LARGE=on
 
@@ -213,12 +214,6 @@ fi
 
 export MY_HEADER_DIR=${MY_PROJECT_DIR}/include
 export MY_ANALYTICAL_DIR=${MY_HEADER_DIR}
-
-
-# Build MCT first (use version bundled with ROMS)
-#cd ${MY_ROMS_SRC}/Lib/MCT
-#./configure --prefix=${MY_ROMS_SRC}/Lib/MCT
-#make install
 
 # Build ROMS
 # Put the binary to execute in the following directory.
