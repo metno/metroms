@@ -15,8 +15,8 @@ tar -xf ${metroms_base}/static_libs/cice5.tar.gz
 export CICE_DIR=${tup}/tmproms/cice
 cd $CICE_DIR
 
-export MCT_INCDIR=${tup}/tmproms/roms_src/Lib/MCT/include
-export MCT_LIBDIR=${tup}/tmproms/roms_src/Lib/MCT/lib
+export MCT_INCDIR=${tup}/tmproms/MCT/include
+export MCT_LIBDIR=${tup}/tmproms/MCT/lib
 
 
 # Copy modified source files
