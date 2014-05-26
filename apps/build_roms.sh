@@ -216,9 +216,9 @@ export MY_ANALYTICAL_DIR=${MY_HEADER_DIR}
 
 
 # Build MCT first (use version bundled with ROMS)
-cd ${MY_ROMS_SRC}/Lib/MCT
-./configure --prefix=${MY_ROMS_SRC}/Lib/MCT
-make install
+#cd ${MY_ROMS_SRC}/Lib/MCT
+#./configure --prefix=${MY_ROMS_SRC}/Lib/MCT
+#make install
 
 # Build ROMS
 # Put the binary to execute in the following directory.
