@@ -55,14 +55,8 @@ ifdef USE_NETCDF4
     NETCDF_INCDIR ?= $(shell $(NC_CONFIG) --prefix)/include
              LIBS := $(shell $(NC_CONFIG) --flibs)
 else
-#    NETCDF_INCDIR ?= /sw/sdev/Modules/netcdf/netcdf-3.6.2/include
-#    NETCDF_LIBDIR ?= /sw/sdev/Modules/netcdf/netcdf-3.6.2/lib
     NETCDF_INCDIR ?= /sw/sdev/Modules/netcdf/netcdf-4.1.3/include
     NETCDF_LIBDIR ?= /sw/sdev/Modules/netcdf/netcdf-4.1.3/lib
-#     NETCDF_INCDIR ?= /home/metno_op/roms/testdir/NETCDF_ifort10.1.017/include
-#     NETCDF_LIBDIR ?= /home/metno_op/roms/testdir/NETCDF_ifort10.1.017/lib
-#    NETCDF_INCDIR ?= /home/metno_op/roms/testdir/NETCDF_ifort11.1.064/include
-#    NETCDF_LIBDIR ?= /home/metno_op/roms/testdir/NETCDF_ifort11.1.064/lib
              LIBS := -L$(NETCDF_LIBDIR) -lnetcdff -lnetcdf
 endif
 
@@ -101,10 +95,17 @@ else
 endif
 
 ifdef USE_MCT
-       MCT_INCDIR ?= /opt/intelsoft/mct/include
-       MCT_LIBDIR ?= /opt/intelsoft/mct/lib
+       MCT_INCDIR ?= $(MY_ROMS_SRC)/../MCT/include
+       MCT_LIBDIR ?= $(MY_ROMS_SRC)/../MCT/lib
            FFLAGS += -I$(MCT_INCDIR)
              LIBS += -L$(MCT_LIBDIR) -lmct -lmpeu
+endif
+
+ifdef USE_CICE
+       CICE_INCDIR := $(MY_ROMS_SRC)/../cice/rundir/compile
+       CICE_LIBDIR := $(MY_ROMS_SRC)/../cice/rundir/compile
+           FFLAGS += -I$(CICE_INCDIR)
+             LIBS += -L$(CICE_LIBDIR) -lcice
 endif
 
 ifdef USE_ESMF
