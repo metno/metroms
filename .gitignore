@@ -1,3 +1,5 @@
 *~
 *.[oa]
 *.pyc
+.project
+.pydevproject
