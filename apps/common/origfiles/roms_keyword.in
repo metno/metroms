@@ -75,6 +75,51 @@
       NtileI ==  XCPU                               ! I-direction partition
       NtileJ ==  YCPU                               ! J-direction partition
 
+! Set lateral boundary conditions keyword. Notice that a value is expected
+! for each boundary segment per nested grid for each state variable.
+!
+! Each tracer variable requires [1:4,1:NAT+NPT,Ngrids] values. Otherwise,
+! [1:4,1:Ngrids] values are expected for other variables. The boundary
+! order is: 1=west, 2=south, 3=east, and 4=north. That is, anticlockwise
+! starting at the western boundary.
+!
+! The keyword is case insensitive and usually has three characters. However,
+! it is possible to have compound keywords, if applicable. For example, the
+! keyword "RadNud" implies radiation boundary condition with nudging. This
+! combination is usually used in active/passive radiation conditions.
+!
+!   Keyword    Lateral Boundary Condition Type
+!
+!   Cha        Chapman
+!   Cla        Clamped
+!   Clo        Closed
+!   Fla        Flather                                _____N_____     j=Mm
+!   Gra        Gradient                              |     4     |
+!   Nes        Nested                                |           |
+!   Nud        Nudging                             1 W           E 3
+!   Per        Periodic                              |           |
+!   Rad        Radiation                             |_____S_____|
+!   Red        Reduced Physics                             2          j=1
+!                                                   i=1         i=Lm
+!                   W       S       E       N
+!                   e       o       a       o
+!                   s       u       s       r
+!                   t       t       t       t
+!                           h               h
+!
+!                   1       2       3       4
+
+   LBC(isFsur) ==   Clo     Clo     Clo     Clo         ! free-surface
+   LBC(isUbar) ==   Clo     Clo     Clo     Clo         ! 2D U-momentum
+   LBC(isVbar) ==   Clo     Clo     Clo     Clo         ! 2D V-momentum
+   LBC(isUvel) ==   Clo     Clo     Clo     Clo         ! 3D U-momentum
+   LBC(isVvel) ==   Clo     Clo     Clo     Clo         ! 3D V-momentum
+   LBC(isMtke) ==   Clo     Clo     Clo     Clo         ! mixing TKE
+
+   LBC(isTvar) ==   Clo     Clo     Clo     Clo \       ! temperature
+                    Clo     Clo     Clo     Clo         ! salinity
+
+
 ! Time-Stepping parameters.
 
       NTIMES == TSTEPS
@@ -1360,3 +1405,336 @@ Dout(iTvdif) == F F                        ! vertical diffusion
 !  SPARNAM     Input sediment transport parameters file name.
 !  USRNAME     USER's input generic file name.
 !
+
+
+
+
+
+
+!
+!  *************** COUPLING ************
+!
+!
+! Logical switch to report verbose information about import/export field
+! ranges.
+
+        Lreport = T
+
+! Number of models to couple.
+
+        Nmodels = 2
+
+! Coupled models order label used to process information arrays, [1:Nmodels]
+! string values are expected. The order is arbitrary, the indices below are
+! ordered from bottom to top grids.
+!
+!     OrderLabel = ocean \
+!                  waves \
+!                  atmos \
+!                  cice
+
+     OrderLabel = ocean \
+                  cice
+
+! Number of parallel threads assigned to each model in the coupled system,
+! [1:Nmodels] KEYWORD entries are expected with the order label (OrderLabel)
+! in parenthesis. The sum of all entries must be equal to the total number
+! of processors.
+
+Nthreads(ocean) = 4
+!Nthreads(waves) = 1
+!Nthreads(atmos) = 1
+Nthreads(cice) = 4
+
+! Time interval (seconds) between coupling of models, [1:Nmodels] real
+! values are expected corresponding to the entries of a lower triangular
+! matrix Aij for i>j.  For example, for three model components ordered
+! as ocean, waves, and atmos, the time interval is read as:
+!
+!      Aij     1      2     3
+!      i\j   ocean  waves atmos
+!  1  ocean    -      -     -          v(1): ocean-waves coupling interval
+!  2  waves   v(1)    -     -          v(2): ocean-atmos coupling interval
+!  3  atmos   v(2)   v(3)   -          v(3): waves-atmos coupling interval
+!
+!  TimeInterval = v(1) v(2) v(3)
+
+!   TimeInterval = 60.0d0 10.0d0  10.0d0
+
+TimeInterval = 7200.0d0
+
+! Coupled model standard input file name, [1:Nmodels] KEYWORD entries are
+! expected with the label code in parenthesis.
+
+ INPname(ocean) = ocean.in
+ !INPname(waves) = waves.in
+ !INPname(atmos) = atmos.in
+ INPname(cice)  = cice.in
+
+! Coupled models variables information file name.
+
+        CPLname = ROMS/External/coupling.dat
+
+! Export/Import fields: Use the following string codes to set the fields
+!                       to export/import for each coupled model.
+!
+!   Field   Export    Import
+!
+!   NONE    -         -                 No field to import or export
+!   Pair    atmos     ocean             surface air pressure
+!   Tair    atmos     ocean             surface air temperature
+!   Hair    atmos     ocean             surface air relative humidity
+!   cloud   atmos     ocean             cloud fraction
+!   SWrad   atmos     ocean             shortwave radiation flux
+!   LWrad   atmos     ocean             longwave radiation flux
+!   rain    atmos     ocean             rain fall rate
+!   Uwind   atmos     ocean, waves      surface U-wind component
+!   Vwind   atmos     ocean, waves      surface V-wind component
+!   heat    atmos     ocean             surface net heat flux
+!   Ustr    atmos     ocean             surface U-momentum stress
+!   Vstr    atmos     ocean             surface V-momentum stress
+!   SST     ocean     atmos             sea surface temperature
+!   bath    ocean     waves             bathymetry
+!   SSH     ocean     waves             free-surface
+!   Ubar    ocean     waves             vertically integrated U-momentum
+!   Vbar    ocean     waves             vertically integrated V-momentum
+!   ZO      ocean     waves             bottom roughness
+!   Wdir    waves     ocean             wave direction
+!   Wamp    waves     ocean             significant wave height
+!   Wlen    waves     ocean             average wave length
+!   Wptop   waves     ocean             surface wave relative peak period
+!   Wpbot   waves     ocean             bottom wave period
+!   Wdiss   waves     ocean             wave energy dissipation
+!   Wbrk    waves     ocean             percent wave breaking
+!   Wubot   waves     ocean             wave bottom orbital velocity
+!
+! Export fields per model, [1:Nexport(...)] string values are expected per
+! coupled model. The string inside parenthesis must be the same as the one
+! given in "OrderLabel". If there is no field to export, set
+!
+!      Nexport(...) = 0
+!       Export(...) = NONE
+
+ Nexport(ocean) = 5
+ !Nexport(waves) = 5
+ !Nexport(atmos) = 9
+ Nexport(cice)  = 1
+
+  Export(ocean) = SST   \
+                  bath  \
+                  SSH   \
+                  Ubar  \
+                  Vbar
+
+!  Export(waves) = Wdir  \
+!                  Wamp  \
+!                  Wlen  \
+!                  Wptop \
+!                  Wpbot
+!
+!  Export(atmos) = Pair  \
+!                  Tair  \
+!                  Hair  \
+!                  cloud \
+!                  SWrad \
+!                  LWrad \
+!                  rain  \
+!                  Uwind \
+!                 Vwind
+
+  Export(cice) = Pair  \
+
+
+! Import fields per model, [1:Nimport(...)] string values are expected per
+! coupled model. If there is no field to import, set
+!
+!      Nimport(...) = 0
+!       Import(...) = NONE
+
+ Nimport(ocean) = 14
+! Nimport(waves) = 6
+! Nimport(atmos) = 1
+ Nimport(ciec)  = 1
+
+  Import(ocean) = Pair  \
+                  Tair  \
+                  Hair  \
+                  cloud \
+                  SWrad \
+                  LWrad \
+                  rain  \
+                  Uwind \
+                  Vwind \
+                  Wdir  \
+                  Wamp  \
+                  Wlen  \
+                  Wptop \
+                  Wpbot
+
+!  Import(waves) = Uwind \
+!                  Vwind \
+!                  bath  \
+!                  SSH   \
+!                  Ubar  \
+!                  Vbar
+!
+!  Import(atmos) = SST
+
+  Import(cice) = SST
+
+!
+!  GLOSSARY:
+!  =========
+!
+!------------------------------------------------------------------------------
+! Coupled model parameters.
+!------------------------------------------------------------------------------
+!
+! Lreport       Logical switch (T/F) to report verbose information about
+!                 import/export field ranges.
+!
+! Nmodels       Number of models to couple.
+!
+! OrderLabel    Coupled models label code, [1:Nmodels] string values are
+!                 expected. Enter one string per line and use the continuation
+!                 backlash for each entry, except last. The order of the
+!                 strings determines how information arrays are processed
+!                 and DO loops executed. Currently, the following labels
+!                 and associated indices are used:
+!
+!                    ocean =>  Iocean           Ocean model label
+!                    waves =>  Iwaves           Wave model label
+!                    atmos =>  Iatmos           Atmosphere model label
+!
+!                 These labels and indices are defined in "mod_coupler.F"
+!                 and processed in "inp_par.F" (routine read_CouplePar).
+!
+!                 Use the same label code in  other KEYWORD entries set
+!                 in this input file. It is highly recommended to use
+!                 "ocean" first since all coupled models use ROMS framework
+!                 to build the program driver.  This allows ROMS to own
+!                 the master thread (node 0 in MPI).
+!
+! Nthreads(...) Number of parallel threads assigned to each model in the
+!                 coupled system, [1:Nmodels] KEYWORD entries are expected
+!                 with label code in parenthesis:
+!
+!                 Nthreads(ocean) = ?           Ocean model
+!                 Nthreads(waves) = ?           Wave model
+!                 Nthreads(atmos) = ?           Atmosphere model
+!                 ...
+!
+!                 The sum of all entries must be equal to the total number
+!                 of processors.
+!
+! TimeInterval  Time interval (seconds) between coupling of models,
+!                 [1:Nmodels] real values are expected corresponding to
+!                 the entries of a lower triangular matrix Aij for i>j.
+!                 For example, for three model components ordered
+!                 as ocean, waves, and atmos, the time interval is
+!                 assigned as follows:
+!
+!                     Aij     1      2     3
+!                     i\j   ocean  waves atmos  ...
+!                 1  ocean    -      -     -
+!                 2  waves   v(1)    -     -
+!                 3  atmos   v(2)   v(3)   -
+!                     ...
+!
+!                 where:
+!
+!                   v(1): ocean-waves coupling interval
+!                   v(2): ocean-atmos coupling interval
+!                   v(3): waves-atmos coupling interval
+!                   ...
+!
+!                 This matrix is read in "inp_par.F" using the following
+!                 statements:
+!
+!                 ic=0
+!                 DO j=1,Nmodels
+!                   DO i=1,Nmodels
+!                     IF (i.gt.j) THEN
+!                       ic=ic+1
+!                       TimeInterval(i,j)=v(ic)
+!                       TimeInterval(j,i)=v(ic)
+!                     END IF
+!                   END DO
+!                 END DO
+!
+!------------------------------------------------------------------------------
+! Coupled models standard input file names.
+!------------------------------------------------------------------------------
+!
+! INPname(...)  Coupled model standard input file names, [1:Nmodels] KEYWORD
+!                 entries are expected with the label code in parenthesis:
+!
+!                 INPname(ocean) = ?            Ocean model
+!                 INPname(waves) = ?            Wave model
+!                 INPname(atmos) = ?            Atmosphere model
+!
+! CPL_name      Coupled models variables information file name.
+!
+!------------------------------------------------------------------------------
+! Export/Import fields to process.
+!------------------------------------------------------------------------------
+!
+! Export/Import fields names (abbreviated string codes). Currently, the
+! following fields below are processed. However, the list can be expanded
+! easly.
+!
+!               NONE      No import or export field
+!               Pair      surface air pressure
+!               Tair      surface air temperature
+!               Hair      surface air relative humidity
+!               cloud     cloud fraction
+!               SWrad     shortwave radiation flux
+!               LWrad     longwave radiation flux
+!               rain      rain fall rate
+!               Uwind     surface U-wind component
+!               Vwind     surface V-wind component
+!               heat      surface net heat flux
+!               Ustr      surface U-momentum stress
+!               Vstr      surface V-momentum stress
+!               SST       sea surface temperature
+!               bath      bathymetry
+!               SSH       free-surface
+!               Ubar      vertically integrated U-momentum
+!               Vbar      vertically integrated V-momentum
+!               ZO        bottom roughness
+!               Wdir      wave direction
+!               Wamp      significant wave height
+!               Wlen      average wave length
+!               Wptop     surface wave relative peak period
+!               Wpbot     bottom wave period
+!               Wdiss     wave energy dissipation
+!               Wbrk      percent wave breaking
+!               Wubot     wave bottom orbital velocity
+!
+!  Nexport(...) Number of export fields per model, [1:Nmodels] KEYWORD
+!                 entries are expected with the label code in parenthesis.
+!                 Set to zero if no fields to export by a particular model.
+!
+!                 Nexport(ocean) = ?            Ocean model
+!                 Nexport(waves) = ?            Wave model
+!                 Nexport(atmos) = ?            Atmosphere model
+!
+!  Export(...)  Export fields codes per model, Nexport(...) string codes
+!                 are expected. If Nexport(...) = 0, set Export = NONE.
+!
+!  Nimport(...) Number of import fields per model, [1:Nmodels] KEYWORD
+!                 entries are expected with the label code in parenthesis.
+!                 Set to zero if no fields to import by a particular model.
+!
+!                 Nimport(ocean) = ?            Ocean model
+!                 Nimport(waves) = ?            Wave model
+!                 Nimport(atmos) = ?            Atmosphere model
+!
+!  Import(...)  Import fields codes per model, Nimport(...) string codes
+!                 are expected. If Nimport(...) = 0, set Import = NONE.
+!
+
+
+
+
+

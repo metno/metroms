@@ -3,8 +3,8 @@
 # Geophysical Institute, University of Alaska Fairbanks
 #==============================================================================
 
-INCLDIR    :=
-SLIBS      :=
+INCLDIR    := -I$(MCT_INCDIR)
+SLIBS      := -L$(MCT_LIBDIR) -lmct -lmpeu
 ULIBS      := 
 CPP        := cpp
 CPPFLAGS   := -P -traditional
@@ -25,7 +25,7 @@ MOD_SUFFIX := mod
 LD         := $(FC)
 LDFLAGS    := $(FFLAGS) -v
 
-    CPPDEFS :=  $(CPPDEFS) -DNXGLOB=$(NXGLOB) -DNYGLOB=$(NYGLOB) \
+    CPPDEFS :=  $(CPPDEFS) -DUSE_ESMF=0 -DNXGLOB=$(NXGLOB) -DNYGLOB=$(NYGLOB) \
                 -DBLCKX=$(BLCKX) -DBLCKY=$(BLCKY) -DMXBLCKS=$(MXBLCKS) \
                 -DNICELYR=$(NICELYR) -DNSNWLYR=$(NSNWLYR) -DNICECAT=$(NICECAT) \
                 -DTRAGE=$(TRAGE) -DTRFY=$(TRFY) -DTRLVL=$(TRLVL) -DTRPND=$(TRPND) \
@@ -42,5 +42,6 @@ ifeq ($(IO_TYPE), netcdf)
    SLIBS   := $(SLIBS) -lnetcdf -lnetcdff
 endif
 
+INCLDIR := $(INCLDIR)
 ### note this file does not include PIO capability
 ### see Macros.Linux.LANL.conejo

@@ -23,7 +23,7 @@
 # First the defaults
 #
                FC := gfortran
-           FFLAGS := -frepack-arrays
+           FFLAGS := -frepack-arrays -fconvert=big-endian
               CPP := /usr/bin/cpp
          CPPFLAGS := -P -traditional
           LDFLAGS :=
@@ -63,9 +63,10 @@ endif
 ifdef USE_MPI
          CPPFLAGS += -DMPI
  ifdef USE_MPIF90
-               FC := mpif90
+               FC := mpif90 
  else
              LIBS += -lfmpi -lmpi
+ #            LIBS += -lmpi
  endif
 endif
 
@@ -77,18 +78,28 @@ endif
 ifdef USE_DEBUG
            FFLAGS += -g -fbounds-check
 else
+#           FFLAGS += -fbacktrace -g
            FFLAGS += -O3 -ffast-math
 endif
 
 ifdef USE_MCT
-       MCT_INCDIR ?= /usr/local/mct/include
-       MCT_LIBDIR ?= /usr/local/mct/lib
+       MCT_INCDIR := $(MY_ROMS_SRC)/Lib/MCT/include
+       MCT_LIBDIR := $(MY_ROMS_SRC)/Lib/MCT/lib
            FFLAGS += -I$(MCT_INCDIR)
              LIBS += -L$(MCT_LIBDIR) -lmct -lmpeu
 endif
 
+ifdef USE_CICE
+       CICE_INCDIR := $(MY_ROMS_SRC)/../cice/rundir/compile
+       CICE_LIBDIR := $(MY_ROMS_SRC)/../cice/rundir/compile
+           FFLAGS += -I$(CICE_INCDIR)
+             LIBS += -L$(CICE_LIBDIR) -lcice
+endif
+
 ifdef USE_ESMF
-      ESMF_SUBDIR := $(ESMF_OS).$(ESMF_COMPILER).$(ESMF_ABI).$(ESMF_COMM).$(ESMF_SITE)
+	  ESMF_BOPT   := O
+      ESMF_SUBDIR := Linux.gfortran.64.mpiuni.default
+#      $(ESMF_OS).$(ESMF_COMPILER).$(ESMF_ABI).$(ESMF_COMM).$(ESMF_SITE)
       ESMF_MK_DIR ?= $(ESMF_DIR)/lib/lib$(ESMF_BOPT)/$(ESMF_SUBDIR)
                      include $(ESMF_MK_DIR)/esmf.mk
            FFLAGS += $(ESMF_F90COMPILEPATHS)
@@ -98,7 +109,7 @@ endif
 #
 # Use full path of compiler.
 #
-               FC := $(shell which ${FC})
+#               FC := $(shell which ${FC})
                LD := $(FC)
 
 #

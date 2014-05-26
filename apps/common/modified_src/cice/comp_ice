@@ -3,23 +3,17 @@
 ### Change these to your own site and user directory! 
 ### You will need to create a Makefile Macro in bld/ and a run_ice script 
 ### in input_templates/.
-#setenv SITE LANL.coyote
-setenv SITE Ubuntu
-#setenv SITE NAVO.kraken
-#setenv SITE NCAR.bluevista
-#setenv SITE LLNL.atlas
+setenv SITE Ubuntu   # also works for mustang
+#setenv SITE LANL.bigsuze
 
 ### SYSTEM_USERDIR is predefined on ORNL machines
-setenv SYSTEM_USERDIR ${CICE_DIR}
-#setenv SYSTEM_USERDIR /scr/eclare                # kraken
-#setenv SYSTEM_USERDIR /ptmp/eclare               # bluevista
-#setenv SYSTEM_USERDIR /p/lscratchb/hunke1        # atlas
+setenv SYSTEM_USERDIR $CICE_DIR
 
 ### Grid resolution
-#setenv RES gx3 ; setenv GRID 100x116
+#setenv RES col ; setenv GRID 5x5
+setenv RES gx3 ; setenv GRID 100x116
 #setenv RES gx1 ; setenv GRID 320x384
 #setenv RES tx1 ; setenv GRID 360x240
-setenv RES col ; setenv GRID 5x5
 
 set NXGLOB = `echo $GRID | sed s/x.\*//`
 set NYGLOB = `echo $GRID | sed s/.\*x//`
@@ -35,31 +29,56 @@ if ($RES == 'col') then   # for column configuration:
    setenv NTASK      1       # total number of processors
    setenv BLCKX      5       # x-dimension of blocks ( not including )
    setenv BLCKY      5       # y-dimension of blocks (  ghost cells  )
+   setenv NICELYR    7       # number of vertical layers in the ice
+   setenv NSNWLYR    1       # number of vertical layers in the snow
+   setenv NICECAT    5       # number of ice thickness categories
 else                      # test problem: gx3
    setenv NTASK      4       # total number of processors
    setenv BLCKX     25       # x-dimension of blocks ( not including )
    setenv BLCKY     29       # y-dimension of blocks (  ghost cells  )
+   setenv NICELYR    7       # number of vertical layers in the ice
+   setenv NSNWLYR    1       # number of vertical layers in the snow
+   setenv NICECAT    5       # number of ice thickness categories
 endif
 
 # may need to increase MXBLCKS with rake distribution or padding
 @ a = $NXGLOB * $NYGLOB ; @ b = $BLCKX * $BLCKY * $NTASK  
-@ m = $a / $b ; setenv MXBLCKS $m ; if ($MXBLCKS == 0) setenv MXBLCKS 1
+@ m = $a / $b ; setenv MXBLCKS $m; if ($MXBLCKS == 0) setenv MXBLCKS 1
 #setenv MXBLCKS 37 # if necessary (code will print proper value)
 
+### Tracers               # match ice_in tracer_nml to conserve memory
+setenv TRAGE   1          # set to 1 for ice age tracer
+setenv TRFY    1          # set to 1 for first-year ice area tracer
+setenv TRLVL   1          # set to 1 for level and deformed ice tracers
+setenv TRPND   1          # set to 1 for melt pond tracers
+setenv NTRAERO 0          # number of aerosol tracers 
+                          # (up to max_aero in ice_domain_size.F90) 
+                          # CESM uses 3 aerosol tracers
+setenv TRBRI   0          # set to 1 for brine height tracer
+setenv NBGCLYR 7          # number of zbgc layers
+setenv TRBGCS  0          # number of skeletal layer bgc tracers 
+                          # TRBGCS=0 or 2<=TRBGCS<=9)
+
 ### Specialty code
-setenv USE_ESMF yes        # set to yes for ESMF runs
 setenv CAM_ICE  no        # set to yes for CAM runs (single column) 
 setenv SHRDIR   csm_share # location of CCSM shared code
-setenv NETCDF   yes       # set to no if netcdf library is unavailable
+setenv IO_TYPE  netcdf    # set to none if netcdf library is unavailable
+                          # set to pio for parallel netcdf
 setenv DITTO    no        # reproducible diagnostics
+setenv BARRIERS no        # prevent MPI buffer overflow during gather/scatter 
+setenv THRD     no        # set to yes for OpenMP threading
+
+if ( $THRD == 'yes') setenv OMP_NUM_THREADS 2 # positive integer 
+
+### File unit numbers
+setenv NUMIN 11           # minimum file unit number
+setenv NUMAX 99           # maximum file unit number
 
 ### Set SRCDIR and EXEDIR to your own paths!
-setenv SRCDIR ${CICE_DIR}
-#setenv SRCDIR $HOME/cice                                  # kraken
-#setenv SRCDIR /g/g21/hunke1/cice                          # atlas
-#setenv SRCDIR /ptmp/eclare/cice                           # bluevista
+setenv SRCDIR $CICE_DIR  # conejo
+#setenv SRCDIR /Users/akt/Work/MPAS-CICE/Column_Package/cice_package/cice
 
-setenv EXEDIR $SYSTEM_USERDIR/rundir4
+setenv EXEDIR $SYSTEM_USERDIR/rundir
                                           if !(-d $EXEDIR) mkdir -p $EXEDIR
 setenv CBLD   $SRCDIR/bld
 setenv OBJDIR $EXEDIR/compile           ; if !(-d $OBJDIR) mkdir -p $OBJDIR
@@ -69,6 +88,8 @@ setenv HSTDIR $EXEDIR/history           ; if !(-d $HSTDIR) mkdir -p $HSTDIR
 setenv ARCH `uname -s`
 if ( $ARCH == 'UNICOS/mp') setenv ARCH UNICOS
 if ( $ARCH == 'UNICOS') then
+   cp -f $CBLD/Makefile.$ARCH $CBLD/Makefile
+else if ( $ARCH == 'Darwin' ) then
    cp -f $CBLD/Makefile.$ARCH $CBLD/Makefile
 else
    cp -f $CBLD/Makefile.std $CBLD/Makefile
@@ -89,7 +110,7 @@ if !(-e run_ice) cp $SRCDIR/input_templates/run_ice.$ARCH run_ice
 cd $RSTDIR
 
 cp $SRCDIR/input_templates/$RES/iced_$RES* .
-if !(-e ice.restart_file) cp $SRCDIR/input_templates/$RES/ice.restart_file .
+#if !(-e ice.restart_file) cp $SRCDIR/input_templates/$RES/ice.restart_file .
 
 cd $OBJDIR
 
@@ -99,10 +120,13 @@ else
    setenv COMMDIR mpi 
 endif
 
-if ($USE_ESMF == 'yes') then
-  setenv DRVDIR esmf
+setenv DRVDIR cice
+if ($IO_TYPE == 'netcdf') then
+  setenv IODIR io_netcdf
+else if ($IO_TYPE == 'pio') then
+  setenv IODIR io_pio
 else
-  setenv DRVDIR cice4
+  setenv IODIR io_binary
 endif
 
 ### List of source code directories (in order of importance).
@@ -110,12 +134,13 @@ cat >! Filepath << EOF
 $SRCDIR/drivers/$DRVDIR
 $SRCDIR/source
 $SRCDIR/$COMMDIR
+$SRCDIR/$IODIR
 $SRCDIR/$SHRDIR
 EOF
 
 cc -o makdep $CBLD/makdep.c                         || exit 2
 
-make VPFILE=Filepath EXEC=$EXEDIR/cice \
+make  VPFILE=Filepath EXEC=$EXEDIR/cice \
            NXGLOB=$NXGLOB NYGLOB=$NYGLOB \
            BLCKX=$BLCKX BLCKY=$BLCKY MXBLCKS=$MXBLCKS \
       -f  $CBLD/Makefile MACFILE=$CBLD/Macros.$ARCH || exit 2
@@ -127,4 +152,12 @@ echo "global N, block_size"
 echo "x    $NXGLOB,    $BLCKX"
 echo "y    $NYGLOB,    $BLCKY"
 echo max_blocks = $MXBLCKS
+echo $TRAGE   = TRAGE,   iage tracer
+echo $TRFY    = TRFY,    first-year ice tracer
+echo $TRLVL   = TRLVL,   level-ice tracers
+echo $TRPND   = TRPND,   melt pond tracers
+echo $NTRAERO = NTRAERO, number of aerosol tracers
+echo $TRBRI   = TRBRI,   brine height tracer
+echo $NBGCLYR = NBGCLYR, number of bio grid layers
+echo $TRBGCS  = TRBGCS,  number of BGC tracers
 

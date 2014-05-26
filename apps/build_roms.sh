@@ -49,10 +49,10 @@ fi
 
 export ROMS_APPLICATION=$1
 
-# export USE_MPI=on
-# export USE_MPIF90=on
+export USE_MPI=on
+export USE_MPIF90=on
 export FORT=gfortran
-export USE_OpenMP=on
+#export USE_OpenMP=on
 export USE_LARGE=on
 
 #export USE_DEBUG=on
@@ -64,10 +64,12 @@ metroms_base=${PWD}
 cd ../
 tup=${PWD}
 
-export MY_ROMS_SRC=${tup}/tmproms/roms_src
+tmpdir=tmproms
+
+export MY_ROMS_SRC=${tup}/${tmpdir}/roms_src
 mkdir -p ${MY_ROMS_SRC}
 cd ${MY_ROMS_SRC}
-tar -xf ${metroms_base}/static_libs/roms-3.5.tar.gz
+tar -xf ${metroms_base}/static_libs/roms-3.6.tar.gz
 
 # Set path of the directory containing makefile configuration (*.mk) files.
 # The user has the option to specify a customized version of these files
@@ -108,7 +110,7 @@ export NestedGrids=1
 
 export MY_ROOT_DIR=${workingdir}/${ROMS_APPLICATION}/
 export MY_PROJECT_DIR=${workingdir}/${ROMS_APPLICATION}/
-export SCRATCH_DIR=${tup}/tmproms/build
+export SCRATCH_DIR=${tup}/${tmpdir}/build
 
 cd ${MY_PROJECT_DIR}
 
@@ -117,7 +119,7 @@ cd ${MY_PROJECT_DIR}
 
 if [ -s modified_src ]; then
     cd modified_src
-    gotModifiedSource=`ls *.F *.h *.mk`
+    gotModifiedSource=`ls *.F *.h *.mk *.in`
     cd ..
 fi
 
@@ -199,8 +201,10 @@ rollback() {
 }
 trap 'rollback; exit 99' 0
 
-export ESMF_DIR=${tup}/tmproms/esmf/
-source $ESMF_DIR/lib/libO/Linux.gfortran.64.mpiuni.default/esmf.mk
+export USE_MCT=on
+export USE_CICE=on
+export MY_CPP_FLAGS="${MY_CPP_FLAGS} -DNO_LBC_ATT -DMODEL_COUPLING -DUSE_MCT -DMCT_COUPLING -DMCT_LIB -DCICE_COUPLING -DCICE_OCEAN"
+export USE_MY_LIBS=on
 
 if [ -n "${USE_NETCDF4:+1}" ]; then
  export USE_DAP=on
@@ -210,19 +214,23 @@ fi
 export MY_HEADER_DIR=${MY_PROJECT_DIR}/include
 export MY_ANALYTICAL_DIR=${MY_HEADER_DIR}
 
-# Put the binary to execute in the following directory.
 
-export BINDIR=${tup}/tmproms/run/${ROMS_APPLICATION}
+# Build MCT first (use version bundled with ROMS)
+cd ${MY_ROMS_SRC}/Lib/MCT
+./configure --prefix=${MY_ROMS_SRC}/Lib/MCT
+make install
+
+# Build ROMS
+# Put the binary to execute in the following directory.
+export BINDIR=${tup}/${tmpdir}/run/${ROMS_APPLICATION}
 mkdir -p $BINDIR
 
 cd ${MY_ROMS_SRC}
-
 if [ $clean -eq 1 ]; then
   make clean
 fi
 
 # Compile (the binary will go to BINDIR set above).
-
 if [ $parallel -eq 1 ]; then
   make $NCPUS
 else
@@ -231,6 +239,6 @@ fi
 
 # Clean up unpacked static code:
 cd  ${MY_PROJECT_DIR}
-rm -rf ${MY_ROMS_SRC}
+#rm -rf ${MY_ROMS_SRC}
 
 set +x

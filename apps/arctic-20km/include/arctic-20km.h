@@ -88,39 +88,6 @@
 #undef  ANA_STFLUX         /* analytical surface temperature flux */
 #undef  ANA_SMFLUX         /* analytical surface momentum stress */
 
-#undef  WESTERN_WALL
-#undef  NORTHERN_WALL
-#define SOUTHERN_WALL
-#undef  EASTERN_WALL
-
-#define EAST_FSCHAPMAN     /* free-surface Chapman condition */
-#define EAST_M2FLATHER     /* 2D momentum Flather condition */
-#define EAST_M3NUDGING     /* 3D momentum passive/active nudging term */
-#define EAST_M3RADIATION   /* 3D momentum radiation condition */
-#define EAST_TNUDGING      /* tracers passive/active nudging term */
-#define EAST_TRADIATION    /* tracers radiation condition */
-
-#define WEST_FSCHAPMAN
-#define WEST_M2FLATHER
-#define WEST_M3NUDGING
-#define WEST_M3RADIATION
-#define WEST_TNUDGING
-#define WEST_TRADIATION
-
-#define NORTH_FSCHAPMAN
-#define NORTH_M2FLATHER
-#define NORTH_M3NUDGING
-#define NORTH_M3RADIATION
-#define NORTH_TNUDGING
-#define NORTH_TRADIATION
-
-#undef SOUTH_FSCHAPMAN    /* Southern edge, 2D momentum, Chapman condition */
-#undef SOUTH_M2FLATHER    /* Southern edge, 2D momentum, clamped condition */
-#undef SOUTH_M3NUDGING
-#undef SOUTH_M3RADIATION
-#undef SOUTH_TNUDGING
-#undef SOUTH_TRADIATION
-
 /* CLIMATOLOGY */
 #define M2CLIMATOLOGY      /* define 2D momentum climatology */
 #define M3CLIMATOLOGY      /* define 3D momentum climatology */
