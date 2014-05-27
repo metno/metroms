@@ -52,7 +52,8 @@ export ROMS_APPLICATION=$1
 export USE_MPI=on
 export USE_MPIF90=on
 export FORT=gfortran
-#export FORT=ifort
+#export FORT=ifort # Use this on Vilje
+
 #export USE_OpenMP=on
 export USE_LARGE=on
 

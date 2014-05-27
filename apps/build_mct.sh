@@ -16,6 +16,7 @@ export MCT_DIR=${tup}/tmproms/MCT
 cd $MCT_DIR
 
 ./configure FC=gfortran --prefix=$MCT_DIR
+#./configure FC=ifort --prefix=$MCT_DIR
 make install
 
 set +x
