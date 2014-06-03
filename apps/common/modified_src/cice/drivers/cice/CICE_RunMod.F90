@@ -100,10 +100,7 @@
                 write(6,*) '*****************************************************'
                 flush(6)
             END IF
-            CALL MCT_Recv(ocn2cice_AV, CICEtoROMS, MyError)
-            IF (MyError.ne.0) THEN
-                WRITE (6,*) 'CICE could not receive data from ROMS: MyError = ', MyError
-            END IF
+            CALL MCT_Recv(ocn2cice_AV, CICEtoROMS)
 !
             allocate(avdata(10))
             avdata=0.0
@@ -120,10 +117,7 @@
 
             CALL AttrVect_importRAttr (cice2ocn_AV, 'SST', avdata)
 
-           CALL MCT_Send(cice2ocn_AV, CICEtoROMS, MyError)
-            IF (MyError.ne.0) THEN
-                WRITE (6,*) 'CICE could not send data to ROMS: MyError = ', MyError
-            END IF
+            CALL MCT_Send(cice2ocn_AV, CICEtoROMS)
 
             tcoupling = 0
          END IF

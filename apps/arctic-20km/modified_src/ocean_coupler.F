@@ -289,15 +289,10 @@
 
       CALL AttrVect_importRAttr (ocn2cice_AV, 'SST', avdata)
 
-      CALL MCT_Send(ocn2cice_AV, ROMStoCICE, MyError)
-      IF (MyError.ne.0) THEN
-          WRITE (6,*) 'ROMS could not send data to CICE: MyError = ', MyError
-      END IF
+      CALL MCT_Send(ocn2cice_AV, ROMStoCICE)
 
-      CALL MCT_Recv(cice2ocn_AV, ROMStoCICE, MyError)
-      IF (MyError.ne.0) THEN
-          WRITE (6,*) 'ROMS could not receive data from CICE: MyError = ', MyError
-      END IF
+      CALL MCT_Recv(cice2ocn_AV, ROMStoCICE)
+
       CALL AttrVect_exportRAttr(cice2ocn_AV, 'SST', avdata)
 
 !      IF (Master) THEN
