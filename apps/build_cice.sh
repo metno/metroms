@@ -25,12 +25,17 @@ cp -auv $workingdir/common/modified_src/cice ${tup}/tmproms
 # Remove old binaries
 rm -rf ${tup}/tmproms/cice/rundir/compile
 
+#
+# NB! Compile flags needed on Vilje
+# -O2 -w -convert big_endian -assume byterecl
+#
+
 ./comp_ice
 
 # Build a library (for use in the ROMS build)
 cd $CICE_DIR/rundir/compile
 ar rcv libcice.a *.o
 
-cp $workingdir/common/modified_src/cice/input_templates/ice_in ${tup}/tmproms/cice/rundir/
+sed "s/<cicedir>/$CICE_DIR/" $workingdir/common/modified_src/cice/input_templates/ice_in > $CICE_DIR/rundir/
 
 set +x

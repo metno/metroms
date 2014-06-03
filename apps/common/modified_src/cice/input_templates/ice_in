@@ -7,21 +7,21 @@
   , npt            = 744
   , ndtd           = 1
   , runtype        = 'initial'
-  , ice_ic         = '/disk1/geiraw/tmproms/cice/rundir/restart/iced_gx3_v5.nc'
+  , ice_ic         = '<cicedir>/rundir/restart/iced_gx3_v5.nc'
   , restart        = .true.
   , restart_ext    = .false.
   , use_restart_time = .false.
   , restart_format = 'nc'
   , lcdf64         = .false.
-  , restart_dir    = '/disk1/geiraw/tmproms/cice/rundir/restart/'
+  , restart_dir    = '<cicedir>/rundir/restart/'
   , restart_file   = 'iced'
-  , pointer_file   = '/disk1/geiraw/tmproms/cice/rundir/restart/ice.restart_file'
+  , pointer_file   = '<cicedir>/rundir/restart/ice.restart_file'
   , dumpfreq       = 'y'
   , dumpfreq_n     = 1
   , dump_last      = .false.
   , diagfreq       = 24
   , diag_type      = 'stdout'
-  , diag_file      = '/disk1/geiraw/tmproms/cice/rundir/ice_diag.d'
+  , diag_file      = '<cicedir>/rundir/ice_diag.d'
   , print_global   = .false.
   , print_points   = .false.
   , latpnt(1)      =  90.
@@ -32,18 +32,18 @@
   , histfreq       = 'm','x','x','x','x'
   , histfreq_n     =  1 , 1 , 1 , 1 , 1
   , hist_avg       = .true.
-  , history_dir    = '/disk1/geiraw/tmproms/cice/rundir/history/'
+  , history_dir    = '<cicedir>/rundir/history/'
   , history_file   = 'iceh'
   , write_ic       = .true.
-  , incond_dir     = '/disk1/geiraw/tmproms/cice/rundir/history/'
+  , incond_dir     = '<cicedir>/rundir/history/'
   , incond_file    = 'iceh_ic'
 /
 
 &grid_nml
     grid_format  = 'nc'
   , grid_type    = 'displaced_pole'
-  , grid_file    = '/disk1/geiraw/tmproms/cice/rundir/global_gx3.grid.nc'
-  , kmt_file     = '/disk1/geiraw/tmproms/cice/rundir/global_gx3.kmt.nc'
+  , grid_file    = '<cicedir>/rundir/global_gx3.grid.nc'
+  , kmt_file     = '<cicedir>/rundir/global_gx3.kmt.nc'
   , kcatbound    = 0
 /
 
@@ -153,7 +153,7 @@
   , ycycle          = 1
   , atm_data_format = 'bin'
   , atm_data_type   = 'ncar'
-  , atm_data_dir    = '/disk1/geiraw/data/'
+  , atm_data_dir    = '<cicedir>/rundir/forcing/'
   , calc_strair     = .true.
   , calc_Tsfc       = .true.
   , precip_units    = 'mm_per_month'
