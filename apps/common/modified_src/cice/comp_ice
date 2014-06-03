@@ -3,8 +3,8 @@
 ### Change these to your own site and user directory! 
 ### You will need to create a Makefile Macro in bld/ and a run_ice script 
 ### in input_templates/.
-setenv SITE Ubuntu   # also works for mustang
-#setenv SITE LANL.bigsuze
+setenv SITE Ubuntu 
+#setenv SITE Vilje
 
 ### SYSTEM_USERDIR is predefined on ORNL machines
 setenv SYSTEM_USERDIR $CICE_DIR
