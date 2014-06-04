@@ -138,7 +138,7 @@
    allocate(start(1))
    allocate(length(1))
    start(1)=0
-   length(1)=10
+   length(1)=19330
 
    gsmsize=10
    exportList=''

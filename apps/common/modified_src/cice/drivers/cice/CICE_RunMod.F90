@@ -102,7 +102,7 @@
             END IF
             CALL MCT_Recv(ocn2cice_AV, CICEtoROMS)
 !
-            allocate(avdata(10))
+            allocate(avdata(19330))
             avdata=0.0
 !
             CALL AttrVect_exportRAttr(ocn2cice_AV, 'SST', avdata)
@@ -111,13 +111,13 @@
                 write(6,*) 'CICE rank ', my_task, ' received: ', avdata(my_task+1)
 !            END IF
 
-            allocate(avdata(10))
-            avdata=0.0
-            avdata(my_task+1)=200.0 + my_task
+!            allocate(avdata(10))
+!            avdata=0.0
+!            avdata(my_task+1)=200.0 + my_task
 
-            CALL AttrVect_importRAttr (cice2ocn_AV, 'SST', avdata)
+!            CALL AttrVect_importRAttr (cice2ocn_AV, 'SST', avdata)
 
-            CALL MCT_Send(cice2ocn_AV, CICEtoROMS)
+!            CALL MCT_Send(cice2ocn_AV, CICEtoROMS)
 
             tcoupling = 0
          END IF
