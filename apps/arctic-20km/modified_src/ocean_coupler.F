@@ -257,9 +257,14 @@
       USE mod_parallel
       USE mod_coupler
       USE mod_forces
-      USE mod_kinds
-      USE mod_scalars
       USE mod_ocean
+      USE mod_scalars
+      USE mod_stepping
+      USE mod_iounits
+!      USE distribute_mod, ONLY : mp_reduce
+      USE ROMS_import_mod, ONLY : ROMS_import2d
+      USE ROMS_export_mod, ONLY : ROMS_export2d
+
 !
       implicit none
 !
