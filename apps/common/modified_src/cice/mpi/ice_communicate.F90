@@ -138,9 +138,9 @@
    allocate(start(4))
    allocate(length(4))
    start(1)=0
-   start(2)=19330/4
-   start(3)=19330/2
-   start(4)=3*19330/4
+   start(2)=19330/4 + 1
+   start(3)=19330/2 + 1
+   start(4)=3*19330/4 + 1
    length=19330/4
 
    gsmsize=19330*4
