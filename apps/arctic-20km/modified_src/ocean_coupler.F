@@ -270,7 +270,7 @@
 !
       integer :: Istr, Iend, Jstr, Jend
       integer :: IstrR, IendR, JstrR, JendR, IstrU, JstrV
-      integer :: Asize, Iimport, Iexport
+      integer :: Asize, Iimport, Iexport, MyError
       integer :: gtype, i, id, ifield, ij, j, status
 
       real(r8) :: add_offset, scale
@@ -355,21 +355,21 @@
 
           CASE ('Wubot')                  ! bottom orbital velocity
 
-            CALL AttrVect_exportRAttr (wav2ocn_AV, TRIM(code), A, Asize)
+            CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code), A, Asize)
             Iimport=Iimport+1
             DO i=1,Asize
               A(i)=MAX(0.0_r8,A(i))
             END DO
-            scale=1.0_r8                  ! m/s
-            add_offset=0.0_r8
-            CALL ROMS_import2d (ng, tile,                               &
-     &                          id, gtype, scale, add_offset,           &
-     &                          Asize, A,                               &
-     &                          IstrR, IendR, JstrR, JendR,             &
-     &                          LBi, UBi, LBj, UBj,                     &
-     &                          Fields(id)%ImpMin, Fields(id)%ImpMax,   &
-     &                          FORCES(ng)%Ub_swan,                     &
-     &                          status)
+!            scale=1.0_r8
+!            add_offset=0.0_r8
+!            CALL ROMS_import2d (ng, tile,                               &
+!     &                          id, gtype, scale, add_offset,           &
+!     &                          Asize, A,                               &
+!     &                          IstrR, IendR, JstrR, JendR,             &
+!     &                          LBi, UBi, LBj, UBj,                     &
+!     &                          Fields(id)%ImpMin, Fields(id)%ImpMax,   &
+!     &                          FORCES(ng)%Ub_swan,                     &
+!     &                          status)
 
         END SELECT
       END DO
