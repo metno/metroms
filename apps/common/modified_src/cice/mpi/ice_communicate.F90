@@ -140,7 +140,7 @@
    start(1)=0
    length(1)=19330
 
-   gsmsize=10
+   gsmsize=19330*4
    exportList=''
       WRITE (6,*) ' CICE: GlobalSegMap_init'
    call GlobalSegMap_init (GSMapCICE, start, length, 0, MPI_COMM_ICE, CICEid)
