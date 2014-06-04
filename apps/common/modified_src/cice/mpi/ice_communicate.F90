@@ -135,10 +135,13 @@
    mpiR16 = MPI_REAL16
    mpiR8  = MPI_REAL8
    mpiR4  = MPI_REAL4
-   allocate(start(1))
-   allocate(length(1))
+   allocate(start(4))
+   allocate(length(4))
    start(1)=0
-   length(1)=19330
+   start(2)=19330/4
+   start(3)=19330/2
+   start(4)=3*19330/4
+   length=19330/4
 
    gsmsize=19330*4
    exportList=''
