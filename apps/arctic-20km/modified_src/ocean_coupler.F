@@ -262,9 +262,6 @@
 !
       implicit none
 !
-#include "tile.h"
-
-!
 !  Imported variable declarations.
 !
       integer, intent(in) :: ng, tile
@@ -282,6 +279,9 @@
 
       character (len=3 ), dimension(2) :: op_handle
       character (len=40) :: code
+
+#include "tile.h"
+
 
       IF (Master) THEN
           write(6,*) ''
