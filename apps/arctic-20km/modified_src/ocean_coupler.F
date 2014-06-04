@@ -232,7 +232,7 @@
 !  Initialize attribute vector holding the export data code string of
 !  the ocean model.
 !
-      CALL AttrVect_init (ocn2cice_AV, rList='SST', rList=TRIM(ExportList(Iocean)),   &
+      CALL AttrVect_init (ocn2cice_AV, rList=TRIM(ExportList(Iocean)),   &
      &                    lsize=Asize)
       CALL AttrVect_zero (ocn2cice_AV)
 
@@ -268,7 +268,6 @@
 !  Imported variable declarations.
 !
       integer, intent(in) :: ng, tile
-      integer, intent(in) :: LBi, UBi, LBj, UBj
 !
 !  Local variable declarations.
 !
