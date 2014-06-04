@@ -259,6 +259,7 @@
       USE mod_forces
       USE mod_kinds
       USE mod_scalars
+      USE mod_ocean
 !
       implicit none
 !
