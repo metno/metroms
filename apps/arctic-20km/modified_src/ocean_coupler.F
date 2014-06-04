@@ -203,18 +203,16 @@
 !
       Jsize=JendR-JstrR+1
       IF (.not.allocated(start)) THEN
-!        allocate ( start(Jsize) )
-        allocate ( start(1) )
+        allocate ( start(Jsize) )
       END IF
       IF (.not.allocated(length)) THEN
-!        allocate ( length(Jsize) )
-        allocate ( length(1) )
+        allocate ( length(Jsize) )
       END IF
       jc=0
       DO j=JstrR,JendR
         jc=jc+1
-!        start (jc)=j*(Lm(ng)+2)+IstrR+1
-!        length(jc)=(IendR-IstrR+1)
+        start (jc)=j*(Lm(ng)+2)+IstrR+1
+        length(jc)=(IendR-IstrR+1)
       END DO
       start(1)=0
       length(1)=10
@@ -228,14 +226,14 @@
 !
       Asize=GlobalSegMap_lsize(GSMapROMS, OCN_COMM_WORLD)
       WRITE (6,*) ' ROMS Ocean Coupler: calling AttrVect_init'
-      CALL AttrVect_init (cice2ocn_AV, rList='SST', &!TRIM(ExportList(Icice)),   &
-     &                    lsize=10)!Asize)
+      CALL AttrVect_init (cice2ocn_AV, rList='SST', TRIM(ExportList(Icice)),   &
+     &                    lsize=Asize)
 !
 !  Initialize attribute vector holding the export data code string of
 !  the ocean model.
 !
-      CALL AttrVect_init (ocn2cice_AV, rList='SST', &!rList=TRIM(ExportList(Iocean)),   &
-     &                    lsize=10)!Asize)
+      CALL AttrVect_init (ocn2cice_AV, rList='SST', rList=TRIM(ExportList(Iocean)),   &
+     &                    lsize=Asize)
       CALL AttrVect_zero (ocn2cice_AV)
 
       WRITE (6,*) ' ROMS Ocean Coupler: calling Router_init'
@@ -264,17 +262,28 @@
 !
       implicit none
 !
+#include "tile.h"
+
+!
 !  Imported variable declarations.
 !
+      integer, intent(in) :: ng, tile
+      integer, intent(in) :: LBi, UBi, LBj, UBj
 !
 !  Local variable declarations.
 !
-      integer, intent(in) :: ng, tile
-      integer :: MyError
-      real(r8), pointer :: avdata(:)
+      integer :: Istr, Iend, Jstr, Jend
+      integer :: IstrR, IendR, JstrR, JendR, IstrU, JstrV
+      integer :: Asize, Iimport, Iexport
+      integer :: gtype, i, id, ifield, ij, j, status
 
-!
-#include "tile.h"
+      real(r8) :: add_offset, scale
+
+      real(r8), pointer :: A(:)
+
+      character (len=3 ), dimension(2) :: op_handle
+      character (len=40) :: code
+
       IF (Master) THEN
           write(6,*) ''
           write(6,*) '   *****************************************************  '
@@ -283,22 +292,145 @@
           write(6,*) ''
       END IF
 
-      allocate(avdata(10))
-      avdata=0.0_r8
-      avdata(MyRank+1)=100.0 + MyRank
+!
+!-----------------------------------------------------------------------
+!  Compute lower and upper bounds over a particular domain partition or
+!  tile for RHO-, U-, and V-variables. Notice that "set_bounds.h" is
+!  not used here because of implementation of periodicity in other
+!  models.
+!-----------------------------------------------------------------------
+!
+      Istr=BOUNDS(ng)%Istr(tile)
+      Iend=BOUNDS(ng)%Iend(tile)
+      Jstr=BOUNDS(ng)%Jstr(tile)
+      Jend=BOUNDS(ng)%Jend(tile)
+!
+      IF (DOMAIN(ng)%Western_Edge(tile)) THEN
+        IstrR=BOUNDS(ng)%Istr(tile)-1
+      ELSE
+        IstrR=BOUNDS(ng)%Istr(tile)
+      END IF
+      IF (DOMAIN(ng)%Eastern_Edge(tile)) THEN
+        IendR=BOUNDS(ng)%Iend(tile)+1
+      ELSE
+        IendR=BOUNDS(ng)%Iend(tile)
+      END IF
+      IF (DOMAIN(ng)%Southern_Edge(tile)) THEN
+        JstrR=BOUNDS(ng)%Jstr(tile)-1
+      ELSE
+        JstrR=BOUNDS(ng)%Jstr(tile)
+      END IF
+      IF (DOMAIN(ng)%Northern_Edge(tile)) THEN
+        JendR=BOUNDS(ng)%Jend(tile)+1
+      ELSE
+        JendR=BOUNDS(ng)%Jend(tile)
+      END IF
+!
+!-----------------------------------------------------------------------
+!  Allocate communications array.
+!-----------------------------------------------------------------------
+!
+      Asize=GlobalSegMap_lsize(GSMapROMS, OCN_COMM_WORLD)
+      allocate(A(Asize))
+      A=0.0_r8
 
-      CALL AttrVect_importRAttr (ocn2cice_AV, 'SST', avdata)
+!
+!  Schedule receiving fields from wave model.
+!
+      CALL mpi_comm_rank (OCN_COMM_WORLD, MyRank, MyError)
 
-      CALL MCT_Send(ocn2cice_AV, ROMStoCICE)
+!      CALL MCT_Recv (cice2ocn_AV, ROMStoCICE)
+!
+!  Receive fields from wave model.
+!
+      Iimport=0
+      DO ifield=1,Nimport(Iocean)
+        id=ImportID(Iocean)%val(ifield)
+        code=ADJUSTL(Fields(id)%code)
+        gtype=Fields(id)%GridType
+        scale=Fields(id)%scale
+        add_offset=Fields(id)%AddOffset
 
-      CALL MCT_Recv(cice2ocn_AV, ROMStoCICE)
+        SELECT CASE (TRIM(code))
 
-      CALL AttrVect_exportRAttr(cice2ocn_AV, 'SST', avdata)
+
+          CASE ('Wubot')                  ! bottom orbital velocity
+
+            CALL AttrVect_exportRAttr (wav2ocn_AV, TRIM(code), A, Asize)
+            Iimport=Iimport+1
+            DO i=1,Asize
+              A(i)=MAX(0.0_r8,A(i))
+            END DO
+            scale=1.0_r8                  ! m/s
+            add_offset=0.0_r8
+            CALL ROMS_import2d (ng, tile,                               &
+     &                          id, gtype, scale, add_offset,           &
+     &                          Asize, A,                               &
+     &                          IstrR, IendR, JstrR, JendR,             &
+     &                          LBi, UBi, LBj, UBj,                     &
+     &                          Fields(id)%ImpMin, Fields(id)%ImpMax,   &
+     &                          FORCES(ng)%Ub_swan,                     &
+     &                          status)
+
+        END SELECT
+      END DO
+!
+!-----------------------------------------------------------------------
+!  Export fields from ocean (ROMS) to sea ice (CICE) model.
+!-----------------------------------------------------------------------
+!
+!  Schedule sending fields to the wave model.
+!
+      Iexport=0
+      DO ifield=1,Nexport(Iocean)
+        id=ExportID(Iocean)%val(ifield)
+        code=ADJUSTL(Fields(id)%code)
+        gtype=Fields(id)%GridType
+        scale=Fields(id)%scale
+        add_offset=Fields(id)%AddOffset
+
+        SELECT CASE (TRIM(code))
+
+          CASE ('SST')
+
+            CALL ROMS_export2d (ng, tile,                               &
+     &                          id, gtype, scale, add_offset,           &
+     &                          LBi, UBi, LBj, UBj,                     &
+     &                          OCEAN(ng)%zeta(:,:,KOUT),               &
+     &                          Fields(id)%ExpMin, Fields(id)%ExpMax,   &
+     &                          Asize, A,                               &
+     &                          status)
+            CALL AttrVect_importRAttr (ocn2cice_AV, TRIM(code), A, Asize)
+            Iexport=Iexport+1
+        END SELECT
+      END DO
+!
+!  Send ocean fields
+!
+      IF (Iexport.gt.0) THEN
+        CALL MCT_Send (ocn2cice_AV, ROMStoCICE)
+      END IF
+
+!      allocate(avdata(10))
+!      avdata=0.0_r8
+!      avdata(MyRank+1)=100.0 + MyRank
+
+!      CALL AttrVect_importRAttr (ocn2cice_AV, 'SST', avdata)
+
+!      CALL MCT_Send(ocn2cice_AV, ROMStoCICE)
+
+!      CALL MCT_Recv(cice2ocn_AV, ROMStoCICE)
+
+!      CALL AttrVect_exportRAttr(cice2ocn_AV, 'SST', avdata)
 
 !      IF (Master) THEN
-          write(6,*) 'ROMS rank ', MyRank, ' received: ', avdata(MyRank+1)
+!          write(6,*) 'ROMS rank ', MyRank, ' received: ', avdata(MyRank+1)
 !      END IF
 
+!
+!  Deallocate communication arrays.
+!
+      deallocate (A)
 
       RETURN
       END SUBROUTINE ocn2cice_coupling
