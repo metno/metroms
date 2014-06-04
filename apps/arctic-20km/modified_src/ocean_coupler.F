@@ -226,7 +226,7 @@
 !
       Asize=GlobalSegMap_lsize(GSMapROMS, OCN_COMM_WORLD)
       WRITE (6,*) ' ROMS Ocean Coupler: calling AttrVect_init'
-      CALL AttrVect_init (cice2ocn_AV, rList='SST', TRIM(ExportList(Icice)),   &
+      CALL AttrVect_init (cice2ocn_AV, rList=TRIM(ExportList(Icice)),   &
      &                    lsize=Asize)
 !
 !  Initialize attribute vector holding the export data code string of
