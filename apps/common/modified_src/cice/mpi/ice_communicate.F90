@@ -103,7 +103,7 @@
 
    integer (int_kind) :: ierr  ! MPI error flag
    integer, pointer :: start(:), length(:)
-   integer :: Asize
+   integer :: Asize,Istr,Jstr
    character (len=240) :: exportList
 
 !-----------------------------------------------------------------------
@@ -135,10 +135,23 @@
    mpiR16 = MPI_REAL16
    mpiR8  = MPI_REAL8
    mpiR4  = MPI_REAL4
-   allocate(start(1))
-   allocate(length(1))
-   start(1)=0
-   length(1)=19481
+
+   Istr=0
+   if (my_task==1 .or. my_task==3) then
+        Istr=161
+   endif
+   Jstr=0
+   if (my_task==2 .or. my_task==3) then
+        Jstr=121
+   endif
+
+   allocate(start(121))
+   allocate(length(121))
+   length=161
+   DO j=1,121
+     start(j)=(Jstr+j)*161+Istr+1
+!        start (jc)=j*(Lm(ng)+2)+IstrR+1
+   END DO
 
    exportList=''
       WRITE (6,*) ' CICE: GlobalSegMap_init'
