@@ -102,7 +102,7 @@
             END IF
             CALL MCT_Recv(ocn2cice_AV, CICEtoROMS)
 !
-            allocate(avdata(19330))
+            allocate(avdata(19481))
             avdata=0.0
 !
             CALL AttrVect_exportRAttr(ocn2cice_AV, 'SST', avdata)
