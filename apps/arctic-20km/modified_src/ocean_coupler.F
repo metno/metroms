@@ -226,7 +226,6 @@
 !  the cice model. The Asize is the number of grid point on this
 !  processor.
 !
-      ExportList(Icice)='SST'
       Asize=GlobalSegMap_lsize(GSMapROMS, OCN_COMM_WORLD)
       WRITE (6,*) ' ROMS Ocean Coupler: calling AttrVect_init. Asize=',Asize
       CALL AttrVect_init (cice2ocn_AV, rList=TRIM(ExportList(Icice)),   &

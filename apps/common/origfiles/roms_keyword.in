@@ -1515,16 +1515,18 @@ TimeInterval = 7200.0d0
 !      Nexport(...) = 0
 !       Export(...) = NONE
 
- Nexport(ocean) = 5
+ Nexport(ocean) = 1
  !Nexport(waves) = 5
  !Nexport(atmos) = 9
  Nexport(cice)  = 1
 
   Export(ocean) = SST   \
-                  bath  \
-                  SSH   \
-                  Ubar  \
-                  Vbar
+
+!  Export(ocean) = SST   \
+!                  bath  \
+!                  SSH   \
+!                  Ubar  \
+!                  Vbar
 
 !  Export(waves) = Wdir  \
 !                  Wamp  \
