@@ -140,14 +140,14 @@
    start(1)=0
    length(1)=19481
 
-   gsmsize=19481*4
    exportList=''
       WRITE (6,*) ' CICE: GlobalSegMap_init'
    call GlobalSegMap_init (GSMapCICE, start, length, 0, MPI_COMM_ICE, CICEid)
-      WRITE (6,*) ' CICE: AttrVect_init'
-   call AttrVect_init (cice2ocn_AV, rlist='SST', lsize=gsmsize)
+   Asize=GlobalSegMap_lsize(GSMapROMS, OCN_COMM_WORLD)
+      WRITE (6,*) ' CICE: AttrVect_init, Asize=', Asize
+   call AttrVect_init (cice2ocn_AV, rlist='SST', lsize=Asize)
    call AttrVect_zero (cice2ocn_AV)
-   call AttrVect_init (ocn2cice_AV, rList='SST', lsize=gsmsize)
+   call AttrVect_init (ocn2cice_AV, rList='SST', lsize=Asize)
    call AttrVect_zero (ocn2cice_AV)
       WRITE (6,*) ' CICE: Router_init'
    call Router_init (OCNid, GSMapCICE, MPI_COMM_ICE, CICEtoROMS)
