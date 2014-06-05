@@ -143,7 +143,7 @@
       integer :: Istr, Iend, Jstr, Jend
       integer :: IstrR, IendR, JstrR, JendR, IstrU, JstrV
       integer :: Asize, Jsize, MyError
-      integer :: j, jc, nprocs
+      integer :: j, jc, nprocs, ll
 
       integer, allocatable :: length(:)
       integer, allocatable :: start(:)
@@ -210,15 +210,14 @@
         allocate ( length(Jsize) )
       END IF
       jc=0
+      ll=0
       DO j=JstrR,JendR
         jc=jc+1
         start (jc)=j*(Lm(ng)+2)+IstrR+1
         length(jc)=(IendR-IstrR+1)
-        WRITE (6,*) ' ROMS Ocean Coupler: start(jc)=', start(jc)
-        WRITE (6,*) ' ROMS Ocean Coupler: length(jc)=', length(jc)
+        ll = ll + length(jc)
       END DO
-      WRITE (6,*) ' ROMS Ocean Coupler: calling GlobalSegMap_init'
-      WRITE (6,*) ' ROMS Ocean Coupler: calling GlobalSegMap_init'
+      WRITE (6,*) ' ROMS Ocean Coupler: ll=',ll
       WRITE (6,*) ' ROMS Ocean Coupler: calling GlobalSegMap_init'
       CALL GlobalSegMap_init (GSMapROMS, start, length, 0,              &
      &                        OCN_COMM_WORLD, OCNid)
@@ -228,7 +227,7 @@
 !  processor.
 !
       Asize=GlobalSegMap_lsize(GSMapROMS, OCN_COMM_WORLD)
-      WRITE (6,*) ' ROMS Ocean Coupler: calling AttrVect_init'
+      WRITE (6,*) ' ROMS Ocean Coupler: calling AttrVect_init. Asize=',Asize
       CALL AttrVect_init (cice2ocn_AV, rList=TRIM(ExportList(Icice)),   &
      &                    lsize=Asize)
 !
