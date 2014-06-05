@@ -202,6 +202,7 @@
 !  Determine start and lengths for domain decomposition.
 !
       Jsize=JendR-JstrR+1
+      WRITE (6,*) ' ROMS Ocean Coupler: Jsize=', Jsize
       IF (.not.allocated(start)) THEN
         allocate ( start(Jsize) )
       END IF
@@ -213,7 +214,11 @@
         jc=jc+1
         start (jc)=j*(Lm(ng)+2)+IstrR+1
         length(jc)=(IendR-IstrR+1)
+        WRITE (6,*) ' ROMS Ocean Coupler: start(jc)=', start(jc)
+        WRITE (6,*) ' ROMS Ocean Coupler: length(jc)=', length(jc)
       END DO
+      WRITE (6,*) ' ROMS Ocean Coupler: calling GlobalSegMap_init'
+      WRITE (6,*) ' ROMS Ocean Coupler: calling GlobalSegMap_init'
       WRITE (6,*) ' ROMS Ocean Coupler: calling GlobalSegMap_init'
       CALL GlobalSegMap_init (GSMapROMS, start, length, 0,              &
      &                        OCN_COMM_WORLD, OCNid)
