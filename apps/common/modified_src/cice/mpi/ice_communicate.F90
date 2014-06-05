@@ -103,7 +103,7 @@
 
    integer (int_kind) :: ierr  ! MPI error flag
    integer, pointer :: start(:), length(:)
-   integer :: gsmsize
+   integer :: Asize
    character (len=240) :: exportList
 
 !-----------------------------------------------------------------------
