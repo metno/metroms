@@ -136,7 +136,7 @@
    mpiR8  = MPI_REAL8
    mpiR4  = MPI_REAL4
 
-   Istr=1
+   Istr=0
    if (my_task==1 .or. my_task==3) then
         Istr=161
    endif

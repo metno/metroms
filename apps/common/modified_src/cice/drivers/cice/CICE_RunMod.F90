@@ -101,6 +101,7 @@
                 flush(6)
             END IF
             CALL MCT_Recv(ocn2cice_AV, CICEtoROMS)
+            write(6,*) 'CICE - Ocean: CICE Received data'
 !
             allocate(avdata(19481))
             avdata=0.0
