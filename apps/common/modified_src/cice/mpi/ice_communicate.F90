@@ -136,7 +136,7 @@
    mpiR8  = MPI_REAL8
    mpiR4  = MPI_REAL4
 
-   Istr=0
+   Istr=1
    if (my_task==1 .or. my_task==3) then
         Istr=161
    endif
@@ -148,8 +148,8 @@
    allocate(start(121))
    allocate(length(121))
    length=161
-   DO j=1,121
-     start(j)=(Jstr+j)*161+Istr+1
+   DO j=0,120
+     start(j+1)=(Jstr+j)*161+Istr+1
 !        start (jc)=j*(Lm(ng)+2)+IstrR+1
    END DO
 
