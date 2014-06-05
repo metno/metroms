@@ -143,7 +143,7 @@
    exportList=''
       WRITE (6,*) ' CICE: GlobalSegMap_init'
    call GlobalSegMap_init (GSMapCICE, start, length, 0, MPI_COMM_ICE, CICEid)
-   Asize=GlobalSegMap_lsize(GSMapROMS, OCN_COMM_WORLD)
+   Asize=GlobalSegMap_lsize(GSMapCICE, MPI_COMM_ICE)
       WRITE (6,*) ' CICE: AttrVect_init, Asize=', Asize
    call AttrVect_init (cice2ocn_AV, rlist='SST', lsize=Asize)
    call AttrVect_zero (cice2ocn_AV)
