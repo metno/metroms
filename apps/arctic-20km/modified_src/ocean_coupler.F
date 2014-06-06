@@ -143,7 +143,7 @@
       integer :: Istr, Iend, Jstr, Jend
       integer :: IstrR, IendR, JstrR, JendR, IstrU, JstrV
       integer :: Asize, Jsize, MyError
-      integer :: j, jc, nprocs, ll
+      integer :: j, jc, nprocs
 
       integer, allocatable :: length(:)
       integer, allocatable :: start(:)
@@ -210,32 +210,27 @@
         allocate ( length(Jsize) )
       END IF
       jc=0
-      ll=0
       DO j=JstrR,JendR
         jc=jc+1
         start (jc)=j*(Lm(ng)+2)+IstrR+1
         length(jc)=(IendR-IstrR+1)
-        ll = ll + length(jc)
       END DO
-      WRITE (6,*) ' ROMS Ocean Coupler: ll=',ll
       WRITE (6,*) ' ROMS Ocean Coupler: calling GlobalSegMap_init'
-      CALL GlobalSegMap_init (GSMapROMS, start, length, 0,              &
-     &                        OCN_COMM_WORLD, OCNid)
+      CALL GlobalSegMap_init (GSMapROMS, start, length, 0, OCN_COMM_WORLD, OCNid)
 !
 !  Initialize attribute vector holding the export data code strings of
 !  the cice model. The Asize is the number of grid point on this
 !  processor.
 !
       Asize=GlobalSegMap_lsize(GSMapROMS, OCN_COMM_WORLD)
+
       WRITE (6,*) ' ROMS Ocean Coupler: calling AttrVect_init. Asize=',Asize
-      CALL AttrVect_init (cice2ocn_AV, rList=TRIM(ExportList(Icice)),   &
-     &                    lsize=Asize)
+      CALL AttrVect_init (cice2ocn_AV, rList=TRIM(ExportList(Icice)), lsize=Asize)
 !
 !  Initialize attribute vector holding the export data code string of
 !  the ocean model.
 !
-      CALL AttrVect_init (ocn2cice_AV, rList=TRIM(ExportList(Iocean)),   &
-     &                    lsize=Asize)
+      CALL AttrVect_init (ocn2cice_AV, rList=TRIM(ExportList(Iocean)), lsize=Asize)
       CALL AttrVect_zero (ocn2cice_AV)
 
       WRITE (6,*) ' ROMS Ocean Coupler: calling Router_init'
@@ -342,13 +337,13 @@
       A=0.0_r8
 
 !
-!  Schedule receiving fields from wave model.
+!  Schedule receiving fields from cice model.
 !
       CALL mpi_comm_rank (OCN_COMM_WORLD, MyRank, MyError)
 
 !      CALL MCT_Recv (cice2ocn_AV, ROMStoCICE)
 !
-!  Receive fields from wave model.
+!  Receive fields from cice model.
 !
       Iimport=0
       DO ifield=1,Nimport(Iocean)
@@ -386,7 +381,7 @@
 !  Export fields from ocean (ROMS) to sea ice (CICE) model.
 !-----------------------------------------------------------------------
 !
-!  Schedule sending fields to the wave model.
+!  Schedule sending fields to the cice model.
 !
       Iexport=0
       DO ifield=1,Nexport(Iocean)
@@ -407,7 +402,7 @@
      &                          Fields(id)%ExpMin, Fields(id)%ExpMax,   &
      &                          Asize, A,                               &
      &                          status)
-            CALL AttrVect_importRAttr (ocn2cice_AV, TRIM(code), A, Asize)
+            CALL AttrVect_importRAttr(ocn2cice_AV, TRIM(code), A, Asize)
             Iexport=Iexport+1
         END SELECT
       END DO
@@ -415,24 +410,8 @@
 !  Send ocean fields
 !
       IF (Iexport.gt.0) THEN
-        CALL MCT_Send (ocn2cice_AV, ROMStoCICE)
+        CALL MCT_Send(ocn2cice_AV, ROMStoCICE)
       END IF
-
-!      allocate(avdata(10))
-!      avdata=0.0_r8
-!      avdata(MyRank+1)=100.0 + MyRank
-
-!      CALL AttrVect_importRAttr (ocn2cice_AV, 'SST', avdata)
-
-!      CALL MCT_Send(ocn2cice_AV, ROMStoCICE)
-
-!      CALL MCT_Recv(cice2ocn_AV, ROMStoCICE)
-
-!      CALL AttrVect_exportRAttr(cice2ocn_AV, 'SST', avdata)
-
-!      IF (Master) THEN
-!          write(6,*) 'ROMS rank ', MyRank, ' received: ', avdata(MyRank+1)
-!      END IF
 
 !
 !  Deallocate communication arrays.

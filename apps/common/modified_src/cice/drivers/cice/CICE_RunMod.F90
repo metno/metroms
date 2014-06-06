@@ -108,17 +108,9 @@
 !
             CALL AttrVect_exportRAttr(ocn2cice_AV, 'SST', avdata)
 
-!            IF (my_task == master_task) THEN
-                write(6,*) 'CICE rank ', my_task, ' received: ', avdata(my_task+1)
-!            END IF
-
-!            allocate(avdata(10))
-!            avdata=0.0
-!            avdata(my_task+1)=200.0 + my_task
-
-!            CALL AttrVect_importRAttr (cice2ocn_AV, 'SST', avdata)
-
-!            CALL MCT_Send(cice2ocn_AV, CICEtoROMS)
+            IF (my_task == master_task) THEN
+                write(6,*) 'CICE rank ', my_task, ' received: ', avdata
+            END IF
 
             tcoupling = 0
          END IF
