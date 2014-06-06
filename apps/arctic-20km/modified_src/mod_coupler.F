@@ -205,8 +205,8 @@
       allocate(ExportList(Nmodels))
 
 
-      Nthreads(Iocean)=Nmodels/2
-      Nthreads(Icice)=Nmodels/2
+      Nthreads(Iocean)=4
+      Nthreads(Icice)=4
       TimeInterval=7200.0d0
 
       Nexport(Iocean)=1
