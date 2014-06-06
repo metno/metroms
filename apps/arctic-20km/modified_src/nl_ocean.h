@@ -39,6 +39,9 @@
 !
       USE mod_param
       USE mod_parallel
+#ifdef DISTRIBUTE
+      USE distribute_mod, ONLY : mp_bcasti, mp_bcasts
+#endif
 #ifdef VERIFICATION
       USE mod_fourdvar
 #endif
