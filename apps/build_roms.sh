@@ -234,6 +234,7 @@ else
 fi
 
 cp ${MY_ROMS_SRC}/ROMS/External/coupling.dat $BINDIR/
+cp ${tup}/${tmpdir}/cice/rundir/ice_in $BINDIR/
 
 # Clean up unpacked static code:
 cd  ${MY_PROJECT_DIR}
