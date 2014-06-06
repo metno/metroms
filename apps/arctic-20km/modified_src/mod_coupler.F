@@ -204,6 +204,7 @@
       allocate(Nimport(Nmodels))
       allocate(ExportList(Nmodels))
 
+
       Nthreads(Iocean)=Nmodels/2
       Nthreads(Icice)=Nmodels/2
       TimeInterval=7200.0d0
@@ -214,6 +215,15 @@
       Nimport(Icice)=1
       ExportList(Iocean)='SST'
       ExportList(Icice)=''
+
+      allocate(Export(Nmodels))
+      allocate(Import(Nmodels))
+      DO i=1,Nmodels
+        allocate(Export(i)%code(MAX(1,Nexport(i))))
+        allocate(Import(i)%code(MAX(1,Nexport(i))))
+        Export(i)%code=''
+        Import(i)%code=''
+      END DO
 
 !-----------------------------------------------------------------------
 !  Read in coupling export/import variable information.
