@@ -110,7 +110,7 @@
 !  grids and dimension parameters are known.
 !
         IF (Master) CALL my_getarg (1, Iname)
-        CALL mp_bcasts (1, model, Iname)
+        CALL mp_bcasts (1, iNLM, Iname)
 
         CALL inp_par (iNLM)
         IF (exit_flag.ne.NoError) RETURN
