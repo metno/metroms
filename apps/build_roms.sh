@@ -233,6 +233,8 @@ else
   make
 fi
 
+cp ${MY_ROMS_SRC}/ROMS/External/coupling.dat $BINDIR/
+
 # Clean up unpacked static code:
 cd  ${MY_PROJECT_DIR}
 #rm -rf ${MY_ROMS_SRC}
