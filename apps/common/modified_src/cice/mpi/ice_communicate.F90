@@ -10,48 +10,44 @@
 ! Oct. 2004: Adapted from POP version by William H. Lipscomb, LANL
 
    use ice_kinds_mod
+
+!  MCT framework for ROMS coupling
 !
-!  Componenet model registry.
+!  Componenent model registry.
 !
-      USE m_MCTWorld, ONLY : MCTWorld_init => init
-      USE m_MCTWorld, ONLY : MCTWorld_clean => clean
+   USE m_MCTWorld, ONLY : MCTWorld_init => init
+   USE m_MCTWorld, ONLY : MCTWorld_clean => clean
 !
-!  Domain decompositin descriptor datatype and assocoiated methods.
+!  Domain decomposition descriptor datatype and associated methods.
 !
-      USE m_GlobalSegMap, ONLY : GlobalSegMap
-      USE m_GlobalSegMap, ONLY : GlobalSegMap_init => init
-      USE m_GlobalSegMap, ONLY : GlobalSegMap_lsize => lsize
-      USE m_GlobalSegMap, ONLY : GlobalSegMap_clean => clean
-      USE m_GlobalSegMap, ONLY : GlobalSegMap_Ordpnts => OrderedPoints
+   USE m_GlobalSegMap, ONLY : GlobalSegMap
+   USE m_GlobalSegMap, ONLY : GlobalSegMap_init => init
+   USE m_GlobalSegMap, ONLY : GlobalSegMap_lsize => lsize
+   USE m_GlobalSegMap, ONLY : GlobalSegMap_clean => clean
+   USE m_GlobalSegMap, ONLY : GlobalSegMap_Ordpnts => OrderedPoints
 !
 !  Field storage data types and associated methods.
 !
-      USE m_AttrVect, ONLY : AttrVect
-      USE m_AttrVect, ONLY : AttrVect_init => init
-      USE m_AttrVect, ONLY : AttrVect_zero => zero
-      USE m_AttrVect, ONLY : AttrVect_clean => clean
-      USE m_AttrVect, ONLY : AttrVect_indxR => indexRA
-      USE m_AttrVect, ONLY : AttrVect_importRAttr => importRAttr
-      USE m_AttrVect, ONLY : AttrVect_exportRAttr => exportRAttr
+   USE m_AttrVect, ONLY : AttrVect
+   USE m_AttrVect, ONLY : AttrVect_init => init
+   USE m_AttrVect, ONLY : AttrVect_zero => zero
+   USE m_AttrVect, ONLY : AttrVect_clean => clean
+   USE m_AttrVect, ONLY : AttrVect_indxR => indexRA
+   USE m_AttrVect, ONLY : AttrVect_importRAttr => importRAttr
+   USE m_AttrVect, ONLY : AttrVect_exportRAttr => exportRAttr
 !
 !  Intercomponent communitcations scheduler.
 !
-      USE m_Router, ONLY : Router
-      USE m_Router, ONLY : Router_init => init
-      USE m_Router, ONLY : Router_clean => clean
-!
-!  Intercomponent transfer.
-!
-      USE m_Transfer, ONLY : MCT_Send => send
-      USE m_Transfer, ONLY : MCT_Recv => recv
-!
-
+   USE m_Router, ONLY : Router
+   USE m_Router, ONLY : Router_init => init
+   USE m_Router, ONLY : Router_clean => clean
 
    implicit none
    private
    save
 
    public  :: init_communicate,          &
+              init_mct,                  &
               get_num_procs,             &
               create_communicator,       &
               GSMapCICE,                 &
@@ -61,7 +57,6 @@
 
    integer (int_kind), public :: &
       MPI_COMM_ICE,             &! MPI communicator for ice comms
-      ice_comm,                 &
       nprocs,                   &
       CICEid,                   &
       OCNid,                    &
@@ -76,11 +71,11 @@
       mpitagHalo            = 1,    &! MPI tags for various
       mpitag_gs             = 1000   ! communication patterns
 
+!  MCT coupling variables
    type(GlobalSegMap) :: GSMapCICE         ! GloabalSegMap variables
-
-   type(AttrVect) :: cice2ocn_AV            ! AttrVect variables
-   type(AttrVect) :: ocn2cice_AV
-   type(Router)   :: CICEtoROMS            ! Router variables
+   type(AttrVect)     :: cice2ocn_AV       ! AttrVect variables
+   type(AttrVect)     :: ocn2cice_AV
+   type(Router)       :: CICEtoROMS        ! Router variables
 
 !***********************************************************************
 
@@ -102,9 +97,6 @@
    include 'mpif.h'   ! MPI Fortran include file
 
    integer (int_kind) :: ierr  ! MPI error flag
-   integer, pointer :: start(:), length(:)
-   integer :: Asize,Istr,Jstr,j
-   character (len=240) :: exportList
 
 !-----------------------------------------------------------------------
 !
@@ -113,29 +105,41 @@
 !
 !-----------------------------------------------------------------------
 
-      WRITE (6,*) ' CICE: init_communicate  '
+!  Note mpi_init has been called elsewhere in coupled mode
 
    CALL mpi_comm_rank (MPI_COMM_ICE, my_task, ierr)
-      WRITE (6,*) ' CICE: init_communicate my_task=',my_task
    CALL mpi_comm_size (MPI_COMM_ICE, nprocs, ierr)
-      WRITE (6,*) ' CICE: init_communicate nprocs=',nprocs
-!
-!  Initialize MCT coupled model registry.
-!
-   CALL MCTWorld_init (Nmodels, MPI_COMM_WORLD, MPI_COMM_ICE, CICEid)
-      WRITE (6,*) ' CICE: MCTWorld_init called'
 
-   ice_comm = MPI_COMM_ICE
-   call MPI_BARRIER (ice_comm, ierr)
-   call MPI_COMM_DUP(ice_comm, MPI_COMM_ICE, ierr)
+   call MPI_BARRIER(MPI_COMM_ICE, ierr)
+   call MPI_COMM_DUP(MPI_COMM_ICE, MPI_COMM_ICE, ierr)
 
    master_task = 0
-   call MPI_COMM_RANK  (MPI_COMM_ICE, my_task, ierr)
+   call MPI_COMM_RANK(MPI_COMM_ICE, my_task, ierr)
 
    mpiR16 = MPI_REAL16
    mpiR8  = MPI_REAL8
    mpiR4  = MPI_REAL4
 
+ end subroutine init_communicate
+
+
+ subroutine init_mct
+!
+!  MCT interface initialization
+!
+   include 'mpif.h'   ! MPI Fortran include file
+
+   integer, pointer :: start(:), length(:)
+   integer :: Asize,Istr,Jstr,j
+   character (len=240) :: importList, exportList
+
+!
+!  Initialize MCT coupled model registry.
+!
+   CALL MCTWorld_init (Nmodels, MPI_COMM_WORLD, MPI_COMM_ICE, CICEid)
+   WRITE (6,*) ' CICE: MCTWorld_init called'
+
+!  Grid decomposition: Must be adapted to the CICE grid used
    Istr=0
    if (my_task==1 .or. my_task==3) then
         Istr=161
@@ -150,26 +154,31 @@
    length=161
    DO j=0,120
      start(j+1)=(Jstr+j)*161+Istr+1
-!        start (jc)=j*(Lm(ng)+2)+IstrR+1
    END DO
 
-   exportList=''
-      WRITE (6,*) ' CICE: GlobalSegMap_init'
-   call GlobalSegMap_init (GSMapCICE, start, length, 0, MPI_COMM_ICE, CICEid)
+!  Use grid decomposition to initialize global segmentation map
+   WRITE (6,*) ' CICE: GlobalSegMap_init'
+   call GlobalSegMap_init(GSMapCICE, start, length, 0, MPI_COMM_ICE, CICEid)
    Asize=GlobalSegMap_lsize(GSMapCICE, MPI_COMM_ICE)
-      WRITE (6,*) ' CICE: AttrVect_init, Asize=', Asize
-   call AttrVect_init (cice2ocn_AV, rlist='SST', lsize=Asize)
-   call AttrVect_zero (cice2ocn_AV)
-   call AttrVect_init (ocn2cice_AV, rList='SST', lsize=Asize)
-   call AttrVect_zero (ocn2cice_AV)
-      WRITE (6,*) ' CICE: Router_init'
+
+
+!  Initialize import/export attribute vectors
+   importList='SST'
+   exportList=''
+
+   WRITE (6,*) ' CICE: AttrVect_init, Asize=', Asize
+   call AttrVect_init(ocn2cice_AV, rList=importList, lsize=Asize)
+   call AttrVect_zero(ocn2cice_AV)
+   call AttrVect_init(cice2ocn_AV, rlist=exportList, lsize=Asize)
+   call AttrVect_zero(cice2ocn_AV)
+
+
+!  Initialize router to ROMS
+   WRITE (6,*) ' CICE: Router_init'
    call Router_init (OCNid, GSMapCICE, MPI_COMM_ICE, CICEtoROMS)
-      WRITE (6,*) ' CICE: Router_init. Done.'
+   WRITE (6,*) ' CICE: Router_init. Done.'
 
-
-!-----------------------------------------------------------------------
-
- end subroutine init_communicate
+ end subroutine init_mct
 
 !***********************************************************************
 

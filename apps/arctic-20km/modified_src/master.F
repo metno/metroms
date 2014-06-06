@@ -106,8 +106,10 @@
 !
 !  Read in coupled model parameters from standard input.
 !
-      WRITE (stdout,*) ' Calling couple_par'
-      CALL read_CouplePar (iNLM)
+!     2014-06-06: Well don't - this only complicates the configuration
+!
+!      WRITE (stdout,*) ' Calling couple_par'
+!      CALL read_CouplePar (iNLM)
 !
 !  Allocate several coupling variables.
 !
