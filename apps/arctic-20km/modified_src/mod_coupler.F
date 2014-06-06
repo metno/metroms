@@ -105,7 +105,7 @@
 !
 !  Export/Import fields information file name.
 !
-      character (len=256) :: CPLname = 'ROMS/External/coupling.dat'
+      character (len=256) :: CPLname = 'coupling.dat'
 !
 !  Number of parallel nodes assigned to each model in the coupled model.
 !  Their sum must be equal to the total number of processors.
