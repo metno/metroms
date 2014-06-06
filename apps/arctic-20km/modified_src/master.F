@@ -67,7 +67,6 @@
       USE ice_communicate, ONLY: ice_Nmodels => Nmodels
       USE ice_communicate, ONLY: ice_CICEid => CICEid
       USE ice_communicate, ONLY: ice_OCNid => OCNid
-      USE ice_fileunits, ONLY: nml_filename
       USE cice_initmod, ONLY: cice_initialize
       USE cice_runmod, ONLY: cice_run
       USE cice_finalmod, ONLY: cice_finalize
@@ -180,9 +179,7 @@
 #endif
 #if defined CICE_COUPLING
       IF (MyColor.eq.CICEid) THEN
-!!        CouplingTime=REAL(TimeInterval(Iocean,Icice))
         WRITE (stdout,*) ' I am CICE node: calling CICE_INITIALIZE: ', MyRank
-        nml_filename=INPname(Icice)
         MPI_COMM_ICE=MyCOMM
         ice_Nmodels=Nmodels
         ice_CICEid=CICEid

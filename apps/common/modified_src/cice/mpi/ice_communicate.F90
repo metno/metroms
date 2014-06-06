@@ -120,6 +120,8 @@
    mpiR8  = MPI_REAL8
    mpiR4  = MPI_REAL4
 
+   call init_mct
+
  end subroutine init_communicate
 
 
