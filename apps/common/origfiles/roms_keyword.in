@@ -1472,8 +1472,9 @@ TimeInterval = 7200.0d0
  INPname(cice)  = cice.in
 
 ! Coupled models variables information file name.
+! This file gets copied to the bin dir by the build script
 
-        CPLname = ROMS/External/coupling.dat
+        CPLname = coupling.dat
 
 ! Export/Import fields: Use the following string codes to set the fields
 !                       to export/import for each coupled model.

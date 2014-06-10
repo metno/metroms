@@ -39,9 +39,6 @@
 !
       USE mod_param
       USE mod_parallel
-#ifdef DISTRIBUTE
-      USE distribute_mod, ONLY : mp_bcasti, mp_bcasts
-#endif
 #ifdef VERIFICATION
       USE mod_fourdvar
 #endif
@@ -112,9 +109,6 @@
 !  initialize variables in several modules after the number of nested
 !  grids and dimension parameters are known.
 !
-        IF (Master) CALL my_getarg (1, Iname)
-        CALL mp_bcasts (1, iNLM, Iname)
-
         CALL inp_par (iNLM)
         IF (exit_flag.ne.NoError) RETURN
 !
