@@ -68,9 +68,8 @@
 !-----------------------------------------------------------------------
 !
 !  Number of models to couple.
-!     Hardcoded to two here: ROMS and CICE
 !
-      integer :: Nmodels = 2
+      integer :: Nmodels
 !
 !  Coupled model components IDs.
 !
@@ -91,21 +90,18 @@
 !  Coupled model indices. Values are initilized here to zero and
 !  assigned in "inp_par" using order labels codes.
 !
-      integer :: Iocean = 1            ! ocean model
-      integer :: Icice = 2             ! cice sea ice model
+      integer :: Icice = 0             ! cice sea ice model
       integer :: Iatmos = 0            ! atmospheric model
+      integer :: Iocean = 0            ! ocean model
       integer :: Iwaves = 0            ! wave model
 !
 !  Standard input file name for each coupled model.
-!
-!
-!     Not used in ROMS - CICE coupling
 !
       character (len=256), allocatable :: INPname(:)
 !
 !  Export/Import fields information file name.
 !
-      character (len=256) :: CPLname = 'coupling.dat'
+      character (len=256) :: CPLname
 !
 !  Number of parallel nodes assigned to each model in the coupled model.
 !  Their sum must be equal to the total number of processors.
@@ -192,39 +188,7 @@
       character (len=40 ) :: code
       character (len=80 ) :: string
       character (len=120), dimension(5) :: Vinfo
-
-
 !
-!     Simplify configuration by hard coding here
-      Nmodels = 2
-      allocate(OrderLabel(Nmodels))
-      allocate(Nthreads(Nmodels))
-      allocate(TimeInterval(Nmodels,Nmodels))
-      allocate(Nexport(Nmodels))
-      allocate(Nimport(Nmodels))
-      allocate(ExportList(Nmodels))
-
-
-      Nthreads(Iocean)=4
-      Nthreads(Icice)=4
-      TimeInterval=7200.0d0
-
-      Nexport(Iocean)=1
-      Nexport(Icice)=0
-      Nimport(Iocean)=0
-      Nimport(Icice)=1
-      ExportList(Iocean)='SST'
-      ExportList(Icice)=''
-
-      allocate(Export(Nmodels))
-      allocate(Import(Nmodels))
-      DO i=1,Nmodels
-        allocate(Export(i)%code(MAX(1,Nexport(i))))
-        allocate(Import(i)%code(MAX(1,Nexport(i))))
-        Export(i)%code=''
-        Import(i)%code=''
-      END DO
-
 !-----------------------------------------------------------------------
 !  Read in coupling export/import variable information.
 !-----------------------------------------------------------------------
@@ -307,7 +271,14 @@
       STOP
   40  CLOSE (inp)
       Nfields=varid
-
+!
+!-----------------------------------------------------------------------
+!  Determine identification index for export and import fields.
+!-----------------------------------------------------------------------
+!
+!  Allocate IDs structures.
+!
+      WRITE (stdout,*) ' Allocate IDs structures'
       IF (.not.allocated(ExportID)) THEN
         allocate ( ExportID(Nmodels) )
         DO model=1,Nmodels
@@ -347,28 +318,24 @@
           END DO
         END DO
       END DO
-!      DO model=1,Nmodels
-!        ExportList(model)=''
-!        DO ifield=1,Nexport(model)
-!          id=ExportID(model)%val(ifield)
-!          IF (id.gt.0) THEN
-!            code=ADJUSTL(Fields(id)%code)
-!            IF (ifield.eq.1) THEN
-!              ExportList(model)=TRIM(ExportList(model))//TRIM(code)
-!            ELSE
-!              ExportList(model)=TRIM(ExportList(model))//':'//TRIM(code)
-!            END IF
-!          ELSE
-!            WRITE (stdout,70) model, TRIM(ExportList(model)),           &
-!     &                        TRIM(CPLname)
-!            STOP
-!          END IF
-!        END DO
-!      END DO
-
-
-
-
+      DO model=1,Nmodels
+        ExportList(model)=''
+        DO ifield=1,Nexport(model)
+          id=ExportID(model)%val(ifield)
+          IF (id.gt.0) THEN
+            code=ADJUSTL(Fields(id)%code)
+            IF (ifield.eq.1) THEN
+              ExportList(model)=TRIM(ExportList(model))//TRIM(code)
+            ELSE
+              ExportList(model)=TRIM(ExportList(model))//':'//TRIM(code)
+            END IF
+          ELSE
+            WRITE (stdout,70) model, TRIM(ExportList(model)),           &
+     &                        TRIM(CPLname)
+            STOP
+          END IF
+        END DO
+      END DO
 !
 !-----------------------------------------------------------------------
 !  Assign processors to coupled models.

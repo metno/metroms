@@ -98,7 +98,6 @@
                 write(6,*) '*****************************************************'
                 write(6,*) 'CICE - Ocean: coupling routine called from CICE'
                 write(6,*) '*****************************************************'
-                flush(6)
             END IF
             CALL MCT_Recv(ocn2cice_AV, CICEtoROMS)
             write(6,*) 'CICE - Ocean: CICE Received data'
