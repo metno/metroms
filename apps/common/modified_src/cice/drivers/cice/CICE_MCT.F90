@@ -36,7 +36,7 @@
 !        ***********************************
 !
          tcoupling = tcoupling + dt
-         IF (tcoupling.ge.TimeInterval) THEN
+         IF (tcoupling >= TimeInterval) THEN
             IF (my_task == master_task) THEN
                 write(6,*) '*****************************************************'
                 write(6,*) 'CICE - Ocean: coupling routine called from CICE'
