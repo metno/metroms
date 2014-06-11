@@ -27,8 +27,8 @@
 
       contains
 
-      subroutine CICE_MCT_coupling(dt)
-         real(kind=dbl_kind) :: dt
+      subroutine CICE_MCT_coupling(time,dt)
+         real(kind=dbl_kind), intent(in) :: time,dt
          real(kind=dbl_kind), pointer :: avdata(:)
 
 !        ***********************************
@@ -40,6 +40,8 @@
             IF (my_task == master_task) THEN
                 write(6,*) '*****************************************************'
                 write(6,*) 'CICE - Ocean: coupling routine called from CICE'
+                write(6,*) 'time = ', time
+                write(6,*) 'dt = ', dt
                 write(6,*) '*****************************************************'
             END IF
             CALL MCT_Recv(ocn2cice_AV, CICEtoROMS)

@@ -75,7 +75,7 @@
          call get_forcing_ocn(dt)  ! ocean forcing from data
 
          ! CALL MCT ROMS coupling routine
-         call CICE_MCT_coupling(dt)
+         call CICE_MCT_coupling(time, dt)
 
          ! if (tr_aero) call faero_data       ! aerosols
          if (tr_aero)  call faero_default     ! aerosols
