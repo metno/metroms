@@ -1,5 +1,7 @@
       module CICE_MCT
 
+      use ice_kinds_mod
+
 !     MCT couling modules
       USE m_GlobalSegMap, ONLY : GlobalSegMap
       USE m_AttrVect, ONLY : AttrVect
