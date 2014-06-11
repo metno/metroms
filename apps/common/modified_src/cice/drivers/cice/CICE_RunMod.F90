@@ -17,17 +17,6 @@
 
       use ice_kinds_mod
 
-!     MCT couling modules
-      USE m_GlobalSegMap, ONLY : GlobalSegMap
-      USE m_AttrVect, ONLY : AttrVect
-      USE m_Router, ONLY : Router
-      USE m_Transfer, ONLY : MCT_Send => send
-      USE m_Transfer, ONLY : MCT_Recv => recv
-      USE m_AttrVect, ONLY : AttrVect_importRAttr => importRAttr
-      USE m_AttrVect, ONLY : AttrVect_exportRAttr => exportRAttr
-
-!
-
       implicit none
       private
       public :: CICE_Run, ice_step
@@ -56,11 +45,9 @@
       use ice_timers, only: ice_timer_start, ice_timer_stop, &
           timer_couple, timer_step
       use ice_zbgc_shared, only: skl_bgc
-      use ice_communicate, only: GSMapCICE, cice2ocn_AV, ocn2cice_AV, CICEtoROMS, my_task, master_task
 
-      real (kind=dbl_kind) ::   TimeInterval, tcoupling
-      integer :: MyError
-      real(kind=dbl_kind), pointer :: avdata(:)
+      use CICE_MCT, only: CICE_MCT_coupling
+
    !--------------------------------------------------------------------
    !  initialize error code and step timer
    !--------------------------------------------------------------------
@@ -87,35 +74,8 @@
          call get_forcing_atmo     ! atmospheric forcing from data
          call get_forcing_ocn(dt)  ! ocean forcing from data
 
-!        ***********************************
-!             ROMS coupling
-!        ***********************************
-!
-         TimeInterval = 7200.0
-         tcoupling = tcoupling + dt
-         IF (tcoupling.ge.TimeInterval) THEN
-            IF (my_task == master_task) THEN
-                write(6,*) '*****************************************************'
-                write(6,*) 'CICE - Ocean: coupling routine called from CICE'
-                write(6,*) '*****************************************************'
-            END IF
-            CALL MCT_Recv(ocn2cice_AV, CICEtoROMS)
-            write(6,*) 'CICE - Ocean: CICE Received data'
-!
-            allocate(avdata(19481))
-            avdata=0.0
-!
-            CALL AttrVect_exportRAttr(ocn2cice_AV, 'SST', avdata)
-
-            IF (my_task == master_task) THEN
-                write(6,*) 'CICE rank ', my_task, ' received: ', avdata
-            END IF
-
-            tcoupling = 0
-         END IF
-
-
-!        ***********************************
+         ! CALL MCT ROMS coupling routine
+         call CICE_MCT_coupling(dt)
 
          ! if (tr_aero) call faero_data       ! aerosols
          if (tr_aero)  call faero_default     ! aerosols
