@@ -62,6 +62,9 @@
 
          call ice_step
 
+         ! CALL MCT ROMS coupling routine
+         call CICE_MCT_coupling(time, dt)
+
          istep  = istep  + 1    ! update time step counters
          istep1 = istep1 + 1
          time = time + dt       ! determine the time and date
@@ -73,9 +76,6 @@
          call ice_timer_start(timer_couple)  ! atm/ocn coupling
          call get_forcing_atmo     ! atmospheric forcing from data
          call get_forcing_ocn(dt)  ! ocean forcing from data
-
-         ! CALL MCT ROMS coupling routine
-         call CICE_MCT_coupling(time, dt)
 
          ! if (tr_aero) call faero_data       ! aerosols
          if (tr_aero)  call faero_default     ! aerosols
