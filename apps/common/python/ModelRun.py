@@ -61,7 +61,7 @@ class ModelRun(object):
         Execute the ROMS model itself using MPI.
         """
         executable="oceanM" if debugoption==Constants.NODEBUG else "oceanG"
-        os.system("mpirun -np "+str(ncpus)+" "+executable+" "+infile)
+        os.system("mpirun -np "+str(ncpus*2)+" "+executable+" "+infile)
         #call(["mpirun", "-np", str(ncpus), "oceanM", infile])
 
     def _execute_roms_openmp(self,ncpus,infile,debugoption=Constants.NODEBUG):
