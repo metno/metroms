@@ -1,6 +1,12 @@
 #!/bin/bash
 set -x
 
+if [ $# -ne 2 ]
+then
+    echo "Usage: $0 NPX NPY"
+    exit 1
+fi 
+
 export workingdir=${PWD} 
 cd ../
 metroms_base=${PWD} 
@@ -30,7 +36,7 @@ rm -rf ${tup}/tmproms/cice/rundir/compile
 # -O2 -w -convert big_endian -assume byterecl
 #
 
-./comp_ice
+./comp_ice $1 $2
 
 # Build a library (for use in the ROMS build)
 cd $CICE_DIR/rundir/compile

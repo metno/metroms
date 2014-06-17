@@ -16,8 +16,8 @@ setenv RES A20 ; setenv GRID 322x242
 #setenv RES gx1 ; setenv GRID 320x384
 #setenv RES tx1 ; setenv GRID 360x240
 
-@ NPX =  2   # number of processors in x direction
-@ NPY =  2   # number of processors in y direction
+@ NPX =  $1   # number of processors in x direction
+@ NPY =  $2   # number of processors in y direction
 @ BPX =  1   
 @ BPY =  1   
 
@@ -45,6 +45,7 @@ else
   setenv BLCKX $b 
 endif
 
+### y grid decomposition
 @ a = ($NYGLOB / $NPY) 
 @ rem1 = ($NYGLOB % $NPY) 
 @ b = ($a + 1)
