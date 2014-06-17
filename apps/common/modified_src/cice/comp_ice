@@ -10,13 +10,21 @@ setenv SITE Ubuntu
 setenv SYSTEM_USERDIR $CICE_DIR
 
 ### Grid resolution
+setenv RES A20 ; setenv GRID 322x242
 #setenv RES col ; setenv GRID 5x5
-setenv RES gx3 ; setenv GRID 100x116
+#setenv RES gx3 ; setenv GRID 100x116
 #setenv RES gx1 ; setenv GRID 320x384
 #setenv RES tx1 ; setenv GRID 360x240
 
-set NXGLOB = `echo $GRID | sed s/x.\*//`
-set NYGLOB = `echo $GRID | sed s/.\*x//`
+@ NPX =  2   # number of processors in x direction
+@ NPY =  2   # number of processors in y direction
+@ BPX =  1   
+@ BPY =  1   
+
+@ NTASK = ($NPX * $NPY)   # total number of processors
+
+@ NXGLOB = `echo $GRID | sed s/x.\*//`
+@ NYGLOB = `echo $GRID | sed s/.\*x//`
 
 # Recommendations:
 #   NTASK equals nprocs in ice_in 
@@ -25,26 +33,33 @@ set NYGLOB = `echo $GRID | sed s/.\*x//`
 #   squarish blocks with distribution_type='rake'
 # If BLCKX (BLCKY) does not divide NXGLOB (NYGLOB) evenly, padding 
 # will be used on the right (top) of the grid.
-if ($RES == 'col') then   # for column configuration:
-   setenv NTASK      1       # total number of processors
-   setenv BLCKX      5       # x-dimension of blocks ( not including )
-   setenv BLCKY      5       # y-dimension of blocks (  ghost cells  )
-   setenv NICELYR    7       # number of vertical layers in the ice
-   setenv NSNWLYR    1       # number of vertical layers in the snow
-   setenv NICECAT    5       # number of ice thickness categories
-else                      # test problem: gx3
-   setenv NTASK      4       # total number of processors
-   setenv BLCKX     25       # x-dimension of blocks ( not including )
-   setenv BLCKY     29       # y-dimension of blocks (  ghost cells  )
-   setenv NICELYR    7       # number of vertical layers in the ice
-   setenv NSNWLYR    1       # number of vertical layers in the snow
-   setenv NICECAT    5       # number of ice thickness categories
+
+### x grid decomposition
+@ a = ($NXGLOB / $NPX) 
+@ rem1 = ($NXGLOB % $NPX) 
+@ b = ($a + 1)
+
+if ($rem1 == 0) then 
+  setenv BLCKX $a 
+else 
+  setenv BLCKX $b 
 endif
 
-# may need to increase MXBLCKS with rake distribution or padding
-@ a = $NXGLOB * $NYGLOB ; @ b = $BLCKX * $BLCKY * $NTASK  
-@ m = $a / $b ; setenv MXBLCKS $m; if ($MXBLCKS == 0) setenv MXBLCKS 1
-#setenv MXBLCKS 37 # if necessary (code will print proper value)
+@ a = ($NYGLOB / $NPY) 
+@ rem1 = ($NYGLOB % $NPY) 
+@ b = ($a + 1)
+
+if ($rem1 == 0) then 
+  setenv BLCKY $a 
+else 
+  setenv BLCKY $b 
+endif
+
+@ MXBLCKS = ($BPX * $BPY)
+
+setenv NICELYR    7       # number of vertical layers in the ice
+setenv NSNWLYR    1       # number of vertical layers in the snow
+setenv NICECAT    5       # number of ice thickness categories
 
 ### Tracers               # match ice_in tracer_nml to conserve memory
 setenv TRAGE   1          # set to 1 for ice age tracer
@@ -75,8 +90,7 @@ setenv NUMIN 11           # minimum file unit number
 setenv NUMAX 99           # maximum file unit number
 
 ### Set SRCDIR and EXEDIR to your own paths!
-setenv SRCDIR $CICE_DIR  # conejo
-#setenv SRCDIR /Users/akt/Work/MPAS-CICE/Column_Package/cice_package/cice
+setenv SRCDIR $SYSTEM_USERDIR
 
 setenv EXEDIR $SYSTEM_USERDIR/rundir
                                           if !(-d $EXEDIR) mkdir -p $EXEDIR
@@ -96,21 +110,15 @@ else
 endif
 setenv ARCH $ARCH.$SITE
 
-cd $SRCDIR/source
-
 cd $EXEDIR
+cp $SRCDIR/input_templates/$RES/cice.grid.nc .
+cp $SRCDIR/input_templates/$RES/cice.kmt.nc .
 
-if !($RES == 'col') then
-if !(-e grid)    cp $SRCDIR/input_templates/$RES/global_$RES.grid grid
-if !(-e kmt)     cp $SRCDIR/input_templates/$RES/global_$RES.kmt kmt
-endif
-if !(-e ice_in)  cp $SRCDIR/input_templates/$RES/ice_in .
-if !(-e run_ice) cp $SRCDIR/input_templates/run_ice.$ARCH run_ice
+sed "s#<cicedir>#$SYSTEM_USERDIR#;s#<ntask>#$NTASK#" $SRCDIR/input_templates/$RES/ice_in > $EXEDIR/ice_in
 
 cd $RSTDIR
-
 cp $SRCDIR/input_templates/$RES/iced_$RES* .
-#if !(-e ice.restart_file) cp $SRCDIR/input_templates/$RES/ice.restart_file .
+if !(-e ice.restart_file) cp $SRCDIR/input_templates/$RES/ice.restart_file .
 
 cd $OBJDIR
 

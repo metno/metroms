@@ -8,7 +8,7 @@
   , ndtd           = 1
   , runtype        = 'initial'
   , ice_ic         = 'default'
-  , restart        = RESTART
+  , restart        = .false.
   , restart_ext    = .false.
   , use_restart_time = .true.
   , restart_format = 'nc'
@@ -42,13 +42,13 @@
 &grid_nml
     grid_format  = 'nc'
   , grid_type    = 'displaced_pole'
-  , grid_file    = 'cice.grid.nc'
-  , kmt_file     = 'cice.kmt.nc'
+  , grid_file    = '<cicedir>/rundir/cice.grid.nc'
+  , kmt_file     = '<cicedir>/rundir/cice.kmt.nc'
   , kcatbound    = 0
 /
 
 &domain_nml
-    nprocs = NTASK
+    nprocs = <ntask>
   , processor_shape   = 'square-ice'
   , distribution_type = 'cartesian'
   , distribution_wght = 'latitude'

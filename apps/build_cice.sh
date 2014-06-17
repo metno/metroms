@@ -1,7 +1,7 @@
 #!/bin/bash
 set -x
 
-workingdir=${PWD} 
+export workingdir=${PWD} 
 cd ../
 metroms_base=${PWD} 
 cd ../
@@ -36,6 +36,5 @@ rm -rf ${tup}/tmproms/cice/rundir/compile
 cd $CICE_DIR/rundir/compile
 ar rcv libcice.a *.o
 
-sed "s#<cicedir>#$CICE_DIR#" $workingdir/common/modified_src/cice/input_templates/ice_in > $CICE_DIR/rundir/ice_in
 
 set +x
