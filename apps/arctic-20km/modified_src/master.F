@@ -64,9 +64,9 @@
 #if defined CICE_COUPLING
       USE ocean_coupler_mod, ONLY : finalize_ocn2cice_coupling
       USE ice_communicate, ONLY: MPI_COMM_ICE
-      USE ice_communicate, ONLY: ice_Nmodels => Nmodels
-      USE ice_communicate, ONLY: ice_CICEid => CICEid
-      USE ice_communicate, ONLY: ice_OCNid => OCNid
+      USE CICE_MCT, ONLY: ice_Nmodels => Nmodels
+      USE CICE_MCT, ONLY: ice_CICEid => CICEid
+      USE CICE_MCT, ONLY: ice_OCNid => OCNid
       USE cice_initmod, ONLY: cice_initialize
       USE cice_runmod, ONLY: cice_run
       USE cice_finalmod, ONLY: cice_finalize
