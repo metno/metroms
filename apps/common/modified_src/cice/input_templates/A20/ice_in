@@ -151,9 +151,9 @@
   , atmbndy         = 'default'
   , fyear_init      = 1997
   , ycycle          = 1
-  , atm_data_format = 'bin'
-  , atm_data_type   = 'default'
-  , atm_data_dir    = 'unknown_atm_data_dir'
+  , atm_data_format = 'nc'
+  , atm_data_type   = 'ecmwf'
+  , atm_data_dir    = '/disk1/atmforcing/'
   , calc_strair     = .true.
   , calc_Tsfc       = .true.
   , precip_units    = 'mm_per_month'
