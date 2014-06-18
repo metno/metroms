@@ -85,7 +85,6 @@
       use CICE_MCT, only: init_mct
 
       call init_communicate     ! initial setup for message passing
-      call init_mct
 
       call init_fileunits       ! unit numbers
       call input_data           ! namelist variables
@@ -158,6 +157,8 @@
       call init_flux_ocn        ! initialize ocean fluxes sent to coupler
 
       if (write_ic) call accum_hist(dt) ! write initial conditions 
+
+      call init_mct
 
       end subroutine cice_init
 

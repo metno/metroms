@@ -1,13 +1,9 @@
       module CICE_MCT
 
       use ice_kinds_mod
-
-!     MCT couling modules
-!      USE m_GlobalSegMap, ONLY : GlobalSegMap
-!!      USE m_AttrVect, ONLY : AttrVect
-!      USE m_Router,   ONLY : Router
-!      USE m_AttrVect, ONLY : AttrVect_importRAttr => importRAttr
-!      USE m_AttrVect, ONLY : AttrVect_exportRAttr => exportRAttr
+      use ice_blocks, only : block, get_block, nx_block, ny_block
+      use ice_domain, only : nblocks, blocks_ice
+      use ice_domain_size, only : nx_global, ny_global !, block_size_x, block_size_y, max_blocks
 
 !  MCT framework for ROMS coupling
 !
@@ -83,17 +79,17 @@
    include 'mpif.h'   ! MPI Fortran include file
 
    integer, pointer :: start(:), length(:)
-   integer :: Asize,Istr,Jstr,j
+   integer :: Asize,Istr,Jstr !,j
    character (len=240) :: importList, exportList
 
 
-!    integer     :: lat
-!    integer     :: lon
-!    integer     :: i, j, iblk, n, gi
-!    integer     :: lsize,gsize
-!    integer     :: ier
-!    integer     :: ilo, ihi, jlo, jhi ! beginning and end of physical domain
-!    type(block) :: this_block         ! block information for current block
+    integer     :: lat
+    integer     :: lon
+    integer     :: i, j, iblk, n, gi
+    integer     :: lsize,gsize
+    integer     :: ier
+    integer     :: ilo, ihi, jlo, jhi ! beginning and end of physical domain
+    type(block) :: this_block         ! block information for current block
 
 !
 !  Initialize MCT coupled model registry.
@@ -111,32 +107,31 @@
 
 ! number the local grid
 
-!    n=0
-!    do iblk = 1, nblocks
-!       this_block = get_block(blocks_ice(iblk),iblk)
-!       ilo = this_block%ilo
-!       ihi = this_block%ihi
-!       jlo = this_block%jlo
-!       jhi = this_block%jhi
-
+    n=0
+    do iblk = 1, nblocks
+       this_block = get_block(blocks_ice(iblk),iblk)
+       ilo = this_block%ilo
+       ihi = this_block%ihi
+       jlo = this_block%jlo
+       jhi = this_block%jhi
 !       do j = jlo, jhi
 !          do i = ilo, ihi
 !             n = n+1
 !          enddo
 !       enddo
-!    enddo
-!    lsize = n
-
-!    allocate(start(lsize))
-!    allocate(length(lsize))
-!    n=0
-!    do iblk = 1, nblocks
-!       this_block = get_block(blocks_ice(iblk),iblk)
-!       ilo = this_block%ilo
-!       ihi = this_block%ihi
-!       jlo = this_block%jlo
-!       jhi = this_block%jhi
-
+        n = n + (1+jhi-jlo)
+    enddo
+    lsize = n
+    WRITE (6,*) ' CICE: lsize=', lsize
+    allocate(start(lsize))
+    allocate(length(lsize))
+    n=0
+    do iblk = 1, nblocks
+       this_block = get_block(blocks_ice(iblk),iblk)
+       ilo = this_block%ilo
+       ihi = this_block%ihi
+       jlo = this_block%jlo
+       jhi = this_block%jhi
 !       do j = jlo, jhi
 !          do i = ilo, ihi
 !             n = n+1
@@ -146,25 +141,32 @@
 !             length(n) = ihi-ilo ! Correct?
 !          enddo
 !       enddo
-!    enddo
+       do j = jlo, jhi
+          n = n+1
+          lon = this_block%i_glob(ilo)
+          lat = this_block%j_glob(j)
+          start(n) = (lat-1)*nx_global + lon
+          length(n) = 1+ihi-ilo
+       enddo
+    enddo
 
 !    call mct_gsMap_init( gsMap_ice, gindex, mpicom, ID, lsize, gsize )
 
 !  Grid decomposition: Must be adapted to the CICE grid used
-   allocate(start(121))
-   allocate(length(121))
-   Istr=0
-   if (my_task==1 .or. my_task==3) then
-        Istr=161
-   endif
-   Jstr=0
-   if (my_task==2 .or. my_task==3) then
-        Jstr=121
-   endif
-   length=161
-   DO j=0,120
-     start(j+1)=(Jstr+j)*161+Istr+1
-   END DO
+!   allocate(start(121))
+!   allocate(length(121))
+!   Istr=0
+!   if (my_task==1 .or. my_task==3) then
+!        Istr=161
+!   endif
+!   Jstr=0
+!   if (my_task==2 .or. my_task==3) then
+!        Jstr=121
+!   endif
+!   length=161
+!   DO j=0,120
+!     start(j+1)=(Jstr+j)*161+Istr+1
+!   END DO
 
 !  Use grid decomposition to initialize global segmentation map
    WRITE (6,*) ' CICE: GlobalSegMap_init'
