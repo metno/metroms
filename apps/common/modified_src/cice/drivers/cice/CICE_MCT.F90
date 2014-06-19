@@ -168,7 +168,7 @@
          real(kind=dbl_kind), pointer :: avdata(:)
          integer     :: ilo, ihi, jlo, jhi ! beginning and end of physical domain
          type(block) :: this_block         ! block information for current block
-         integer     :: i,j,Asize
+         integer     :: i,j,Asize,iblk,n
 
 !        ***********************************
 !             ROMS coupling
@@ -192,25 +192,21 @@
 !
             CALL AttrVect_exportRAttr(ocn2cice_AV, 'SST', avdata)
 
-            IF (my_task == master_task) THEN
-                write(6,*) 'CICE rank ', my_task, ' received: ', avdata
-            END IF
-
-!            write(6,*) 'CICE rank ', my_task, ' setting the sst field: ', maxval(avdata), ' ', minval(avdata)
-!            n = 0
-!            do iblk = 1, nblocks
-!               this_block = get_block(blocks_ice(iblk),iblk)
-!               ilo = this_block%ilo
-!               ihi = this_block%ihi
-!               jlo = this_block%jlo
-!               jhi = this_block%jhi
-!               do j = jlo, jhi
-!                  do i = ilo, ihi
-!                      n = n+1
-!                      sst(i,j,iblk)=avdata(n)
-!                  enddo
-!               enddo
-!            enddo
+            write(6,*) 'CICE rank ', my_task, ' setting the sst field (max/min): ', maxval(avdata), ' ', minval(avdata)
+            n = 0
+            do iblk = 1, nblocks
+               this_block = get_block(blocks_ice(iblk),iblk)
+               ilo = this_block%ilo
+               ihi = this_block%ihi
+               jlo = this_block%jlo
+               jhi = this_block%jhi
+               do j = jlo, jhi
+                  do i = ilo, ihi
+                      n = n+1
+                      sst(i,j,iblk)=avdata(n)
+                  enddo
+               enddo
+            enddo
             tcoupling = 0.0
          END IF
 
