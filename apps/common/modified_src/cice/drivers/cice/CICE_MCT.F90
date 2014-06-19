@@ -4,6 +4,7 @@
       use ice_blocks, only : block, get_block, nx_block, ny_block
       use ice_domain, only : nblocks, blocks_ice
       use ice_domain_size, only : nx_global, ny_global !, block_size_x, block_size_y, max_blocks
+      use ice_flux, only: sst
 
 !  MCT framework for ROMS coupling
 !
@@ -83,8 +84,7 @@
    character (len=240) :: importList, exportList
 
 
-    integer     :: lat
-    integer     :: lon
+    integer     :: ilo_glob, j_glob
     integer     :: i, j, iblk, n, gi
     integer     :: lsize,gsize
     integer     :: ier
@@ -114,12 +114,7 @@
        ihi = this_block%ihi
        jlo = this_block%jlo
        jhi = this_block%jhi
-!       do j = jlo, jhi
-!          do i = ilo, ihi
-!             n = n+1
-!          enddo
-!       enddo
-        n = n + (1+jhi-jlo)
+       n = n + (1+jhi-jlo)
     enddo
     lsize = n
     WRITE (6,*) ' CICE: lsize=', lsize
@@ -132,41 +127,14 @@
        ihi = this_block%ihi
        jlo = this_block%jlo
        jhi = this_block%jhi
-!       do j = jlo, jhi
-!          do i = ilo, ihi
-!             n = n+1
-!             lon = this_block%i_glob(i)
-!             lat = this_block%j_glob(j)
-!             start(n) = (lat-1)*nx_global + lon
-!             length(n) = ihi-ilo ! Correct?
-!          enddo
-!       enddo
        do j = jlo, jhi
           n = n+1
-          lon = this_block%i_glob(ilo)
-          lat = this_block%j_glob(j)
-          start(n) = (lat-1)*nx_global + lon
+          ilo_glob = this_block%i_glob(ilo)
+          j_glob = this_block%j_glob(j)
+          start(n) = (j_glob-1)*nx_global + ilo_glob
           length(n) = 1+ihi-ilo
        enddo
     enddo
-
-!    call mct_gsMap_init( gsMap_ice, gindex, mpicom, ID, lsize, gsize )
-
-!  Grid decomposition: Must be adapted to the CICE grid used
-!   allocate(start(121))
-!   allocate(length(121))
-!   Istr=0
-!   if (my_task==1 .or. my_task==3) then
-!        Istr=161
-!   endif
-!   Jstr=0
-!   if (my_task==2 .or. my_task==3) then
-!        Jstr=121
-!   endif
-!   length=161
-!   DO j=0,120
-!     start(j+1)=(Jstr+j)*161+Istr+1
-!   END DO
 
 !  Use grid decomposition to initialize global segmentation map
    WRITE (6,*) ' CICE: GlobalSegMap_init'
@@ -198,6 +166,9 @@
       subroutine CICE_MCT_coupling(time,dt)
          real(kind=dbl_kind), intent(in) :: time,dt
          real(kind=dbl_kind), pointer :: avdata(:)
+         integer     :: ilo, ihi, jlo, jhi ! beginning and end of physical domain
+         type(block) :: this_block         ! block information for current block
+         integer     :: i,j,Asize
 
 !        ***********************************
 !             ROMS coupling
@@ -215,7 +186,8 @@
             CALL MCT_Recv(ocn2cice_AV, CICEtoROMS)
             write(6,*) 'CICE - Ocean: CICE Received data'
 !
-            allocate(avdata(19481))
+            Asize=GlobalSegMap_lsize(GSMapCICE, MPI_COMM_ICE)
+            allocate(avdata(Asize))
             avdata=0.0
 !
             CALL AttrVect_exportRAttr(ocn2cice_AV, 'SST', avdata)
@@ -224,6 +196,21 @@
                 write(6,*) 'CICE rank ', my_task, ' received: ', avdata
             END IF
 
+!            write(6,*) 'CICE rank ', my_task, ' setting the sst field: ', maxval(avdata), ' ', minval(avdata)
+!            n = 0
+!            do iblk = 1, nblocks
+!               this_block = get_block(blocks_ice(iblk),iblk)
+!               ilo = this_block%ilo
+!               ihi = this_block%ihi
+!               jlo = this_block%jlo
+!               jhi = this_block%jhi
+!               do j = jlo, jhi
+!                  do i = ilo, ihi
+!                      n = n+1
+!                      sst(i,j,iblk)=avdata(n)
+!                  enddo
+!               enddo
+!            enddo
             tcoupling = 0.0
          END IF
 
