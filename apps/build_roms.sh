@@ -233,7 +233,7 @@ else
   make
 fi
 
-cp ${MY_ROMS_SRC}/ROMS/External/coupling.dat $BINDIR/
+cp ${MY_PROJECT_DIR}/modified_src/coupling.dat $BINDIR/
 cp ${tup}/${tmpdir}/cice/rundir/ice_in $BINDIR/
 
 # Clean up unpacked static code:

@@ -1521,7 +1521,7 @@ TimeInterval = 7200.0d0
  !Nexport(atmos) = 9
  Nexport(cice)  = 1
 
-  Export(ocean) = SST   \
+  Export(ocean) = SST  
 
 !  Export(ocean) = SST   \
 !                  bath  \
@@ -1545,7 +1545,7 @@ TimeInterval = 7200.0d0
 !                  Uwind \
 !                 Vwind
 
-  Export(cice) = Pair  \
+  Export(cice) = AICE 
 
 
 ! Import fields per model, [1:Nimport(...)] string values are expected per
@@ -1554,25 +1554,12 @@ TimeInterval = 7200.0d0
 !      Nimport(...) = 0
 !       Import(...) = NONE
 
- Nimport(ocean) = 14
+ Nimport(ocean) = 1
 ! Nimport(waves) = 6
 ! Nimport(atmos) = 1
  Nimport(ciec)  = 1
 
-  Import(ocean) = Pair  \
-                  Tair  \
-                  Hair  \
-                  cloud \
-                  SWrad \
-                  LWrad \
-                  rain  \
-                  Uwind \
-                  Vwind \
-                  Wdir  \
-                  Wamp  \
-                  Wlen  \
-                  Wptop \
-                  Wpbot
+  Import(ocean) = AICE
 
 !  Import(waves) = Uwind \
 !                  Vwind \

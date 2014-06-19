@@ -341,7 +341,7 @@
 !
       CALL mpi_comm_rank (OCN_COMM_WORLD, MyRank, MyError)
 
-!      CALL MCT_Recv (cice2ocn_AV, ROMStoCICE)
+      CALL MCT_Recv (cice2ocn_AV, ROMStoCICE)
 !
 !  Receive fields from cice model.
 !
@@ -356,13 +356,11 @@
         SELECT CASE (TRIM(code))
 
 
-          CASE ('Wubot')                  ! bottom orbital velocity
+          CASE ('AICE')         ! Sea ice concentration
 
             CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code), A, Asize)
             Iimport=Iimport+1
-            DO i=1,Asize
-              A(i)=MAX(0.0_r8,A(i))
-            END DO
+            write(6,*) 'ROMS rank ', MyRank, ' received aice field (max/min): ', maxval(A), ' ', minval(A)
 !            scale=1.0_r8
 !            add_offset=0.0_r8
 !            CALL ROMS_import2d (ng, tile,                               &

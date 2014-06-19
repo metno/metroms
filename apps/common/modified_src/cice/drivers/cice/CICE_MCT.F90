@@ -5,6 +5,7 @@
       use ice_domain, only : nblocks, blocks_ice
       use ice_domain_size, only : nx_global, ny_global !, block_size_x, block_size_y, max_blocks
       use ice_flux, only: sst
+      use ice_state, only: aice
 
 !  MCT framework for ROMS coupling
 !
@@ -144,7 +145,7 @@
 
 !  Initialize import/export attribute vectors
    importList='SST'
-   exportList=''
+   exportList='AICE'
 
    WRITE (6,*) ' CICE: AttrVect_init, Asize=', Asize
    call AttrVect_init(ocn2cice_AV, rList=importList, lsize=Asize)
@@ -183,12 +184,31 @@
                 write(6,*) 'dt = ', dt
                 write(6,*) '*****************************************************'
             END IF
-            CALL MCT_Recv(ocn2cice_AV, CICEtoROMS)
-            write(6,*) 'CICE - Ocean: CICE Received data'
-!
             Asize=GlobalSegMap_lsize(GSMapCICE, MPI_COMM_ICE)
             allocate(avdata(Asize))
             avdata=0.0
+
+            n = 0
+            do iblk = 1, nblocks
+               this_block = get_block(blocks_ice(iblk),iblk)
+               ilo = this_block%ilo
+               ihi = this_block%ihi
+               jlo = this_block%jlo
+               jhi = this_block%jhi
+               do j = jlo, jhi
+                  do i = ilo, ihi
+                      n = n+1
+                      avdata(n)=aice(i,j,iblk)
+                  enddo
+               enddo
+            enddo
+            CALL AttrVect_importRAttr(cice2ocn_AV, 'AICE', avdata)
+            CALL MCT_Send(cice2ocn_AV, CICEtoROMS)
+
+
+            CALL MCT_Recv(ocn2cice_AV, CICEtoROMS)
+            write(6,*) 'CICE - Ocean: CICE Received data'
+!
 !
             CALL AttrVect_exportRAttr(ocn2cice_AV, 'SST', avdata)
 
