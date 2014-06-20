@@ -159,7 +159,7 @@
   , precip_units    = 'mm_per_month'
   , ustar_min       = 0.0005
   , update_ocn_f    = .false.
-  , oceanmixed_ice  = .true.
+  , oceanmixed_ice  = .false.
   , ocn_data_format = 'bin'
   , sss_data_type   = 'default'
   , sst_data_type   = 'default'
@@ -200,7 +200,7 @@
   , f_snow_ai      = 'm' 
   , f_rain         = 'x' 
   , f_rain_ai      = 'm' 
-  , f_sst          = 'm' 
+  , f_sst          = 'md' 
   , f_sss          = 'm' 
   , f_uocn         = 'm' 
   , f_vocn         = 'm' 

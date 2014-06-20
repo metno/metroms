@@ -2,10 +2,12 @@
 
       use ice_kinds_mod
       use ice_blocks, only : block, get_block, nx_block, ny_block
-      use ice_domain, only : nblocks, blocks_ice
+      use ice_constants, only: field_loc_center, field_type_scalar
+      use ice_domain, only : nblocks, blocks_ice, halo_info
       use ice_domain_size, only : nx_global, ny_global !, block_size_x, block_size_y, max_blocks
       use ice_flux, only: sst
       use ice_state, only: aice
+      use ice_boundary, only: ice_HaloUpdate
 
 !  MCT framework for ROMS coupling
 !
@@ -228,6 +230,8 @@
                   enddo
                enddo
             enddo
+            call ice_HaloUpdate (sst, halo_info, field_loc_center, field_type_scalar)
+
             tcoupling = 0.0
          END IF
 
