@@ -202,6 +202,7 @@
                   enddo
                enddo
             enddo
+            write(6,*) 'CICE rank ', my_task, ' sending ice field (max/min): ', maxval(avdata), ' ', minval(avdata)
             CALL AttrVect_importRAttr(cice2ocn_AV, 'AICE', avdata)
             CALL MCT_Send(cice2ocn_AV, CICEtoROMS)
 

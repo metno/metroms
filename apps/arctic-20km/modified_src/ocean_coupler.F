@@ -400,6 +400,7 @@
      &                          Fields(id)%ExpMin, Fields(id)%ExpMax,   &
      &                          Asize, A,                               &
      &                          status)
+            write(6,*) 'ROMS rank ', MyRank, ' sending sst field (max/min): ', maxval(A), ' ', minval(A)
             CALL AttrVect_importRAttr(ocn2cice_AV, TRIM(code), A, Asize)
             Iexport=Iexport+1
         END SELECT
