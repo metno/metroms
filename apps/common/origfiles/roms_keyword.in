@@ -1464,10 +1464,8 @@ TimeInterval = 7200.0d0
 ! Coupled model standard input file name, [1:Nmodels] KEYWORD entries are
 ! expected with the label code in parenthesis.
 
- INPname(ocean) = ocean.in
- !INPname(waves) = waves.in
- !INPname(atmos) = atmos.in
- INPname(cice)  = cice.in
+ INPname(ocean) = ROMSINFILE
+ INPname(cice)  = CICEINFILE
 
 ! Coupled models variables information file name.
 ! This file gets copied to the bin dir by the build script
@@ -1515,8 +1513,6 @@ TimeInterval = 7200.0d0
 !       Export(...) = NONE
 
  Nexport(ocean) = 1
- !Nexport(waves) = 5
- !Nexport(atmos) = 9
  Nexport(cice)  = 1
 
   Export(ocean) = SST  
@@ -1553,8 +1549,6 @@ TimeInterval = 7200.0d0
 !       Import(...) = NONE
 
  Nimport(ocean) = 1
-! Nimport(waves) = 6
-! Nimport(atmos) = 1
  Nimport(ciec)  = 1
 
   Import(ocean) = AICE
