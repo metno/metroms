@@ -18,6 +18,7 @@ class ModelRun(object):
         About this...
         """
         print "Running ROMS in directory: "+self._params.RUNPATH+"\n\n"
+        #print (int(self._params.XCPU)*int(self._params.YCPU))+int(self._params.CICECPU)
         os.chdir(self._params.RUNPATH)
         # Prepare roms input-file, replace keywords:
         self._replace_keywords_roms_in()
@@ -139,12 +140,19 @@ class ModelRun(object):
         # Run the ROMS model:
         if architecture==Constants.MET64:
             if runoption==Constants.MPI:
-                self._execute_roms_mpi(int(self._params.XCPU)*int(self._params.YCPU),
+                self._execute_roms_mpi((int(self._params.XCPU)*int(self._params.YCPU))+
+                                       int(self._params.CICECPU),
                                        self._params.ROMSINFILE,debugoption)
             elif runoption==Constants.OPENMP:
+                if self._params.CICECPU != 0:
+                    print "MetROMS is currently not handling CICE coupling in OpenMP"
+                    exit(1)
                 self._execute_roms_openmp(int(self._params.XCPU)*int(self._params.XCPU),
                                           self._params.ROMSINFILE,debugoption)
             elif runoption==Constants.SERIAL:
+                if self._params.CICECPU != 0:
+                    print "MetROMS is currently not handling CICE coupling in serial"
+                    exit(1)
                 self._execute_roms_serial(self._params.ROMSINFILE,debugoption)
             elif runoption==Constants.DRY:
                 pass

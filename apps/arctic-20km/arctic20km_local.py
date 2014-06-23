@@ -8,12 +8,15 @@ from Params import *
 from ModelRun import *
 ########################################################################
 
-rundir="/disk1/tmproms/run/arctic-20km"
+rundir="/disk1/nilsmk/tmproms/run/arctic-20km"
 
-xcpu=2
+# Set cpus for ROMS:
+xcpu=3
 ycpu=2
+# Set cpus for CICE:
+icecpu=2
 
-a20params=Params(rundir,xcpu,ycpu,tsteps=720,irestart=0)
+a20params=Params(rundir,xcpu,ycpu,tsteps=720,irestart=0,cicecpu=icecpu)
 a20params.ROMSINFILE=a20params.RUNPATH+"/roms.in"
 
 modelrun=ModelRun(a20params,Constants.FELT,Constants.FELT)

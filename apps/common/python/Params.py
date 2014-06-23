@@ -13,7 +13,7 @@ class Params(object):
     TSTEPS=None
     IRESTART=None
     
-    def __init__(self,runpath,xcpu,ycpu,tsteps,irestart):
+    def __init__(self,runpath,xcpu,ycpu,tsteps,irestart,cicecpu=0):
         ########################################################################
         # Name of roms.in keyword-file:
         ########################################################################
@@ -23,6 +23,7 @@ class Params(object):
         self.FELT_CLMFILE=self.RUNPATH+"/FOAM.felt"
         self.XCPU=xcpu
         self.YCPU=ycpu
+        self.CICECPU=cicecpu
         self.TSTEPS=tsteps
         self.IRESTART=irestart
         #self.ROMSINIFILE=self.RUNPATH+"/"+INIFILE
