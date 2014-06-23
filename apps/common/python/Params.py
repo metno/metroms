@@ -63,7 +63,9 @@ class Params(object):
         ['FORCEFILES',"4"],
         ['ROMS/External/coupling.dat', GlobalParams.COMMONPATH + "/../../../tmproms/roms_src/ROMS/External/coupling.dat"],
         ['ocean.in', self.ROMSINFILE ],
-        ['cice.in', GlobalParams.COMMONPATH + "/../../../tmproms/cice/rundir/ice_in" ]
+        ['cice.in', GlobalParams.COMMONPATH + "/../../../tmproms/cice/rundir/ice_in" ],
+        ['NUMROMSCORES',str(int(self.XCPU)*int(self.YCPU))],
+        ['NUMCICECORES',str(int(self.CICECPU))]
         ]
         ########################################################################
         ########################################################################

@@ -1441,10 +1441,8 @@ Dout(iTvdif) == F F                        ! vertical diffusion
 ! in parenthesis. The sum of all entries must be equal to the total number
 ! of processors.
 
-Nthreads(ocean) = 4
-!Nthreads(waves) = 1
-!Nthreads(atmos) = 1
-Nthreads(cice) = 4
+Nthreads(ocean) = NUMROMSCORES
+Nthreads(cice) = NUMCICECORES
 
 ! Time interval (seconds) between coupling of models, [1:Nmodels] real
 ! values are expected corresponding to the entries of a lower triangular
