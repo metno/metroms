@@ -372,6 +372,23 @@
 !     &                          FORCES(ng)%Ub_swan,                     &
 !     &                          status)
 
+
+          CASE ('VICE')         ! Sea ice volume
+
+            CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code), A, Asize)
+            Iimport=Iimport+1
+            write(6,*) 'ROMS rank ', MyRank, ' received vice field (max/min): ', maxval(A), ' ', minval(A)
+!            scale=1.0_r8
+!            add_offset=0.0_r8
+!            CALL ROMS_import2d (ng, tile,                               &
+!     &                          id, gtype, scale, add_offset,           &
+!     &                          Asize, A,                               &
+!     &                          IstrR, IendR, JstrR, JendR,             &
+!     &                          LBi, UBi, LBj, UBj,                     &
+!     &                          Fields(id)%ImpMin, Fields(id)%ImpMax,   &
+!     &                          FORCES(ng)%Ub_swan,                     &
+!     &                          status)
+
         END SELECT
       END DO
 !

@@ -6,7 +6,7 @@
       use ice_domain, only : nblocks, blocks_ice, halo_info
       use ice_domain_size, only : nx_global, ny_global !, block_size_x, block_size_y, max_blocks
       use ice_flux, only: sst
-      use ice_state, only: aice
+      use ice_state, only: aice,vice
       use ice_boundary, only: ice_HaloUpdate
 
 !  MCT framework for ROMS coupling
@@ -147,7 +147,7 @@
 
 !  Initialize import/export attribute vectors
    importList='SST'
-   exportList='AICE'
+   exportList='AICE:VICE'
 
    WRITE (6,*) ' CICE: AttrVect_init, Asize=', Asize
    call AttrVect_init(ocn2cice_AV, rList=importList, lsize=Asize)
@@ -190,6 +190,7 @@
             allocate(avdata(Asize))
             avdata=0.0
 
+            ! Exporting aice
             n = 0
             do iblk = 1, nblocks
                this_block = get_block(blocks_ice(iblk),iblk)
@@ -204,8 +205,27 @@
                   enddo
                enddo
             enddo
-            write(6,*) 'CICE rank ', my_task, ' sending ice field (max/min): ', maxval(avdata), ' ', minval(avdata)
+            write(6,*) 'CICE rank ', my_task, ' sending aice field (max/min): ', maxval(avdata), ' ', minval(avdata)
             CALL AttrVect_importRAttr(cice2ocn_AV, 'AICE', avdata)
+            !CALL MCT_Send(cice2ocn_AV, CICEtoROMS)
+
+            ! Exporting vice
+            n = 0
+            do iblk = 1, nblocks
+               this_block = get_block(blocks_ice(iblk),iblk)
+               ilo = this_block%ilo
+               ihi = this_block%ihi
+               jlo = this_block%jlo
+               jhi = this_block%jhi
+               do j = jlo, jhi
+                  do i = ilo, ihi
+                      n = n+1
+                      avdata(n)=vice(i,j,iblk)
+                  enddo
+               enddo
+            enddo
+            write(6,*) 'CICE rank ', my_task, ' sending vice field (max/min): ', maxval(avdata), ' ', minval(avdata)
+            CALL AttrVect_importRAttr(cice2ocn_AV, 'VICE', avdata)
             CALL MCT_Send(cice2ocn_AV, CICEtoROMS)
 
 
