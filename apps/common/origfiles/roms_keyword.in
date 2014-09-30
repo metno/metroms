@@ -639,8 +639,8 @@ Dout(iTvdif) == F F                        ! vertical diffusion
     NFFILES == FORCEFILES                         ! number of forcing files
 
     FRCNAME ==  TIDEDIR/tide.nc  \
-                ATMDIR/AN_1993-2010_unlim.nc  \
-                ATMDIR/FC_1993-2010_unlim.nc  \
+                ATMDIR/AN_1997_unlim.nc  \
+                ATMDIR/FC_1997_unlim.nc  \
                 RIVERFILE
 
 

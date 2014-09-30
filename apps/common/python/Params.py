@@ -51,8 +51,8 @@ class Params(object):
         ['AVGSTEPP',"72"],
         ['STARTAVG',"0"],
         ['DEFAVGSTEP',"0"],     #if 0; all output in one avg-file
-        ['STARTTIME',"8506.0"],
-        ['TIDEREF',"8506.0"],
+        ['STARTTIME',"9877.5"],
+        ['TIDEREF',"9877.5"],
         ['TIMEREF',"19700101.00"],
         ['OBCFAKTOR',"120.0"],
         ['GRDFILE',GlobalParams.COMMONPATH+"/grid/A20_grd_openBering.nc"],
