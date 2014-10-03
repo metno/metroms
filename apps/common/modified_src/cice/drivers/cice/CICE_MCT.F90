@@ -8,6 +8,7 @@
       use ice_flux, only: sst
       use ice_state, only: aice,vice
       use ice_boundary, only: ice_HaloUpdate
+      use ice_fileunits, only ice_stdout, ice_stderr ! these might be the same
 
 !  MCT framework for ROMS coupling
 !
@@ -98,7 +99,7 @@
 !  Initialize MCT coupled model registry.
 !
    CALL MCTWorld_init (Nmodels, MPI_COMM_WORLD, MPI_COMM_ICE, CICEid)
-   WRITE (6,*) ' CICE: MCTWorld_init called'
+   WRITE (ice_stdout,*) ' CICE: MCTWorld_init called'
 
 
 !-------------------------------------------------------------------
@@ -120,7 +121,7 @@
        n = n + (1+jhi-jlo)
     enddo
     lsize = n
-    WRITE (6,*) ' CICE: lsize=', lsize
+    WRITE (ice_stdout,*) ' CICE: lsize=', lsize
     allocate(start(lsize))
     allocate(length(lsize))
     n=0
@@ -140,7 +141,7 @@
     enddo
 
 !  Use grid decomposition to initialize global segmentation map
-   WRITE (6,*) ' CICE: GlobalSegMap_init'
+   WRITE (ice_stdout,*) ' CICE: GlobalSegMap_init'
    call GlobalSegMap_init(GSMapCICE, start, length, 0, MPI_COMM_ICE, CICEid)
    Asize=GlobalSegMap_lsize(GSMapCICE, MPI_COMM_ICE)
 
@@ -149,7 +150,7 @@
    importList='SST'
    exportList='AICE:VICE'
 
-   WRITE (6,*) ' CICE: AttrVect_init, Asize=', Asize
+   WRITE (ice_stdout,*) ' CICE: AttrVect_init, Asize=', Asize
    call AttrVect_init(ocn2cice_AV, rList=importList, lsize=Asize)
    call AttrVect_zero(ocn2cice_AV)
    call AttrVect_init(cice2ocn_AV, rlist=exportList, lsize=Asize)
@@ -157,9 +158,9 @@
 
 
 !  Initialize router to ROMS
-   WRITE (6,*) ' CICE: Router_init'
+   WRITE (ice_stdout,*) ' CICE: Router_init'
    call Router_init (OCNid, GSMapCICE, MPI_COMM_ICE, CICEtoROMS)
-   WRITE (6,*) ' CICE: Router_init. Done.'
+   WRITE (ice_stdout,*) ' CICE: Router_init. Done.'
 
  end subroutine init_mct
 
@@ -180,11 +181,11 @@
          tcoupling = tcoupling + dt
          IF (tcoupling >= TimeInterval) THEN
             IF (my_task == master_task) THEN
-                write(6,*) '*****************************************************'
-                write(6,*) 'CICE - Ocean: coupling routine called from CICE'
-                write(6,*) 'time = ', time
-                write(6,*) 'dt = ', dt
-                write(6,*) '*****************************************************'
+                write(ice_stdout,*) '*****************************************************'
+                write(ice_stdout,*) 'CICE - Ocean: coupling routine called from CICE'
+                write(ice_stdout,*) 'time = ', time
+                write(ice_stdout,*) 'dt = ', dt
+                write(ice_stdout,*) '*****************************************************'
             END IF
             Asize=GlobalSegMap_lsize(GSMapCICE, MPI_COMM_ICE)
             allocate(avdata(Asize))
@@ -205,7 +206,7 @@
                   enddo
                enddo
             enddo
-            write(6,*) 'CICE rank ', my_task, ' sending aice field (max/min): ', maxval(avdata), ' ', minval(avdata)
+            write(ice_stdout,*) 'CICE rank ', my_task, ' sending aice field (max/min): ', maxval(avdata), ' ', minval(avdata)
             CALL AttrVect_importRAttr(cice2ocn_AV, 'AICE', avdata)
             !CALL MCT_Send(cice2ocn_AV, CICEtoROMS)
 
@@ -224,18 +225,18 @@
                   enddo
                enddo
             enddo
-            write(6,*) 'CICE rank ', my_task, ' sending vice field (max/min): ', maxval(avdata), ' ', minval(avdata)
+            write(ice_stdout,*) 'CICE rank ', my_task, ' sending vice field (max/min): ', maxval(avdata), ' ', minval(avdata)
             CALL AttrVect_importRAttr(cice2ocn_AV, 'VICE', avdata)
             CALL MCT_Send(cice2ocn_AV, CICEtoROMS)
 
 
             CALL MCT_Recv(ocn2cice_AV, CICEtoROMS)
-            write(6,*) 'CICE - Ocean: CICE Received data'
+            write(ice_stdout,*) 'CICE - Ocean: CICE Received data'
 !
 !
             CALL AttrVect_exportRAttr(ocn2cice_AV, 'SST', avdata)
 
-            write(6,*) 'CICE rank ', my_task, ' setting the sst field (max/min): ', maxval(avdata), ' ', minval(avdata)
+            write(ice_stdout,*) 'CICE rank ', my_task, ' setting the sst field (max/min): ', maxval(avdata), ' ', minval(avdata)
             n = 0
             do iblk = 1, nblocks
                this_block = get_block(blocks_ice(iblk),iblk)
