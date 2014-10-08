@@ -8,7 +8,7 @@
       use ice_flux, only: sst
       use ice_state, only: aice,vice
       use ice_boundary, only: ice_HaloUpdate
-      use ice_fileunits, only ice_stdout, ice_stderr ! these might be the same
+      use ice_fileunits, only: ice_stdout, ice_stderr ! these might be the same
 
 !  MCT framework for ROMS coupling
 !
