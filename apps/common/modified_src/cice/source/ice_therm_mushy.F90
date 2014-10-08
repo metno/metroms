@@ -8,7 +8,7 @@ module ice_therm_mushy
   use ice_constants
   use ice_domain_size, only: nilyr, nslyr
   use ice_therm_shared, only: ferrmax
-  use ice_fileunits, only: stdout
+  use ice_fileunits, only: ice_stdout
   implicit none
 
   private
