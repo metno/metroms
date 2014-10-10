@@ -420,6 +420,35 @@
             write(6,*) 'ROMS rank ', MyRank, ' sending sst field (max/min): ', maxval(A), ' ', minval(A)
             CALL AttrVect_importRAttr(ocn2cice_AV, TRIM(code), A, Asize)
             Iexport=Iexport+1
+
+          CASE ('Ubar')
+            write(6,*) TRIM(code),id,gtype
+            CALL ROMS_export2d (ng, tile,                               &
+     &                          id, gtype, scale, add_offset,           &
+     &                          LBi, UBi, LBj, UBj,                     &
+     &                          OCEAN(ng)%ubar(:,:,NOUT),      &
+     &                          Fields(id)%ExpMin, Fields(id)%ExpMax,   &
+     &                          Asize, A,                               &
+     &                          status)
+            write(6,*) 'ROMS rank ', MyRank, ' sending Ubar field (max/min): ', maxval(A), ' ', minval(A)
+            CALL AttrVect_importRAttr(ocn2cice_AV, TRIM(code), A, Asize)
+            Iexport=Iexport+1
+
+
+!          CASE ('V')
+!
+!            CALL ROMS_export2d (ng, tile,                               &
+!     &                          id, gtype, scale, add_offset,           &
+!     &                          LBi, UBi, LBj, UBj,                     &
+!     &                          OCEAN(ng)%v(:,:,N(ng),NOUT),      &
+!     &                          Fields(id)%ExpMin, Fields(id)%ExpMax,   &
+!     &                          Asize, A,                               &
+!     &                          status)
+!            write(6,*) 'ROMS rank ', MyRank, ' sending v field (max/min): ', maxval(A), ' ', minval(A)
+!            CALL AttrVect_importRAttr(ocn2cice_AV, TRIM(code), A, Asize)
+!            Iexport=Iexport+1
+
+
         END SELECT
       END DO
 !
