@@ -278,24 +278,24 @@
             ! interpolations sake (ihi+1)
             call ice_HaloUpdate (uocn, halo_info, field_loc_center, field_type_scalar)
             
-!this should really be a function I think.
-!            do iblk = 1, nblocks
-!               this_block = get_block(blocks_ice(iblk),iblk)
-!               ilo = this_block%ilo
-!               ihi = this_block%ihi
-!               jlo = this_block%jlo
-!               jhi = this_block%jhi
-!               do j = jlo, jhi
-!                  do i = ilo, ihi
-!                      uocn(i,j,iblk) =                                                 &
-!     &                        0.5*(uocn(i,j,iblk)*HTN(i,j,iblk)            &
-!     &                             +uocn(i+1,j,iblk)*HTN(i+1,j,iblk))  &
-!     &                           /(dxu(i,j,iblk))
-!                  enddo
-!               enddo
-!            enddo
+this should really be a function I think.
+            do iblk = 1, nblocks
+               this_block = get_block(blocks_ice(iblk),iblk)
+               ilo = this_block%ilo
+               ihi = this_block%ihi
+               jlo = this_block%jlo
+               jhi = this_block%jhi
+               do j = jlo, jhi
+                  do i = ilo, ihi
+                      uocn(i,j,iblk) =                                                 &
+     &                        0.5*(uocn(i,j,iblk)*HTN(i,j,iblk)            &
+     &                             +uocn(i+1,j,iblk)*HTN(i+1,j,iblk))  &
+     &                           /(dxu(i,j,iblk))
+                  enddo
+               enddo
+            enddo
 
-!            call ice_HaloUpdate (uocn, halo_info, field_loc_center, field_type_scalar)
+            call ice_HaloUpdate (uocn, halo_info, field_loc_center, field_type_scalar)
 
             tcoupling = 0.0
          END IF
