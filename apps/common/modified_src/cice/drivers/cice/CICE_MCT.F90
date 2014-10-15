@@ -5,7 +5,7 @@
       use ice_constants, only: field_loc_center, field_type_scalar
       use ice_domain, only : nblocks, blocks_ice, halo_info
       use ice_domain_size, only : nx_global, ny_global !, block_size_x, block_size_y, max_blocks
-      use ice_flux, only: sst
+      use ice_flux, only: sst, uocn, vocn
       use ice_state, only: aice,vice
       use ice_boundary, only: ice_HaloUpdate
       use ice_fileunits, only: ice_stdout, ice_stderr ! these might be the same
@@ -147,7 +147,7 @@
 
 
 !  Initialize import/export attribute vectors
-   importList='SST'
+   importList='SST:u:v'
    exportList='AICE:VICE'
 
    WRITE (ice_stdout,*) ' CICE: AttrVect_init, Asize=', Asize
@@ -168,6 +168,7 @@
 
 
       subroutine CICE_MCT_coupling(time,dt)
+         use ice_grid, only: HTN, HTE, dxu, dyu
          real(kind=dbl_kind), intent(in) :: time,dt
          real(kind=dbl_kind), pointer :: avdata(:)
          integer     :: ilo, ihi, jlo, jhi ! beginning and end of physical domain
@@ -252,6 +253,92 @@
                enddo
             enddo
             call ice_HaloUpdate (sst, halo_info, field_loc_center, field_type_scalar)
+
+
+! recieve ocean currents and interpolate to B grid
+            CALL AttrVect_exportRAttr(ocn2cice_AV, 'u', avdata)
+
+            write(ice_stdout,*) 'CICE rank ', my_task, ' setting the U (uocn) field(max/min): ', maxval(avdata), ' ', minval(avdata)
+            n = 0
+            do iblk = 1, nblocks
+               this_block = get_block(blocks_ice(iblk),iblk)
+               ilo = this_block%ilo
+               ihi = this_block%ihi
+               jlo = this_block%jlo
+               jhi = this_block%jhi
+               do j = jlo, jhi
+                  do i = ilo, ihi
+                      n = n+1
+                      uocn(i,j,iblk)=avdata(n)
+                  enddo
+               enddo
+            enddo
+
+            ! unfortunately need to cal ice_HaloUpdate twice for the
+            ! interpolations sake (ihi+1)
+            call ice_HaloUpdate (uocn, halo_info, field_loc_center, field_type_scalar)
+            
+! this should really be a function I think.
+! HTN - length of northern side of T-cell
+! dxu - width through the middle of U-cell (B-grid)
+! dxu(i,j) = 0.5*( HTN(i,j)+HTN(i+1,j), at least on the test grid.
+            do iblk = 1, nblocks
+               this_block = get_block(blocks_ice(iblk),iblk)
+               ilo = this_block%ilo
+               ihi = this_block%ihi
+               jlo = this_block%jlo
+               jhi = this_block%jhi
+               do j = jlo, jhi
+                  do i = ilo, ihi
+                      uocn(i,j,iblk) =                                 &
+     &                        0.5*(uocn(i,j,iblk)*HTN(i,j,iblk)        &
+     &                             +uocn(i+1,j,iblk)*HTN(i+1,j,iblk))  &
+     &                           /dxu(i,j,iblk)
+                  enddo
+               enddo
+            enddo
+
+            call ice_HaloUpdate (uocn, halo_info, field_loc_center, field_type_scalar)
+
+            CALL AttrVect_exportRAttr(ocn2cice_AV, 'v', avdata)
+
+            write(ice_stdout,*) 'CICE rank ', my_task, ' setting the v (vocn) field(max/min): ', maxval(avdata), ' ', minval(avdata)
+            n = 0
+            do iblk = 1, nblocks
+               this_block = get_block(blocks_ice(iblk),iblk)
+               ilo = this_block%ilo
+               ihi = this_block%ihi
+               jlo = this_block%jlo
+               jhi = this_block%jhi
+               do j = jlo, jhi
+                  do i = ilo, ihi
+                      n = n+1
+                      vocn(i,j,iblk)=avdata(n)
+                  enddo
+               enddo
+            enddo
+
+            call ice_HaloUpdate (vocn, halo_info, field_loc_center, field_type_scalar)
+
+            do iblk = 1, nblocks
+               this_block = get_block(blocks_ice(iblk),iblk)
+               ilo = this_block%ilo
+               ihi = this_block%ihi
+               jlo = this_block%jlo
+               jhi = this_block%jhi
+               do j = jlo, jhi
+                  do i = ilo, ihi
+                      vocn(i,j,iblk) =                                 &
+     &                        0.5*(vocn(i,j,iblk)*HTE(i,j,iblk)        &
+     &                             +vocn(i,j+1,iblk)*HTE(i,j+1,iblk))  &
+     &                           /dyu(i,j,iblk)
+                  enddo
+               enddo
+            enddo
+
+            call ice_HaloUpdate (vocn, halo_info, field_loc_center, field_type_scalar)
+
+
 
             tcoupling = 0.0
          END IF
