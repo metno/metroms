@@ -1512,11 +1512,12 @@ TimeInterval = 7200.0d0
 !      Nexport(...) = 0
 !       Export(...) = NONE
 
- Nexport(ocean) = 2
+ Nexport(ocean) = 3
  Nexport(cice)  = 2
 
   Export(ocean) = SST  \
-                  Ubar 
+                  u    \
+                  v 
 
 !  Export(ocean) = SST   \
 !                  bath  \

@@ -147,7 +147,7 @@
 
 
 !  Initialize import/export attribute vectors
-   importList='SST:Ubar'
+   importList='SST:u:v'
    exportList='AICE:VICE'
 
    WRITE (ice_stdout,*) ' CICE: AttrVect_init, Asize=', Asize
@@ -168,7 +168,7 @@
 
 
       subroutine CICE_MCT_coupling(time,dt)
-         use ice_grid, only: HTN, dxu
+         use ice_grid, only: HTN, HTE, dxu, dyu
          real(kind=dbl_kind), intent(in) :: time,dt
          real(kind=dbl_kind), pointer :: avdata(:)
          integer     :: ilo, ihi, jlo, jhi ! beginning and end of physical domain
@@ -256,7 +256,7 @@
 
 
 ! recieve ocean currents and interpolate to B grid
-            CALL AttrVect_exportRAttr(ocn2cice_AV, 'Ubar', avdata)
+            CALL AttrVect_exportRAttr(ocn2cice_AV, 'u', avdata)
 
             write(ice_stdout,*) 'CICE rank ', my_task, ' setting the U (uocn) field(max/min): ', maxval(avdata), ' ', minval(avdata)
             n = 0
@@ -278,7 +278,10 @@
             ! interpolations sake (ihi+1)
             call ice_HaloUpdate (uocn, halo_info, field_loc_center, field_type_scalar)
             
-this should really be a function I think.
+! this should really be a function I think.
+! HTN - length of northern side of T-cell
+! dxu - width through the middle of U-cell (B-grid)
+! dxu(i,j) = 0.5*( HTN(i,j)+HTN(i+1,j), at least on the test grid.
             do iblk = 1, nblocks
                this_block = get_block(blocks_ice(iblk),iblk)
                ilo = this_block%ilo
@@ -287,15 +290,55 @@ this should really be a function I think.
                jhi = this_block%jhi
                do j = jlo, jhi
                   do i = ilo, ihi
-                      uocn(i,j,iblk) =                                                 &
-     &                        0.5*(uocn(i,j,iblk)*HTN(i,j,iblk)            &
+                      uocn(i,j,iblk) =                                 &
+     &                        0.5*(uocn(i,j,iblk)*HTN(i,j,iblk)        &
      &                             +uocn(i+1,j,iblk)*HTN(i+1,j,iblk))  &
-     &                           /(dxu(i,j,iblk))
+     &                           /dxu(i,j,iblk)
                   enddo
                enddo
             enddo
 
             call ice_HaloUpdate (uocn, halo_info, field_loc_center, field_type_scalar)
+
+            CALL AttrVect_exportRAttr(ocn2cice_AV, 'v', avdata)
+
+            write(ice_stdout,*) 'CICE rank ', my_task, ' setting the v (vocn) field(max/min): ', maxval(avdata), ' ', minval(avdata)
+            n = 0
+            do iblk = 1, nblocks
+               this_block = get_block(blocks_ice(iblk),iblk)
+               ilo = this_block%ilo
+               ihi = this_block%ihi
+               jlo = this_block%jlo
+               jhi = this_block%jhi
+               do j = jlo, jhi
+                  do i = ilo, ihi
+                      n = n+1
+                      vocn(i,j,iblk)=avdata(n)
+                  enddo
+               enddo
+            enddo
+
+            call ice_HaloUpdate (vocn, halo_info, field_loc_center, field_type_scalar)
+
+            do iblk = 1, nblocks
+               this_block = get_block(blocks_ice(iblk),iblk)
+               ilo = this_block%ilo
+               ihi = this_block%ihi
+               jlo = this_block%jlo
+               jhi = this_block%jhi
+               do j = jlo, jhi
+                  do i = ilo, ihi
+                      vocn(i,j,iblk) =                                 &
+     &                        0.5*(vocn(i,j,iblk)*HTE(i,j,iblk)        &
+     &                             +vocn(i,j+1,iblk)*HTE(i,j+1,iblk))  &
+     &                           /dyu(i,j,iblk)
+                  enddo
+               enddo
+            enddo
+
+            call ice_HaloUpdate (vocn, halo_info, field_loc_center, field_type_scalar)
+
+
 
             tcoupling = 0.0
          END IF
@@ -304,34 +347,5 @@ this should really be a function I think.
 !        ***********************************
 
       end subroutine
-
-!      function interp_U_C_to_B(C) result(B)
-!          use ice_grid, only: HTN, dxu
-!          ! input array is called C, output array B, for C and B grid...
-!          real*8, intent(in),  dimension(:,:)                  :: C
-!          real*8, dimension(size(C,1),size(C,2))  :: B
-!          integer :: n
-! 
-!          !HTN - length of northern side of T-cell
-!          !dxu - width through the middle of U-cell (B-grid)
-!          do n = 1, size(C,1)-1, 1
-!              B(n,:) = 0.5*(C(n,:)*HTN(n,:)+C(n+1,:)*HTN(n+1,:))/(dxu(n,:))
-!          end do        
-!      end function interp_U_C_to_B
-!  
-!      function interp_V_C_to_B(C) result(B)
-!          use ice_grid, only: HTE, dyu
-!          real*8, intent(in),  dimension(:,:)                 :: C
-!          real*8, dimension(size(C,1),size(C,2)) :: B
-!          integer :: n          
-!
-!          !HTE - length of eastern side of T-cell
-!          !dxy - width through the middle of U-cell (B-grid)
-!          do n = 1, size(C,2)-1, 1
-!              B(:,n) = 0.5*(C(:,n)*HTE(:,n)+C(:,n+1)*HTE(:,n+1))/(dyu(:,n)) 
-!          end do
-!          
-!      end function interp_V_C_to_B
-
 
       end module

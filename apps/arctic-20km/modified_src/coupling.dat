@@ -257,6 +257,22 @@
   0.0d0
   1.0d0
 
+'u'
+  'u'
+  'surface ocean current u-momentum component'
+  'meter second-1'                                 ! [m/s]
+  'u2dvar'
+  0.0d0
+  1.0d0
+
+'v'
+  'v'
+  'surface ocean current v-momentum component'
+  'meter second-1'                                 ! [m/s]
+  'v2dvar'
+  0.0d0
+  1.0d0
+
 'Ubar'
   'ubar'
   'vertically integrated u-momentum component'
