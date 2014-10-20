@@ -5,7 +5,7 @@
       use ice_constants, only: field_loc_center, field_type_scalar
       use ice_domain, only : nblocks, blocks_ice, halo_info
       use ice_domain_size, only : nx_global, ny_global !, block_size_x, block_size_y, max_blocks
-      use ice_flux, only: sst, uocn, vocn
+      use ice_flux, only: sst, uocn, vocn, zeta, ss_tltx, ss_tlty
       use ice_state, only: aice,vice
       use ice_boundary, only: ice_HaloUpdate
       use ice_fileunits, only: ice_stdout, ice_stderr ! these might be the same
@@ -147,7 +147,7 @@
 
 
 !  Initialize import/export attribute vectors
-   importList='SST:u:v'
+   importList='SST:u:v:SSH'
    exportList='AICE:VICE'
 
    WRITE (ice_stdout,*) ' CICE: AttrVect_init, Asize=', Asize
@@ -168,7 +168,7 @@
 
 
       subroutine CICE_MCT_coupling(time,dt)
-         use ice_grid, only: HTN, HTE, dxu, dyu
+         use ice_grid, only: HTN, HTE, dxu, dyu, dxt, dyt
          real(kind=dbl_kind), intent(in) :: time,dt
          real(kind=dbl_kind), pointer :: avdata(:)
          integer     :: ilo, ihi, jlo, jhi ! beginning and end of physical domain
@@ -337,6 +337,47 @@
             enddo
 
             call ice_HaloUpdate (vocn, halo_info, field_loc_center, field_type_scalar)
+
+
+            CALL AttrVect_exportRAttr(ocn2cice_AV, 'SSH', avdata)
+
+            write(ice_stdout,*) 'CICE rank ', my_task, ' setting the SSH field(max/min): ', maxval(avdata), ' ', minval(avdata)
+            n = 0
+            do iblk = 1, nblocks
+               this_block = get_block(blocks_ice(iblk),iblk)
+               ilo = this_block%ilo
+               ihi = this_block%ihi
+               jlo = this_block%jlo
+               jhi = this_block%jhi
+
+               do j = jlo, jhi
+                  do i = ilo, ihi
+                      n = n+1
+                      zeta(i,j,iblk)=avdata(n)
+                  enddo
+               enddo
+            enddo
+
+            call ice_HaloUpdate (zeta, halo_info, field_loc_center, field_type_scalar)
+
+            do iblk = 1, nblocks
+               this_block = get_block(blocks_ice(iblk),iblk)
+               ilo = this_block%ilo
+               ihi = this_block%ihi
+               jlo = this_block%jlo
+               jhi = this_block%jhi
+               do j = jlo, jhi
+                  do i = ilo, ihi
+                      ss_tltx(i,j,iblk) =                              &
+     &                  (zeta(i+1,j,iblk)-zeta(i,j,iblk))/dxt(i,j,iblk)
+                      ss_tlty(i,j,iblk) =                              &
+     &                  (zeta(i,j+1,iblk)-zeta(i,j,iblk))/dyt(i,j,iblk)
+                  enddo
+               enddo
+            enddo
+
+            call ice_HaloUpdate (ss_tltx, halo_info, field_loc_center, field_type_scalar)
+            call ice_HaloUpdate (ss_tlty, halo_info, field_loc_center, field_type_scalar)
 
 
 
