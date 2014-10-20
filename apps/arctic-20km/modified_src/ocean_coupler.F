@@ -281,8 +281,6 @@
 
       real(r8), pointer :: A(:)
 
-      real(r8), allocatable  :: rho_masked(:,:) 
-
       character (len=3 ), dimension(2) :: op_handle
       character (len=40) :: code
 
@@ -428,24 +426,11 @@
 
           CASE ('u')
 
-            allocate(rho_masked(LBi:UBi,LBj:UBj)) !use this for 'v' also
-! precompute rho on u-points in upper layer
-            do j=LBj,UBj
-               do i=LBi,UBi-1
-                  rho_masked(i,j) = 0.5*(OCEAN(ng)%rho(i,j,N(ng))       &
-     &                                   +OCEAN(ng)%rho(i+1,j,N(ng)))
-                  if (rho_masked(i,j).eq.0) then
-                     rho_masked(i,j) = 1 ! prevents divide by zero. should get 0/1 = 0 below 
-                  endif
-               enddo
-            enddo
-
             write(6,*) TRIM(code),id,gtype
             CALL ROMS_export2d (ng, tile,                               &
      &                          id, gtype, scale, add_offset,           &
      &                          LBi, UBi, LBj, UBj,                     &
-     &                          OCEAN(ng)%u(:,:,N(ng),NOUT)/            &
-     &                              rho_masked(:,:),                         &
+     &                          OCEAN(ng)%u(:,:,N(ng),NOUT),            &
      &                          Fields(id)%ExpMin, Fields(id)%ExpMax,   &
      &                          Asize, A,                               &
      &                          status)
@@ -456,24 +441,10 @@
 
           CASE ('v')
 
-! precompute rho on u-points in upper layer
-! (I think this screws it up in the uppermost corner, no? can I use
-! halopoints or something?)
-            do j=LBj,UBj-1
-               do i=LBi,UBi
-                  rho_masked(i,j) = 0.5*(OCEAN(ng)%rho(i,j,N(ng))       &
-     &                                   +OCEAN(ng)%rho(i,j+1,N(ng)))
-                  if (rho_masked(i,j).eq.0) then
-                     rho_masked(i,j) = 1 ! prevents divide by zero. should get 0/1 = 0 below 
-                  endif
-               enddo
-            enddo
-
             CALL ROMS_export2d (ng, tile,                               &
      &                          id, gtype, scale, add_offset,           &
      &                          LBi, UBi, LBj, UBj,                     &
-     &                          OCEAN(ng)%v(:,:,N(ng),NOUT)/            &
-     &                             rho_masked(:,:),                          &
+     &                          OCEAN(ng)%v(:,:,N(ng),NOUT),            &
      &                          Fields(id)%ExpMin, Fields(id)%ExpMax,   &
      &                          Asize, A,                               &
      &                          status)
@@ -481,11 +452,23 @@
             CALL AttrVect_importRAttr(ocn2cice_AV, TRIM(code), A, Asize)
             Iexport=Iexport+1
 
+          CASE ('SSH')
+
+            CALL ROMS_export2d (ng, tile,                               &
+     &                          id, gtype, scale, add_offset,           &
+     &                          LBi, UBi, LBj, UBj,                     &
+     &                          OCEAN(ng)%zeta(:,:,NOUT),               &
+     &                          Fields(id)%ExpMin, Fields(id)%ExpMax,   &
+     &                          Asize, A,                               &
+     &                          status)
+            write(6,*) 'ROMS rank ', MyRank, ' sending SSH field (max/min): ', maxval(A), ' ', minval(A)
+            CALL AttrVect_importRAttr(ocn2cice_AV, TRIM(code), A, Asize)
+            Iexport=Iexport+1
+
 
         END SELECT
       END DO
 
-      deallocate(rho_masked)
 !
 !  Send ocean fields
 !
