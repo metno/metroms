@@ -457,7 +457,7 @@
             CALL ROMS_export2d (ng, tile,                               &
      &                          id, gtype, scale, add_offset,           &
      &                          LBi, UBi, LBj, UBj,                     &
-     &                          OCEAN(ng)%zeta(:,:,NOUT),               &
+     &                          OCEAN(ng)%zeta(:,:,KOUT),               &
      &                          Fields(id)%ExpMin, Fields(id)%ExpMax,   &
      &                          Asize, A,                               &
      &                          status)
