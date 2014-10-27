@@ -203,9 +203,11 @@ rollback() {
 }
 trap 'rollback; exit 99' 0
 
-export USE_MCT=on
-export USE_CICE=on
-export MY_CPP_FLAGS="${MY_CPP_FLAGS} -DNO_LBC_ATT -DMODEL_COUPLING -DUSE_MCT -DMCT_COUPLING -DMCT_LIB -DCICE_COUPLING -DCICE_OCEAN"
+# The following should be in .h-file??!!
+#export USE_MCT=on
+#export USE_CICE=on
+#export MY_CPP_FLAGS="${MY_CPP_FLAGS} -DNO_LBC_ATT -DMODEL_COUPLING -DUSE_MCT -DMCT_COUPLING -DMCT_LIB -DCICE_COUPLING -DCICE_OCEAN"
+
 export USE_MY_LIBS=on
 
 if [ -n "${USE_NETCDF4:+1}" ]; then
@@ -233,11 +235,13 @@ else
   make
 fi
 
-cp ${MY_PROJECT_DIR}/modified_src/coupling.dat $BINDIR/
-cp ${tup}/${tmpdir}/cice/rundir/ice_in $BINDIR/
+if [ -n "${USE_CICE:+1}" ]; then
+	cp ${MY_PROJECT_DIR}/modified_src/coupling.dat $BINDIR/
+	cp ${tup}/${tmpdir}/cice/rundir/ice_in $BINDIR/
+fi
 
 # Clean up unpacked static code:
 cd  ${MY_PROJECT_DIR}
-#rm -rf ${MY_ROMS_SRC}
+rm -rf ${MY_ROMS_SRC}
 
 set +x
