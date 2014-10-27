@@ -258,6 +258,7 @@
       USE mod_scalars
       USE mod_stepping
       USE mod_iounits
+      USE mod_grid
 !      USE distribute_mod, ONLY : mp_reduce
       USE ROMS_import_mod, ONLY : ROMS_import2d
       USE ROMS_export_mod, ONLY : ROMS_export2d
@@ -398,6 +399,8 @@
 !
 !  Schedule sending fields to the cice model.
 !
+
+
       Iexport=0
       DO ifield=1,Nexport(Iocean)
         id=ExportID(Iocean)%val(ifield)
@@ -420,8 +423,52 @@
             write(6,*) 'ROMS rank ', MyRank, ' sending sst field (max/min): ', maxval(A), ' ', minval(A)
             CALL AttrVect_importRAttr(ocn2cice_AV, TRIM(code), A, Asize)
             Iexport=Iexport+1
+
+          CASE ('u')
+
+            write(6,*) TRIM(code),id,gtype
+            CALL ROMS_export2d (ng, tile,                               &
+     &                          id, gtype, scale, add_offset,           &
+     &                          LBi, UBi, LBj, UBj,                     &
+     &                          OCEAN(ng)%u(:,:,N(ng),NOUT),            &
+     &                          Fields(id)%ExpMin, Fields(id)%ExpMax,   &
+     &                          Asize, A,                               &
+     &                          status)
+            write(6,*) 'ROMS rank ', MyRank, ' sending u field (max/min): ', maxval(A), ' ', minval(A)
+            CALL AttrVect_importRAttr(ocn2cice_AV, TRIM(code), A, Asize)
+            Iexport=Iexport+1
+
+
+          CASE ('v')
+
+            CALL ROMS_export2d (ng, tile,                               &
+     &                          id, gtype, scale, add_offset,           &
+     &                          LBi, UBi, LBj, UBj,                     &
+     &                          OCEAN(ng)%v(:,:,N(ng),NOUT),            &
+     &                          Fields(id)%ExpMin, Fields(id)%ExpMax,   &
+     &                          Asize, A,                               &
+     &                          status)
+            write(6,*) 'ROMS rank ', MyRank, ' sending v field (max/min): ', maxval(A), ' ', minval(A)
+            CALL AttrVect_importRAttr(ocn2cice_AV, TRIM(code), A, Asize)
+            Iexport=Iexport+1
+
+          CASE ('SSH')
+
+            CALL ROMS_export2d (ng, tile,                               &
+     &                          id, gtype, scale, add_offset,           &
+     &                          LBi, UBi, LBj, UBj,                     &
+     &                          OCEAN(ng)%zeta(:,:,KOUT),               &
+     &                          Fields(id)%ExpMin, Fields(id)%ExpMax,   &
+     &                          Asize, A,                               &
+     &                          status)
+            write(6,*) 'ROMS rank ', MyRank, ' sending SSH field (max/min): ', maxval(A), ' ', minval(A)
+            CALL AttrVect_importRAttr(ocn2cice_AV, TRIM(code), A, Asize)
+            Iexport=Iexport+1
+
+
         END SELECT
       END DO
+
 !
 !  Send ocean fields
 !

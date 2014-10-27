@@ -5,9 +5,10 @@
       use ice_constants, only: field_loc_center, field_type_scalar
       use ice_domain, only : nblocks, blocks_ice, halo_info
       use ice_domain_size, only : nx_global, ny_global !, block_size_x, block_size_y, max_blocks
-      use ice_flux, only: sst
+      use ice_flux, only: sst, uocn, vocn, zeta, ss_tltx, ss_tlty
       use ice_state, only: aice,vice
       use ice_boundary, only: ice_HaloUpdate
+      use ice_fileunits, only: ice_stdout, ice_stderr ! these might be the same
 
 !  MCT framework for ROMS coupling
 !
@@ -98,7 +99,7 @@
 !  Initialize MCT coupled model registry.
 !
    CALL MCTWorld_init (Nmodels, MPI_COMM_WORLD, MPI_COMM_ICE, CICEid)
-   WRITE (6,*) ' CICE: MCTWorld_init called'
+   WRITE (ice_stdout,*) ' CICE: MCTWorld_init called'
 
 
 !-------------------------------------------------------------------
@@ -120,7 +121,7 @@
        n = n + (1+jhi-jlo)
     enddo
     lsize = n
-    WRITE (6,*) ' CICE: lsize=', lsize
+    WRITE (ice_stdout,*) ' CICE: lsize=', lsize
     allocate(start(lsize))
     allocate(length(lsize))
     n=0
@@ -140,16 +141,16 @@
     enddo
 
 !  Use grid decomposition to initialize global segmentation map
-   WRITE (6,*) ' CICE: GlobalSegMap_init'
+   WRITE (ice_stdout,*) ' CICE: GlobalSegMap_init'
    call GlobalSegMap_init(GSMapCICE, start, length, 0, MPI_COMM_ICE, CICEid)
    Asize=GlobalSegMap_lsize(GSMapCICE, MPI_COMM_ICE)
 
 
 !  Initialize import/export attribute vectors
-   importList='SST'
+   importList='SST:u:v:SSH'
    exportList='AICE:VICE'
 
-   WRITE (6,*) ' CICE: AttrVect_init, Asize=', Asize
+   WRITE (ice_stdout,*) ' CICE: AttrVect_init, Asize=', Asize
    call AttrVect_init(ocn2cice_AV, rList=importList, lsize=Asize)
    call AttrVect_zero(ocn2cice_AV)
    call AttrVect_init(cice2ocn_AV, rlist=exportList, lsize=Asize)
@@ -157,9 +158,9 @@
 
 
 !  Initialize router to ROMS
-   WRITE (6,*) ' CICE: Router_init'
+   WRITE (ice_stdout,*) ' CICE: Router_init'
    call Router_init (OCNid, GSMapCICE, MPI_COMM_ICE, CICEtoROMS)
-   WRITE (6,*) ' CICE: Router_init. Done.'
+   WRITE (ice_stdout,*) ' CICE: Router_init. Done.'
 
  end subroutine init_mct
 
@@ -167,6 +168,7 @@
 
 
       subroutine CICE_MCT_coupling(time,dt)
+         use ice_grid, only: HTN, HTE, dxu, dyu, dxt, dyt
          real(kind=dbl_kind), intent(in) :: time,dt
          real(kind=dbl_kind), pointer :: avdata(:)
          integer     :: ilo, ihi, jlo, jhi ! beginning and end of physical domain
@@ -180,11 +182,11 @@
          tcoupling = tcoupling + dt
          IF (tcoupling >= TimeInterval) THEN
             IF (my_task == master_task) THEN
-                write(6,*) '*****************************************************'
-                write(6,*) 'CICE - Ocean: coupling routine called from CICE'
-                write(6,*) 'time = ', time
-                write(6,*) 'dt = ', dt
-                write(6,*) '*****************************************************'
+                write(ice_stdout,*) '*****************************************************'
+                write(ice_stdout,*) 'CICE - Ocean: coupling routine called from CICE'
+                write(ice_stdout,*) 'time = ', time
+                write(ice_stdout,*) 'dt = ', dt
+                write(ice_stdout,*) '*****************************************************'
             END IF
             Asize=GlobalSegMap_lsize(GSMapCICE, MPI_COMM_ICE)
             allocate(avdata(Asize))
@@ -205,7 +207,7 @@
                   enddo
                enddo
             enddo
-            write(6,*) 'CICE rank ', my_task, ' sending aice field (max/min): ', maxval(avdata), ' ', minval(avdata)
+            write(ice_stdout,*) 'CICE rank ', my_task, ' sending aice field (max/min): ', maxval(avdata), ' ', minval(avdata)
             CALL AttrVect_importRAttr(cice2ocn_AV, 'AICE', avdata)
             !CALL MCT_Send(cice2ocn_AV, CICEtoROMS)
 
@@ -224,18 +226,18 @@
                   enddo
                enddo
             enddo
-            write(6,*) 'CICE rank ', my_task, ' sending vice field (max/min): ', maxval(avdata), ' ', minval(avdata)
+            write(ice_stdout,*) 'CICE rank ', my_task, ' sending vice field (max/min): ', maxval(avdata), ' ', minval(avdata)
             CALL AttrVect_importRAttr(cice2ocn_AV, 'VICE', avdata)
             CALL MCT_Send(cice2ocn_AV, CICEtoROMS)
 
 
             CALL MCT_Recv(ocn2cice_AV, CICEtoROMS)
-            write(6,*) 'CICE - Ocean: CICE Received data'
+            write(ice_stdout,*) 'CICE - Ocean: CICE Received data'
 !
 !
             CALL AttrVect_exportRAttr(ocn2cice_AV, 'SST', avdata)
 
-            write(6,*) 'CICE rank ', my_task, ' setting the sst field (max/min): ', maxval(avdata), ' ', minval(avdata)
+            write(ice_stdout,*) 'CICE rank ', my_task, ' setting the sst field (max/min): ', maxval(avdata), ' ', minval(avdata)
             n = 0
             do iblk = 1, nblocks
                this_block = get_block(blocks_ice(iblk),iblk)
@@ -251,6 +253,133 @@
                enddo
             enddo
             call ice_HaloUpdate (sst, halo_info, field_loc_center, field_type_scalar)
+
+
+! recieve ocean currents and interpolate to B grid
+            CALL AttrVect_exportRAttr(ocn2cice_AV, 'u', avdata)
+
+            write(ice_stdout,*) 'CICE rank ', my_task, ' setting the U (uocn) field(max/min): ', maxval(avdata), ' ', minval(avdata)
+            n = 0
+            do iblk = 1, nblocks
+               this_block = get_block(blocks_ice(iblk),iblk)
+               ilo = this_block%ilo
+               ihi = this_block%ihi
+               jlo = this_block%jlo
+               jhi = this_block%jhi
+               do j = jlo, jhi
+                  do i = ilo, ihi
+                      n = n+1
+                      uocn(i,j,iblk)=avdata(n)
+                  enddo
+               enddo
+            enddo
+
+            ! unfortunately need to cal ice_HaloUpdate twice for the
+            ! interpolations sake (ihi+1)
+            call ice_HaloUpdate (uocn, halo_info, field_loc_center, field_type_scalar)
+            
+! this should really be a function I think.
+! HTN - length of northern side of T-cell
+! dxu - width through the middle of U-cell (B-grid)
+! dxu(i,j) = 0.5*( HTN(i,j)+HTN(i+1,j), at least on the test grid.
+            do iblk = 1, nblocks
+               this_block = get_block(blocks_ice(iblk),iblk)
+               ilo = this_block%ilo
+               ihi = this_block%ihi
+               jlo = this_block%jlo
+               jhi = this_block%jhi
+               do j = jlo, jhi
+                  do i = ilo, ihi
+                      uocn(i,j,iblk) =                                 &
+     &                        0.5*(uocn(i,j,iblk)*HTN(i,j,iblk)        &
+     &                             +uocn(i+1,j,iblk)*HTN(i+1,j,iblk))  &
+     &                           /dxu(i,j,iblk)
+                  enddo
+               enddo
+            enddo
+
+            call ice_HaloUpdate (uocn, halo_info, field_loc_center, field_type_scalar)
+
+            CALL AttrVect_exportRAttr(ocn2cice_AV, 'v', avdata)
+
+            write(ice_stdout,*) 'CICE rank ', my_task, ' setting the v (vocn) field(max/min): ', maxval(avdata), ' ', minval(avdata)
+            n = 0
+            do iblk = 1, nblocks
+               this_block = get_block(blocks_ice(iblk),iblk)
+               ilo = this_block%ilo
+               ihi = this_block%ihi
+               jlo = this_block%jlo
+               jhi = this_block%jhi
+               do j = jlo, jhi
+                  do i = ilo, ihi
+                      n = n+1
+                      vocn(i,j,iblk)=avdata(n)
+                  enddo
+               enddo
+            enddo
+
+            call ice_HaloUpdate (vocn, halo_info, field_loc_center, field_type_scalar)
+
+            do iblk = 1, nblocks
+               this_block = get_block(blocks_ice(iblk),iblk)
+               ilo = this_block%ilo
+               ihi = this_block%ihi
+               jlo = this_block%jlo
+               jhi = this_block%jhi
+               do j = jlo, jhi
+                  do i = ilo, ihi
+                      vocn(i,j,iblk) =                                 &
+     &                        0.5*(vocn(i,j,iblk)*HTE(i,j,iblk)        &
+     &                             +vocn(i,j+1,iblk)*HTE(i,j+1,iblk))  &
+     &                           /dyu(i,j,iblk)
+                  enddo
+               enddo
+            enddo
+
+            call ice_HaloUpdate (vocn, halo_info, field_loc_center, field_type_scalar)
+
+
+            CALL AttrVect_exportRAttr(ocn2cice_AV, 'SSH', avdata)
+
+            write(ice_stdout,*) 'CICE rank ', my_task, ' setting the SSH field(max/min): ', maxval(avdata), ' ', minval(avdata)
+            n = 0
+            do iblk = 1, nblocks
+               this_block = get_block(blocks_ice(iblk),iblk)
+               ilo = this_block%ilo
+               ihi = this_block%ihi
+               jlo = this_block%jlo
+               jhi = this_block%jhi
+
+               do j = jlo, jhi
+                  do i = ilo, ihi
+                      n = n+1
+                      zeta(i,j,iblk)=avdata(n)
+                  enddo
+               enddo
+            enddo
+
+            call ice_HaloUpdate (zeta, halo_info, field_loc_center, field_type_scalar)
+
+            do iblk = 1, nblocks
+               this_block = get_block(blocks_ice(iblk),iblk)
+               ilo = this_block%ilo
+               ihi = this_block%ihi
+               jlo = this_block%jlo
+               jhi = this_block%jhi
+               do j = jlo, jhi
+                  do i = ilo, ihi
+                      ss_tltx(i,j,iblk) =                              &
+     &                  (zeta(i+1,j,iblk)-zeta(i,j,iblk))/dxt(i,j,iblk)
+                      ss_tlty(i,j,iblk) =                              &
+     &                  (zeta(i,j+1,iblk)-zeta(i,j,iblk))/dyt(i,j,iblk)
+                  enddo
+               enddo
+            enddo
+
+            call ice_HaloUpdate (ss_tltx, halo_info, field_loc_center, field_type_scalar)
+            call ice_HaloUpdate (ss_tlty, halo_info, field_loc_center, field_type_scalar)
+
+
 
             tcoupling = 0.0
          END IF
