@@ -1,7 +1,7 @@
 HOW TO COMPILE UNDER METROMS:
 
-In folder METROMS/apps, execute './build_3.5.bash_new arctic-20km' 
-to build roms-3.5 arctic-20km application. To compile in paralell, 
+In folder METROMS/apps, execute './build_roms.sh arctic-20km' 
+to build roms-3.6 arctic-20km application. To compile in paralell, 
 add the keyword '-j 4' after the name of your application to use 
 4 cpus in the compilation process. You still need to specify which 
-compiler etc you want to use insode the 'build_3.5.bash_new'-file.
+compiler etc you want to use insode the 'build_roms.sh'-file.
