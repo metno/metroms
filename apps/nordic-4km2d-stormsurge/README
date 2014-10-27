@@ -1,0 +1,5 @@
+This is a a two-dimensional stormsurge model for Norwegian waters based
+on the ROMS ocean model.
+
+Before running python-script, run 
+'export PYTHONPATH=$PYTHONPATH:/disk1/nilsmk/metroms/apps/common/python/'.
