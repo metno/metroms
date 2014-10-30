@@ -204,9 +204,9 @@ rollback() {
 trap 'rollback; exit 99' 0
 
 # The following should be in .h-file??!!
-#export USE_MCT=on
-#export USE_CICE=on
-#export MY_CPP_FLAGS="${MY_CPP_FLAGS} -DNO_LBC_ATT -DMODEL_COUPLING -DUSE_MCT -DMCT_COUPLING -DMCT_LIB -DCICE_COUPLING -DCICE_OCEAN"
+export USE_MCT=on
+export USE_CICE=on
+export MY_CPP_FLAGS="${MY_CPP_FLAGS} -DNO_LBC_ATT -DMODEL_COUPLING -DUSE_MCT -DMCT_COUPLING -DMCT_LIB -DCICE_COUPLING -DCICE_OCEAN"
 
 export USE_MY_LIBS=on
 
