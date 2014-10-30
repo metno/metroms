@@ -262,13 +262,17 @@
 !      USE distribute_mod, ONLY : mp_reduce
       USE ROMS_import_mod, ONLY : ROMS_import2d
       USE ROMS_export_mod, ONLY : ROMS_export2d
+#  ifdef LMD_SKPP
+      USE mod_mixing
+#  endif
 
-!
       implicit none
+
 !
 !  Imported variable declarations.
 !
       integer, intent(in) :: ng, tile
+
 !
 !  Local variable declarations.
 !
@@ -284,8 +288,25 @@
       character (len=3 ), dimension(2) :: op_handle
       character (len=40) :: code
 
+
+      integer :: nbotu, nbotv, k
+      integer, dimension(:,:), allocatable :: nbot
+      real(r8), dimension(:,:), allocatable :: uw
+      real(r8), dimension(:,:), allocatable :: vw
+      real(r8), dimension(:,:), allocatable :: uwater
+      real(r8), dimension(:,:), allocatable :: vwater
+
+      real(r8) :: mlio
+      real(r8) :: dml
+      real(r8) :: totml
+
 #include "tile.h"
 
+      allocate(nbot(IminS:ImaxS,JminS:JmaxS))
+      allocate(uw(IminS:ImaxS,JminS:JmaxS))
+      allocate(vw(IminS:ImaxS,JminS:JmaxS))
+      allocate(uwater(LBi:UBi,LBj:UBj))
+      allocate(vwater(LBi:UBi,LBj:UBj))
 
       IF (Master) THEN
           write(6,*) ''
@@ -307,6 +328,9 @@
       Iend=BOUNDS(ng)%Iend(tile)
       Jstr=BOUNDS(ng)%Jstr(tile)
       Jend=BOUNDS(ng)%Jend(tile)
+      IstrU=BOUNDS(ng)%IstrU(tile)
+      JstrV=BOUNDS(ng)%JstrV(tile)
+
 !
       IF (DOMAIN(ng)%Western_Edge(tile)) THEN
         IstrR=BOUNDS(ng)%Istr(tile)-1
@@ -397,10 +421,35 @@
 !  Export fields from ocean (ROMS) to sea ice (CICE) model.
 !-----------------------------------------------------------------------
 !
+
+!  Prepare for depth-averaging (find k index just below mixed layer)
+
+#  define I_RANGE MAX(Istr-2,0),MIN(Iend+2,Lm(ng)+1)
+#  define J_RANGE MAX(Jstr-2,0),MIN(Jend+2,Mm(ng)+1)
+      do j=J_RANGE
+         do i=I_RANGE
+            
+#  ifdef LMD_SKPP
+            mlio = min(MIXING(ng)%hsbl(i,j),-10._r8)
+#  else
+            mlio = -10._r8
+#  endif
+            nbot(i,j) = 1
+            do k=N(ng),1,-1
+               if(GRID(ng)%z_r(i,j,k).lt.mlio) then
+                  nbot(i,j) = min(k,N(ng))
+                  nbot(i,j) = max(nbot(i,j),1)
+                  goto 1111
+               endif
+            enddo
+ 1111       continue
+         enddo
+      enddo
+#undef I_RANGE
+#undef J_RANGE
+
 !  Schedule sending fields to the cice model.
 !
-
-
       Iexport=0
       DO ifield=1,Nexport(Iocean)
         id=ExportID(Iocean)%val(ifield)
@@ -425,12 +474,32 @@
             Iexport=Iexport+1
 
           CASE ('u')
-
+#  define I_RANGE MAX(Istr-1,1),Iend+1             
+             do j=Jstr,Jend
+                do i=I_RANGE
+                   nbotu = NINT(0.5_r8*(nbot(i-1,j)+nbot(i,j)))
+                   nbotu = max(min(nbotu,N(ng)),1)
+                   uw(i,j) = 0._r8
+                   totml = 0._r8
+                   do k=N(ng),nbotu,-1
+                      dml = 0.5_r8*(GRID(ng)%z_w(i-1,j,k)-GRID(ng)%z_w(i-1,j,k-1) + GRID(ng)%z_w(i,j,k)-GRID(ng)%z_w(i,j,k-1))
+                      uw(i,j) = uw(i,j) + OCEAN(ng)%u(i,j,k,NOUT)*dml
+                      totml = totml + dml
+                   enddo
+                   uw(i,j) = uw(i,j)/totml
+                enddo
+             enddo
+#  undef I_RANGE
+             do j=Jstr,Jend
+                do i=IstrU,Iend
+                   uwater(i,j) = uw(i,j)
+                enddo
+             enddo
             write(6,*) TRIM(code),id,gtype
             CALL ROMS_export2d (ng, tile,                               &
      &                          id, gtype, scale, add_offset,           &
      &                          LBi, UBi, LBj, UBj,                     &
-     &                          OCEAN(ng)%u(:,:,N(ng),NOUT),            &
+     &                          uwater,                                 &
      &                          Fields(id)%ExpMin, Fields(id)%ExpMax,   &
      &                          Asize, A,                               &
      &                          status)
@@ -438,13 +507,32 @@
             CALL AttrVect_importRAttr(ocn2cice_AV, TRIM(code), A, Asize)
             Iexport=Iexport+1
 
-
           CASE ('v')
-
+#  define J_RANGE MAX(Jstr-1,1),Jend+1 
+             do j=J_RANGE
+                do i=Istr,Iend
+                   nbotv = NINT(0.5_r8*(nbot(i,j-1)+nbot(i,j)))
+                   nbotv = max(min(nbotv,N(ng)),1)
+                   vw(i,j) = 0._r8
+                   totml = 0._r8
+                   do k=N(ng),nbotv,-1
+                      dml = 0.5_r8*(GRID(ng)%z_w(i,j-1,k)-GRID(ng)%z_w(i,j-1,k-1) + GRID(ng)%z_w(i,j,k)-GRID(ng)%z_w(i,j,k-1))
+                      vw(i,j) = vw(i,j) + OCEAN(ng)%v(i,j,k,NOUT)*dml
+                      totml = totml + dml
+                   enddo
+                   vw(i,j) = vw(i,j)/totml
+                enddo
+             enddo
+#  undef J_RANGE
+             do j=JstrV,Jend
+                do i=Istr,Iend
+                   vwater(i,j) = vw(i,j)
+                enddo
+             enddo
             CALL ROMS_export2d (ng, tile,                               &
      &                          id, gtype, scale, add_offset,           &
      &                          LBi, UBi, LBj, UBj,                     &
-     &                          OCEAN(ng)%v(:,:,N(ng),NOUT),            &
+     &                          vwater,                                 &
      &                          Fields(id)%ExpMin, Fields(id)%ExpMax,   &
      &                          Asize, A,                               &
      &                          status)
