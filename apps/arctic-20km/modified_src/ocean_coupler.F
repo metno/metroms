@@ -265,6 +265,10 @@
 #  ifdef LMD_SKPP
       USE mod_mixing
 #  endif
+      USE bc_2d_mod
+# ifdef DISTRIBUTE
+      USE mp_exchange_mod, ONLY : mp_exchange2d
+# endif
 
       implicit none
 
@@ -307,6 +311,12 @@
       allocate(vw(IminS:ImaxS,JminS:JmaxS))
       allocate(uwater(LBi:UBi,LBj:UBj))
       allocate(vwater(LBi:UBi,LBj:UBj))
+
+!      uw=0.0_r8
+!      vw=0.0_r8
+!      uwater=0.0_r8
+!      vwater=0.0_r8
+
 
       IF (Master) THEN
           write(6,*) ''
@@ -495,15 +505,27 @@
                    uwater(i,j) = uw(i,j)
                 enddo
              enddo
-            write(6,*) TRIM(code),id,gtype
+!  Apply boundary conditions.
+             CALL bc_u2d_tile (ng, tile,                                &
+     &            LBi, UBi, LBj, UBj,                                   &
+     &            uwater)
+#ifdef DISTRIBUTE
+             CALL mp_exchange2d (ng, tile, iNLM, 1,                     &
+     &            LBi, UBi, LBj, UBj,                                   &
+     &            NghostPoints, EWperiodic(ng), NSperiodic(ng),         &
+     &            uwater)
+#endif
+!            write(6,*) TRIM(code),id,gtype
             CALL ROMS_export2d (ng, tile,                               &
      &                          id, gtype, scale, add_offset,           &
      &                          LBi, UBi, LBj, UBj,                     &
-     &                          uwater,                                 &
+!     &                          uwater,                                 &
+     &                          OCEAN(ng)%u(:,:,N(ng),NOUT),            &
      &                          Fields(id)%ExpMin, Fields(id)%ExpMax,   &
      &                          Asize, A,                               &
      &                          status)
             write(6,*) 'ROMS rank ', MyRank, ' sending u field (max/min): ', maxval(A), ' ', minval(A)
+!            write(6,*) 'ROMS rank ', MyRank, ' sending u field: ',A 
             CALL AttrVect_importRAttr(ocn2cice_AV, TRIM(code), A, Asize)
             Iexport=Iexport+1
 
@@ -529,10 +551,21 @@
                    vwater(i,j) = vw(i,j)
                 enddo
              enddo
+!  Apply boundary conditions.
+             CALL bc_u2d_tile (ng, tile,                                &
+     &            LBi, UBi, LBj, UBj,                                   &
+     &            vwater)
+#ifdef DISTRIBUTE
+             CALL mp_exchange2d (ng, tile, iNLM, 1,                     &
+     &            LBi, UBi, LBj, UBj,                                   &
+     &            NghostPoints, EWperiodic(ng), NSperiodic(ng),         &
+     &            vwater)
+#endif
             CALL ROMS_export2d (ng, tile,                               &
      &                          id, gtype, scale, add_offset,           &
      &                          LBi, UBi, LBj, UBj,                     &
-     &                          vwater,                                 &
+!     &                          vwater,                                 &
+     &                          OCEAN(ng)%v(:,:,N(ng),NOUT),            &
      &                          Fields(id)%ExpMin, Fields(id)%ExpMax,   &
      &                          Asize, A,                               &
      &                          status)
