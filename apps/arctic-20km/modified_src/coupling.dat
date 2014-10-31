@@ -314,3 +314,19 @@
   0.0d0
   1.0d0
   
+'SSS'
+  't(:,:,N,isalt)'
+  'sea surface salinity'
+  'psu'                                        ! [Celsius]
+  'r2dvar'
+  0.0d0
+  1.0d0
+
+'FRZMLT'
+  'frzmlt'
+  'melt_freeze potential'
+  'W/m^2'
+  'r2dvar'
+  0.0d0
+  1.0d0
+  

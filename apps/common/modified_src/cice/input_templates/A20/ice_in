@@ -29,7 +29,7 @@
   , latpnt(2)      =  80.
   , lonpnt(2)      = -10.
   , dbug           = .false.
-  , histfreq       = 'm','d','x','x','x'
+  , histfreq       = 'm','d','h','x','x'
   , histfreq_n     =  1 , 1 , 1 , 1 , 1
   , hist_avg       = .true.
   , history_dir    = '<cicedir>/rundir/history/'

@@ -216,7 +216,8 @@
         length(jc)=(IendR-IstrR+1)
       END DO
       WRITE (6,*) ' ROMS Ocean Coupler: calling GlobalSegMap_init'
-      CALL GlobalSegMap_init (GSMapROMS, start, length, 0, OCN_COMM_WORLD, OCNid)
+      CALL GlobalSegMap_init (GSMapROMS, start, length, 0,              &
+     &     OCN_COMM_WORLD, OCNid)
 !
 !  Initialize attribute vector holding the export data code strings of
 !  the cice model. The Asize is the number of grid point on this
@@ -224,13 +225,19 @@
 !
       Asize=GlobalSegMap_lsize(GSMapROMS, OCN_COMM_WORLD)
 
-      WRITE (6,*) ' ROMS Ocean Coupler: calling AttrVect_init. Asize=',Asize
-      CALL AttrVect_init (cice2ocn_AV, rList=TRIM(ExportList(Icice)), lsize=Asize)
+      WRITE (6,*) ' ROMS Ocean Coupler: calling AttrVect_init. Asize=', &
+     &     Asize
+      write(6,*) 'cice2ocn_AV, Exportlist ', trim(ExportList(Icice))
+      CALL AttrVect_init (cice2ocn_AV, rList=TRIM(ExportList(Icice)),   &
+     &     lsize=Asize)
 !
 !  Initialize attribute vector holding the export data code string of
 !  the ocean model.
 !
-      CALL AttrVect_init (ocn2cice_AV, rList=TRIM(ExportList(Iocean)), lsize=Asize)
+
+      write(6,*) 'ocn2cice_AV, Exportlist ', trim(ExportList(Iocean))
+      CALL AttrVect_init (ocn2cice_AV, rList=TRIM(ExportList(Iocean)),  &
+     &     lsize=Asize)
       CALL AttrVect_zero (ocn2cice_AV)
 
       WRITE (6,*) ' ROMS Ocean Coupler: calling Router_init'
@@ -249,7 +256,7 @@
       RETURN
       END SUBROUTINE initialize_ocn2cice_coupling
 
-      SUBROUTINE ocn2cice_coupling (ng, tile)
+      SUBROUTINE ocn2cice_coupling (ng, tile, ncouple)
       USE mod_param
       USE mod_parallel
       USE mod_coupler
@@ -263,12 +270,16 @@
       USE ROMS_import_mod, ONLY : ROMS_import2d
       USE ROMS_export_mod, ONLY : ROMS_export2d
 
+!jd
+      USE frazil_ice_prod_mod, only : t_freeze
+!jd
+
 !
       implicit none
 !
 !  Imported variable declarations.
 !
-      integer, intent(in) :: ng, tile
+      integer, intent(in) :: ng, tile, ncouple
 !
 !  Local variable declarations.
 !
@@ -289,9 +300,13 @@
 
       IF (Master) THEN
           write(6,*) ''
-          write(6,*) '   *****************************************************  '
-          write(6,*) '    Ocean - CICE: coupling routine called from ROMS'
-          write(6,*) '   *****************************************************  '
+          write(6,*) '   ***************************************** '
+          write(6,*) &
+          '    Ocean - CICE: coupling routine called from ROMS'
+          write(6,*) &
+          '    Time : ', time_code, time
+          write(6,*) '   ****************************************  '
+
           write(6,*) ''
       END IF
 
@@ -420,13 +435,64 @@
      &                          Fields(id)%ExpMin, Fields(id)%ExpMax,   &
      &                          Asize, A,                               &
      &                          status)
-            write(6,*) 'ROMS rank ', MyRank, ' sending sst field (max/min): ', maxval(A), ' ', minval(A)
+            write(6,*)                                                  &
+     &           'ROMS rank ', MyRank, ' sending sst field (max/min): ',&
+     &           maxval(A), ' ', minval(A)
             CALL AttrVect_importRAttr(ocn2cice_AV, TRIM(code), A, Asize)
             Iexport=Iexport+1
 
+          CASE ('SSS')
+
+            CALL ROMS_export2d (ng, tile,                               &
+     &                          id, gtype, scale, add_offset,           &
+     &                          LBi, UBi, LBj, UBj,                     &
+     &                          OCEAN(ng)%t(:,:,N(ng),NOUT,isalt),      &
+     &                          Fields(id)%ExpMin, Fields(id)%ExpMax,   &
+     &                          Asize, A,                               &
+     &                          status)
+            write(6,*) &
+     &           'ROMS rank ', MyRank, ' sending sss field (max/min): ',&
+     &           maxval(A), ' ', minval(A)
+            CALL AttrVect_importRAttr(ocn2cice_AV, TRIM(code), A, Asize)
+            Iexport=Iexport+1
+
+          CASE ('FRZMLT')
+            
+           do j=JstrR,JendR
+            do i=IstrR,IendR
+             if (OCEAN(ng)%qfraz_accum(i,j) .gt.0.0_r8) then
+              OCEAN(ng)%qfraz_accum(i,j)= &
+     &               OCEAN(ng)%qfraz_accum(i,j)/ncouple
+             else
+!jd Assume 5-meter thickness of layer. Here melt potential should be a proper 
+!jd weight over a typical mixed (?)/ near-ice layer. 
+             OCEAN(ng)%qfraz_accum(i,j) = rho0*Cp *                     &
+     &        min(t_freeze(OCEAN(ng)%t(i,j,N(ng),NOUT,isalt),0.0_r8)    &
+     &        - OCEAN(ng)%t(i,j,N(ng),NOUT,itemp), 0.0_r8 ) * 5.0_r8
+             end if
+            end do
+           end do
+
+            CALL ROMS_export2d (ng, tile,                               &
+     &                          id, gtype, scale, add_offset,           &
+     &                          LBi, UBi, LBj, UBj,                     &
+     &                          OCEAN(ng)%qfraz_accum(:,:),            &
+     &                          Fields(id)%ExpMin, Fields(id)%ExpMax,   &
+     &                          Asize, A,                               &
+     &                          status)
+            write(6,*) &
+     &         'ROMS rank ', MyRank, ' sending frzmlt field (max/min):',&
+     &          maxval(A), ' ', minval(A)
+            CALL AttrVect_importRAttr(ocn2cice_AV, TRIM(code), A, Asize)
+            Iexport=Iexport+1
+
+!jd Reset accumulation array
+            ocean(ng)%qfraz_accum(:,:) = 0
+
+
           CASE ('u')
 
-            write(6,*) TRIM(code),id,gtype
+!jd            write(6,*) TRIM(code),id,gtype
             CALL ROMS_export2d (ng, tile,                               &
      &                          id, gtype, scale, add_offset,           &
      &                          LBi, UBi, LBj, UBj,                     &
@@ -434,7 +500,9 @@
      &                          Fields(id)%ExpMin, Fields(id)%ExpMax,   &
      &                          Asize, A,                               &
      &                          status)
-            write(6,*) 'ROMS rank ', MyRank, ' sending u field (max/min): ', maxval(A), ' ', minval(A)
+            write(6,*)                                                  &
+     &           'ROMS rank ',MyRank,' sending u field (max/min):',     &
+     &            maxval(A), ' ', minval(A)
             CALL AttrVect_importRAttr(ocn2cice_AV, TRIM(code), A, Asize)
             Iexport=Iexport+1
 
@@ -448,7 +516,9 @@
      &                          Fields(id)%ExpMin, Fields(id)%ExpMax,   &
      &                          Asize, A,                               &
      &                          status)
-            write(6,*) 'ROMS rank ', MyRank, ' sending v field (max/min): ', maxval(A), ' ', minval(A)
+            write(6,*)                                                  &
+     &           'ROMS rank ',MyRank,' sending v field (max/min):',     &
+     &            maxval(A), ' ', minval(A)
             CALL AttrVect_importRAttr(ocn2cice_AV, TRIM(code), A, Asize)
             Iexport=Iexport+1
 
@@ -461,7 +531,9 @@
      &                          Fields(id)%ExpMin, Fields(id)%ExpMax,   &
      &                          Asize, A,                               &
      &                          status)
-            write(6,*) 'ROMS rank ', MyRank, ' sending SSH field (max/min): ', maxval(A), ' ', minval(A)
+            write(6,*)                                                  &
+     &           'ROMS rank ',MyRank,' sending SSH field (max/min):',   &
+     &            maxval(A), ' ', minval(A)
             CALL AttrVect_importRAttr(ocn2cice_AV, TRIM(code), A, Asize)
             Iexport=Iexport+1
 
@@ -473,6 +545,7 @@
 !  Send ocean fields
 !
       IF (Iexport.gt.0) THEN
+         if (master) write(6,*)'ROMS sends', iexport,' fields to CICE'
         CALL MCT_Send(ocn2cice_AV, ROMStoCICE)
       END IF
 

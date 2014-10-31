@@ -73,6 +73,10 @@ mkdir -p ${MY_ROMS_SRC}
 cd ${MY_ROMS_SRC}
 tar -xf ${metroms_base}/static_libs/roms-3.6.tar.gz
 
+# JD : Added temporary to have place for a new file
+touch $MY_ROMS_SRC/ROMS/Nonlinear/frazil_ice_prod_mod.F
+# JD end
+
 # Set path of the directory containing makefile configuration (*.mk) files.
 # The user has the option to specify a customized version of these files
 # in a different directory than the one distributed with the source code,
@@ -204,9 +208,9 @@ rollback() {
 trap 'rollback; exit 99' 0
 
 # The following should be in .h-file??!!
-#export USE_MCT=on
-#export USE_CICE=on
-#export MY_CPP_FLAGS="${MY_CPP_FLAGS} -DNO_LBC_ATT -DMODEL_COUPLING -DUSE_MCT -DMCT_COUPLING -DMCT_LIB -DCICE_COUPLING -DCICE_OCEAN"
+export USE_MCT=on
+export USE_CICE=on
+export MY_CPP_FLAGS="${MY_CPP_FLAGS} -DNO_LBC_ATT -DMODEL_COUPLING -DUSE_MCT -DMCT_COUPLING -DMCT_LIB -DCICE_COUPLING -DCICE_OCEAN"
 
 export USE_MY_LIBS=on
 
@@ -242,6 +246,6 @@ fi
 
 # Clean up unpacked static code:
 cd  ${MY_PROJECT_DIR}
-rm -rf ${MY_ROMS_SRC}
+#rm -rf ${MY_ROMS_SRC}
 
 set +x
