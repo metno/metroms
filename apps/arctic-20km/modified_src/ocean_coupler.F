@@ -519,8 +519,8 @@
             CALL ROMS_export2d (ng, tile,                               &
      &                          id, gtype, scale, add_offset,           &
      &                          LBi, UBi, LBj, UBj,                     &
-!     &                          uwater,                                 &
-     &                          OCEAN(ng)%u(:,:,N(ng),NOUT),            &
+     &                          uwater,                                 &
+!     &                          OCEAN(ng)%u(:,:,N(ng),NOUT),            &
      &                          Fields(id)%ExpMin, Fields(id)%ExpMax,   &
      &                          Asize, A,                               &
      &                          status)
@@ -552,7 +552,7 @@
                 enddo
              enddo
 !  Apply boundary conditions.
-             CALL bc_u2d_tile (ng, tile,                                &
+             CALL bc_v2d_tile (ng, tile,                                &
      &            LBi, UBi, LBj, UBj,                                   &
      &            vwater)
 #ifdef DISTRIBUTE
@@ -564,8 +564,8 @@
             CALL ROMS_export2d (ng, tile,                               &
      &                          id, gtype, scale, add_offset,           &
      &                          LBi, UBi, LBj, UBj,                     &
-!     &                          vwater,                                 &
-     &                          OCEAN(ng)%v(:,:,N(ng),NOUT),            &
+     &                          vwater,                                 &
+!     &                          OCEAN(ng)%v(:,:,N(ng),NOUT),            &
      &                          Fields(id)%ExpMin, Fields(id)%ExpMax,   &
      &                          Asize, A,                               &
      &                          status)
