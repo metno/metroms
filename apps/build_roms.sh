@@ -47,6 +47,11 @@ then
   exit
 fi
 
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+# Users can/should change things between here...
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#
+# Setting up things, like compilers etc:
 export ROMS_APPLICATION=$1
 
 export USE_MPI=on
@@ -54,11 +59,18 @@ export USE_MPIF90=on
 export FORT=gfortran
 #export FORT=ifort # Use this on Vilje
 
-#export USE_OpenMP=on
+export USE_OpenMP=
 export USE_LARGE=on
 
-#export USE_DEBUG=on
-#export USE_NETCDF4=on
+export USE_DEBUG=
+export USE_NETCDF4=
+
+export USE_CICE=on
+
+export USE_MY_LIBS=on
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+# ... and here.
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 workingdir=${PWD} 
 cd ../
@@ -207,12 +219,11 @@ rollback() {
 }
 trap 'rollback; exit 99' 0
 
-# The following should be in .h-file??!!
-export USE_MCT=on
-export USE_CICE=on
-export MY_CPP_FLAGS="${MY_CPP_FLAGS} -DNO_LBC_ATT -DMODEL_COUPLING -DUSE_MCT -DMCT_COUPLING -DMCT_LIB -DCICE_COUPLING -DCICE_OCEAN"
-
-export USE_MY_LIBS=on
+# 
+if [ -n "${USE_CICE:+1}" ]; then
+	export USE_MCT=on
+	export MY_CPP_FLAGS="${MY_CPP_FLAGS} -DNO_LBC_ATT -DMODEL_COUPLING -DUSE_MCT -DMCT_COUPLING -DMCT_LIB -DCICE_COUPLING -DCICE_OCEAN"
+fi
 
 if [ -n "${USE_NETCDF4:+1}" ]; then
  export USE_DAP=on
