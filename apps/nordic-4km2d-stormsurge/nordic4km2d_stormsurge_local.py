@@ -7,8 +7,6 @@ from ModelRun import *
 from GlobalParams import *
 from Params import *
 ########################################################################
-# Note: Variable 'fclen' is forecast length in hours
-########################################################################
 xcpu=2
 ycpu=2
 fclen=120 #Forecast length in hours
