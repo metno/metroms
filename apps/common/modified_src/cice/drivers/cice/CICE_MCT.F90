@@ -66,7 +66,8 @@
 
       character (len=240) :: &
            importList = 'SST:SSS:FRZMLT:u:v:SSH', &
-           exportList = 'AICE:VICE'
+           exportList = &
+           'AICE:VICE:freshAI:fsaltAI:fhocnAI:fswthruAI:strocnx:strocny'
 
    integer (int_kind), public :: &
       CICEid,                   &
@@ -166,6 +167,8 @@
    call Router_init (OCNid, GSMapCICE, MPI_COMM_ICE, CICEtoROMS)
    WRITE (ice_stdout,*) ' CICE: Router_init. Done.'
 
+   deallocate(start,length)
+
  end subroutine init_mct
 
 !***********************************************************************
@@ -198,24 +201,20 @@
       avdata=0.0
 !
 ! Exporting aice
-!
-      call field2avec(aice,avdata)
-
-      write(ice_stdout,*) 'CICE rank ', my_task, &
-           ' sending aice field (max/min): ', &
-           maxval(avdata), ' ', minval(avdata)
-
-      CALL AttrVect_importRAttr(cice2ocn_AV, 'AICE', avdata)
-!
+      call ice2ocn_send_field(aice,'AICE')
 ! Exporting vice
-!
-      call field2avec(vice,avdata)
-
-      write(ice_stdout,*) 'CICE rank ', my_task, &
-           ' sending vice field (max/min): ', &
-           maxval(avdata), ' ', minval(avdata)
-
-      CALL AttrVect_importRAttr(cice2ocn_AV, 'VICE', avdata)
+      call ice2ocn_send_field(vice,'VICE')
+! Exporting fresh_ai
+      call ice2ocn_send_field(fresh_ai,'freshAI')
+! Exporting fsalt_ai
+      call ice2ocn_send_field(fsalt_ai,'fsaltAI')
+! Exporting fhocn_ai
+      call ice2ocn_send_field(fhocn_ai,'fhocnAI')
+! Exporting fswthru_ai
+      call ice2ocn_send_field(fswthru_ai,'fswthruAI')
+! Export stress vector (These are on the velocity point (Ugrid)
+      call ice2ocn_send_field(strocnx,'strocnx')
+      call ice2ocn_send_field(strocny,'strocny')
 
 ! Transfere data to ocean
       CALL MCT_Send(cice2ocn_AV, CICEtoROMS)
@@ -374,10 +373,27 @@
 
 !        ***********************************
  contains
+   subroutine ice2ocn_send_field(field,fieldname)
+     use ice_domain_size, only: max_blocks
+     real (kind=dbl_kind), dimension (nx_block,ny_block,max_blocks), &
+          intent(in) :: field
+     character(len=*),intent(in) :: fieldname
+
+     call field2avec(field,avdata)
+  
+     write(ice_stdout,*) 'CICE rank ', my_task, &
+          ' sending ',trim(fieldname),' field (max/min): ', &
+          maxval(avdata), ' ', minval(avdata)
+  
+     CALL AttrVect_importRAttr(cice2ocn_AV, trim(fieldname), avdata)
+  
+   end subroutine ice2ocn_send_field
+
    subroutine avec2field(avec, field)
-      use ice_domain_size, only: max_blocks
+     use ice_domain_size, only: max_blocks
      real(kind=dbl_kind), pointer :: avec(:)
-     real (kind=dbl_kind), dimension (nx_block,ny_block,max_blocks):: field
+     real (kind=dbl_kind), dimension (nx_block,ny_block,max_blocks), &
+          intent(out) :: field
      n = 0
      do iblk = 1, nblocks
         this_block = get_block(blocks_ice(iblk),iblk)
@@ -398,7 +414,8 @@
    subroutine field2avec(field, avec)
      use ice_domain_size, only: max_blocks
      real(kind=dbl_kind), pointer :: avec(:)
-     real (kind=dbl_kind), dimension (nx_block,ny_block,max_blocks):: field
+     real (kind=dbl_kind), dimension (nx_block,ny_block,max_blocks), &
+          intent(in):: field
      n = 0
      do iblk = 1, nblocks
         this_block = get_block(blocks_ice(iblk),iblk)

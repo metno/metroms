@@ -28,10 +28,10 @@
   , lonpnt(1)      =   0.
   , latpnt(2)      =  80.
   , lonpnt(2)      = -10.
-  , dbug           = .false.
+  , dbug           = .true.
   , histfreq       = 'm','d','h','x','x'
-  , histfreq_n     =  1 , 1 , 1 , 1 , 1
-  , hist_avg       = .true.
+  , histfreq_n     =  1 , 1 , 2 , 1 , 1
+  , hist_avg       = .false.
   , history_dir    = '<cicedir>/rundir/history/'
   , history_file   = 'iceh'
   , write_ic       = .true.

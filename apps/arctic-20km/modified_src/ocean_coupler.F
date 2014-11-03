@@ -407,9 +407,11 @@
 
           CASE ('AICE')         ! Sea ice concentration
 
-            CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code), A, Asize)
+            CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code),A,Asize)
             Iimport=Iimport+1
-            write(6,*) 'ROMS rank ', MyRank, ' received aice field (max/min): ', maxval(A), ' ', minval(A)
+            write(6,*) 'ROMS rank ', MyRank,                            &
+     &           ' received ',trim(code),' field (max/min): ',          &
+     &           maxval(A),' ',minval(A)
 !            scale=1.0_r8
 !            add_offset=0.0_r8
 !            CALL ROMS_import2d (ng, tile,                               &
@@ -426,7 +428,10 @@
 
             CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code), A, Asize)
             Iimport=Iimport+1
-            write(6,*) 'ROMS rank ', MyRank, ' received vice field (max/min): ', maxval(A), ' ', minval(A)
+            write(6,*) 'ROMS rank ', MyRank,                            &
+     &           ' received ',trim(code),' field (max/min): ',          &
+     &           maxval(A),' ',minval(A)
+
 !            scale=1.0_r8
 !            add_offset=0.0_r8
 !            CALL ROMS_import2d (ng, tile,                               &
@@ -437,6 +442,55 @@
 !     &                          Fields(id)%ImpMin, Fields(id)%ImpMax,   &
 !     &                          FORCES(ng)%Ub_swan,                     &
 !     &                          status)
+
+          CASE ('freshAI')         ! Fresh water flux
+
+            CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code), A, Asize)
+            Iimport=Iimport+1
+            write(6,*) 'ROMS rank ', MyRank,                            &
+     &           ' received ',trim(code),' field (max/min): ',          &
+     &           maxval(A),' ',minval(A)
+
+          CASE ('fsaltAI')         ! Salt flux
+
+            CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code), A, Asize)
+            Iimport=Iimport+1
+            write(6,*) 'ROMS rank ', MyRank,                            &
+     &           ' received ',trim(code),' field (max/min): ',          &
+     &           maxval(A),' ',minval(A)
+
+          CASE ('fhocnAI')         ! Nonradiative heat flux
+
+            CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code), A, Asize)
+            Iimport=Iimport+1
+            write(6,*) 'ROMS rank ', MyRank,                            &
+     &           ' received ',trim(code),' field (max/min): ',          &
+     &           maxval(A),' ',minval(A)
+
+          CASE ('fswthruAI')         ! Radiative heat flux through ice
+
+            CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code), A, Asize)
+            Iimport=Iimport+1
+            write(6,*) 'ROMS rank ', MyRank,                            &
+     &           ' received ',trim(code),' field (max/min): ',          &
+     &           maxval(A),' ',minval(A)
+
+          CASE ('strocnx')         ! Stress component in x-direction
+
+            CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code), A, Asize)
+            Iimport=Iimport+1
+            write(6,*) 'ROMS rank ', MyRank,                            &
+     &           ' received ',trim(code),' field (max/min): ',          &
+     &           maxval(A),' ',minval(A)
+
+          CASE ('strocny')         ! Stress component in y-direction
+
+            CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code), A, Asize)
+            Iimport=Iimport+1
+            write(6,*) 'ROMS rank ', MyRank,                            &
+     &           ' received ',trim(code),' field (max/min): ',          &
+     &           maxval(A),' ',minval(A)
+
 
         END SELECT
       END DO
