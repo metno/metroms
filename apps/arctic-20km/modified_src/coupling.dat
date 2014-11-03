@@ -330,3 +330,51 @@
   0.0d0
   1.0d0
   
+'freshAI'
+  'fresh_ice'
+  'Freshwater flux from ice model'
+  'kg /s'
+  'r2dvar'
+  0.0d0
+  1.0d0
+
+'fsaltAI'
+  'fsalt_ice'
+  'Salt flux from ice model'
+  'kg /s'
+  'r2dvar'
+  0.0d0
+  1.0d0
+
+'fhocnAI'
+  'fhocn_ice'
+  'Nonradiative heat flux from ice model'
+  'W/m^2'
+  'r2dvar'
+  0.0d0
+  1.0d0
+
+'fswthruAI'
+  'fswthru_ice'
+  'Radiative heat flux through sea ice'
+  'W/m^2'
+  'r2dvar'
+  0.0d0
+  1.0d0
+  
+'strocnx'
+  'strocnx'
+  'Stress component in x-direction from ice model'
+  'Pa/m^2'
+  'p2dvar'
+  0.0d0
+  1.0d0
+
+'strocny'
+  'strocny'
+  'Stress component in y-direction from ice model'
+  'Pa/m^2'
+  'p2dvar'
+  0.0d0
+  1.0d0
+ 

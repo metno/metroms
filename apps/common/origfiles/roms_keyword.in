@@ -1513,7 +1513,7 @@ TimeInterval = 7200.0d0
 !       Export(...) = NONE
 
  Nexport(ocean) = 6
- Nexport(cice)  = 2
+ Nexport(cice)  = 8
 
   Export(ocean) = SST  \
                   SSS  \
@@ -1544,8 +1544,14 @@ TimeInterval = 7200.0d0
 !                  Uwind \
 !                 Vwind
 
-  Export(cice) = AICE  \
-                 VICE
+  Export(cice) =  AICE  \
+                  VICE \
+                  freshAI \
+                  fsaltAI
+                  fhocnAI \
+                  fswthruAI \
+                  strocnx \
+                  strocny
 
 
 ! Import fields per model, [1:Nimport(...)] string values are expected per
@@ -1554,11 +1560,18 @@ TimeInterval = 7200.0d0
 !      Nimport(...) = 0
 !       Import(...) = NONE
 
- Nimport(ocean) = 2
- Nimport(ciec)  = 6
+ Nimport(ocean) = 8
+ Nimport(cice)  = 6
 
   Import(ocean) = AICE \
-                  VICE
+                  VICE \
+                  freshAI \
+                  fsaltAI
+                  fhocnAI \
+                  fswthruAI \
+                  strocnx \
+                  strocny
+
 
 !  Import(waves) = Uwind \
 !                  Vwind \
