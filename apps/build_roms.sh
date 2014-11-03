@@ -48,7 +48,7 @@ then
 fi
 
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-# Users can/should change things between here...
+# Users can/should/must change things between here...
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 #
 # Setting up things, like compilers etc:

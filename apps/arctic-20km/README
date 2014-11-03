@@ -1,3 +1,9 @@
-This is a version of Arctic-20km with open Bering Strait coupled to the CICE ice model.
+This is a version of Arctic-20km with open Bering Strait coupled to
+the CICE ice model.
 
-Before running python-script, run 'export PYTHONPATH=$PYTHONPATH:/disk1/$USER/metroms/apps/common/python/'.
+Before running python-script 'arctic-20km_local.py', run 
+'export PYTHONPATH=$PYTHONPATH:/disk1/$USER/metroms/apps/common/python/'.
+
+The scripts expect a folder structure like this:
+/disk1/<username>/metroms and
+/disk1/<username>/tmproms (this will be made by the build-scripts)
