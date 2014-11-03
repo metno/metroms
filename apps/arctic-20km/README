@@ -1,3 +1,3 @@
-This is a version of Arctic-20km with open Bering Strait, and no ice model.
+This is a version of Arctic-20km with open Bering Strait coupled to the CICE ice model.
 
 Before running python-script, run 'export PYTHONPATH=$PYTHONPATH:/disk1/$USER/metroms/apps/common/python/'.
