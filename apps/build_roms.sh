@@ -51,8 +51,8 @@ export ROMS_APPLICATION=$1
 
 export USE_MPI=on
 export USE_MPIF90=on
-#export FORT=gfortran
-export FORT=ifort # Use this on Vilje
+export FORT=gfortran
+#export FORT=ifort # Use this on Vilje
 
 #export USE_OpenMP=on
 export USE_LARGE=on
@@ -64,7 +64,7 @@ workingdir=${PWD}
 cd ../
 metroms_base=${PWD} 
 cd ../
-tup=/global/work/sebastm #${PWD}
+tup=${PWD}
 
 tmpdir=tmproms
 
@@ -72,6 +72,10 @@ export MY_ROMS_SRC=${tup}/${tmpdir}/roms_src
 mkdir -p ${MY_ROMS_SRC}
 cd ${MY_ROMS_SRC}
 tar -xf ${metroms_base}/static_libs/roms-3.6.tar.gz
+
+# JD : Added temporary to have place for a new file
+touch $MY_ROMS_SRC/ROMS/Nonlinear/frazil_ice_prod_mod.F
+# JD end
 
 # Set path of the directory containing makefile configuration (*.mk) files.
 # The user has the option to specify a customized version of these files
@@ -203,9 +207,11 @@ rollback() {
 }
 trap 'rollback; exit 99' 0
 
+# The following should be in .h-file??!!
 export USE_MCT=on
 export USE_CICE=on
 export MY_CPP_FLAGS="${MY_CPP_FLAGS} -DNO_LBC_ATT -DMODEL_COUPLING -DUSE_MCT -DMCT_COUPLING -DMCT_LIB -DCICE_COUPLING -DCICE_OCEAN"
+
 export USE_MY_LIBS=on
 
 if [ -n "${USE_NETCDF4:+1}" ]; then
@@ -233,8 +239,10 @@ else
   make
 fi
 
-cp ${MY_PROJECT_DIR}/modified_src/coupling.dat $BINDIR/
-cp ${tup}/${tmpdir}/cice/rundir/ice_in $BINDIR/
+if [ -n "${USE_CICE:+1}" ]; then
+	cp ${MY_PROJECT_DIR}/modified_src/coupling.dat $BINDIR/
+	cp ${tup}/${tmpdir}/cice/rundir/ice_in $BINDIR/
+fi
 
 # Clean up unpacked static code:
 cd  ${MY_PROJECT_DIR}

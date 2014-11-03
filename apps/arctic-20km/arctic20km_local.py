@@ -8,7 +8,7 @@ from Params import *
 from ModelRun import *
 ########################################################################
 
-rundir="/global/work/sebastm/tmproms/run/arctic-20km"
+rundir="/disk1/nilsmk/tmproms/run/arctic-20km"
 
 # Set cpus for ROMS:
 xcpu=3

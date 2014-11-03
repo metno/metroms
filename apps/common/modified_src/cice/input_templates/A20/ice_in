@@ -29,7 +29,7 @@
   , latpnt(2)      =  80.
   , lonpnt(2)      = -10.
   , dbug           = .false.
-  , histfreq       = 'm','d','x','x','x'
+  , histfreq       = 'm','d','h','x','x'
   , histfreq_n     =  1 , 1 , 1 , 1 , 1
   , hist_avg       = .true.
   , history_dir    = '<cicedir>/rundir/history/'
@@ -153,7 +153,7 @@
   , ycycle          = 1
   , atm_data_format = 'nc'
   , atm_data_type   = 'ecmwf'
-  , atm_data_dir    = '/global/work/sebastm/mct/ERA/'
+  , atm_data_dir    = '/disk1/atmforcing/'
   , calc_strair     = .true.
   , calc_Tsfc       = .true.
   , precip_units    = 'mm_per_month'

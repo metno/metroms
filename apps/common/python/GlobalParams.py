@@ -1,5 +1,5 @@
 class GlobalParams(object):
-    COMMONPATH="/home/sebastm/metroms-master/metroms/apps/common"
+    COMMONPATH="/disk1/nilsmk/metroms/apps/common"
     COMMONORIGPATH=COMMONPATH+"/origfiles"
     ########################################################################
     # Internal files:

@@ -55,10 +55,8 @@ ifdef USE_NETCDF4
     NETCDF_INCDIR ?= $(shell $(NC_CONFIG) --prefix)/include
              LIBS := $(shell $(NC_CONFIG) --flibs)
 else
-    NETCDF_INCDIR ?= /global/apps/netcdf/4.2.1.1/intel/13.0/include
-    NETCDF_LIBDIR ?= /global/apps/netcdf/4.2.1.1/intel/13.0/lib
-#    NETCDF_INCDIR ?= /sw/sdev/Modules/netcdf/netcdf-4.1.3/include
-#    NETCDF_LIBDIR ?= /sw/sdev/Modules/netcdf/netcdf-4.1.3/lib
+    NETCDF_INCDIR ?= /sw/sdev/Modules/netcdf/netcdf-4.1.3/include
+    NETCDF_LIBDIR ?= /sw/sdev/Modules/netcdf/netcdf-4.1.3/lib
              LIBS := -L$(NETCDF_LIBDIR) -lnetcdff -lnetcdf
 endif
 

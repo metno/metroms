@@ -1512,12 +1512,14 @@ TimeInterval = 7200.0d0
 !      Nexport(...) = 0
 !       Export(...) = NONE
 
- Nexport(ocean) = 4
+ Nexport(ocean) = 6
  Nexport(cice)  = 2
 
   Export(ocean) = SST  \
-                  u    \
-                  v    \
+                  SSS  \
+                  FRZMLT \
+                  u  \
+                  v  \
                   SSH
 
 !  Export(ocean) = SST   \
@@ -1553,7 +1555,7 @@ TimeInterval = 7200.0d0
 !       Import(...) = NONE
 
  Nimport(ocean) = 2
- Nimport(ciec)  = 1
+ Nimport(ciec)  = 6
 
   Import(ocean) = AICE \
                   VICE
@@ -1567,7 +1569,13 @@ TimeInterval = 7200.0d0
 !
 !  Import(atmos) = SST
 
-  Import(cice) = SST
+  Import(cice) = SST  \
+                 SSS  \
+                 FRZMLT \
+                 u    \
+                 v    \
+                 SSH
+  
 
 !
 !  GLOSSARY:
