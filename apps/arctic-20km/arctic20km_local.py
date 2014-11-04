@@ -6,11 +6,9 @@ import Constants
 from GlobalParams import *
 from Params import *
 from ModelRun import *
-
-rundir="/disk1/keguangw/tmproms/run/arctic-20km"
-
+########################################################################
 # Note: Variable 'fclen' is forecast length in hours
-
+########################################################################
 # Set cpus for ROMS:
 xcpu=3
 ycpu=2
