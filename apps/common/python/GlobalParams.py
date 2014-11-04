@@ -1,6 +1,9 @@
 class GlobalParams(object):
-    COMMONPATH="/disk1/nilsmk/metroms/apps/common"
+    import getpass
+    username=getpass.getuser()
+    COMMONPATH="/disk1/"+username+"/metroms/apps/common"
     COMMONORIGPATH=COMMONPATH+"/origfiles"
+    RUNDIR="/disk1/"+username+"/tmproms/run"
     ########################################################################
     # Internal files:
     ########################################################################

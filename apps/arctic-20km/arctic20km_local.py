@@ -6,18 +6,22 @@ import Constants
 from GlobalParams import *
 from Params import *
 from ModelRun import *
-########################################################################
 
 rundir="/disk1/keguangw/tmproms/run/arctic-20km"
+
+# Note: Variable 'fclen' is forecast length in hours
 
 # Set cpus for ROMS:
 xcpu=3
 ycpu=2
 # Set cpus for CICE:
 icecpu=2
+# Choose a predifnes ROMS-application:
+app='a20' # Arctic-20km
 
-a20params=Params(rundir,xcpu,ycpu,tsteps=720,irestart=0,cicecpu=icecpu)
-a20params.ROMSINFILE=a20params.RUNPATH+"/roms.in"
+a20params=Params(app,xcpu,ycpu,fclen=240,irestart=0,cicecpu=icecpu)
+#a20params.RUNPATH="/disk1/tmp"
+#a20params.ROMSINFILE=a20params.RUNPATH+"/roms___.in"
 
 modelrun=ModelRun(a20params,Constants.FELT,Constants.FELT)
 
