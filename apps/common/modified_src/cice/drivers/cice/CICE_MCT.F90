@@ -8,7 +8,7 @@
       use ice_flux, only: sst, uocn, vocn, zeta, ss_tltx, ss_tlty,&
            sss,frzmlt, fresh_ai, fsalt_ai,&
            fhocn_ai,fswthru_ai, strocnx, strocny
-      use ice_state, only: aice,vice
+      use ice_state, only: aice
       use ice_boundary, only: ice_HaloUpdate
       use ice_fileunits, only: ice_stdout, ice_stderr ! these might be the same
 
@@ -207,15 +207,28 @@
 
       CALL AttrVect_importRAttr(cice2ocn_AV, 'AICE', avdata)
 !
-! Exporting vice
+! Exporting strocnx - stress ocean x (U-cell)
 !
-      call field2avec(vice,avdata)
+      call field2avec(strocnx,avdata)
 
       write(ice_stdout,*) 'CICE rank ', my_task, &
-           ' sending vice field (max/min): ', &
+           ' sending strocnx field (max/min): ', &
            maxval(avdata), ' ', minval(avdata)
 
-      CALL AttrVect_importRAttr(cice2ocn_AV, 'VICE', avdata)
+      CALL AttrVect_importRAttr(cice2ocn_AV, 'STROCNX', avdata)
+
+
+!
+! Exporting strocny
+!
+      call field2avec(strocny,avdata)
+
+      write(ice_stdout,*) 'CICE rank ', my_task, &
+           ' sending strocny field (max/min): ', &
+           maxval(avdata), ' ', minval(avdata)
+
+      CALL AttrVect_importRAttr(cice2ocn_AV, 'STROCNY', avdata)
+
 
 ! Transfere data to ocean
       CALL MCT_Send(cice2ocn_AV, CICEtoROMS)
@@ -271,7 +284,7 @@
            ' setting the U (uocn) field(max/min): ',&
            maxval(avdata), ' ', minval(avdata)
 
-      call avec2field(avdata,vocn)
+      call avec2field(avdata,uocn)
       ! unfortunately need to cal ice_HaloUpdate twice for the
       ! interpolations sake (ihi+1)
       call ice_HaloUpdate (uocn, halo_info, &
@@ -290,8 +303,8 @@
          do j = jlo, jhi
             do i = ilo, ihi
                uocn(i,j,iblk) =                            &     
-                    0.5*(uocn(i,j,iblk)*HTN(i,j,iblk)        &
-                    +uocn(i+1,j,iblk)*HTN(i+1,j,iblk)) &
+                    0.5*(uocn(i+1,j,iblk)*HTN(i,j,iblk)        &
+                    +uocn(i+1,j+1,iblk)*HTN(i+1,j,iblk)) &
                     /dxu(i,j,iblk)
             enddo
          enddo
@@ -321,8 +334,8 @@
          do j = jlo, jhi
             do i = ilo, ihi
                vocn(i,j,iblk) =                                 &
-                    0.5*(vocn(i,j,iblk)*HTE(i,j,iblk)        &
-                    +vocn(i,j+1,iblk)*HTE(i,j+1,iblk))  &
+                    0.5*(vocn(i,j+1,iblk)*HTE(i,j,iblk)        &
+                    +vocn(i+1,j+1,iblk)*HTE(i,j+1,iblk))  &
                     /dyu(i,j,iblk)
             enddo
          enddo
