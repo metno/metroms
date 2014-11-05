@@ -63,7 +63,7 @@ export USE_OpenMP=
 export USE_LARGE=on
 
 export USE_DEBUG=
-export USE_NETCDF4=
+export USE_NETCDF4=on
 
 export USE_CICE=on
 
