@@ -61,7 +61,8 @@
 
       save
 
-      real (kind=dbl_kind) ::   TimeInterval = 7200.0
+!jd      real (kind=dbl_kind) ::   TimeInterval = 7200.0
+      real (kind=dbl_kind) ::   TimeInterval = 3600.0
       real (kind=dbl_kind) ::   tcoupling = 0.0
 
       character (len=240) :: &
@@ -270,7 +271,7 @@
            ' setting the U (uocn) field(max/min): ',&
            maxval(avdata), ' ', minval(avdata)
 
-      call avec2field(avdata,vocn)
+      call avec2field(avdata,uocn)
       ! unfortunately need to cal ice_HaloUpdate twice for the
       ! interpolations sake (ihi+1)
       call ice_HaloUpdate (uocn, halo_info, &
