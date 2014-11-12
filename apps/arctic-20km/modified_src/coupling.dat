@@ -306,10 +306,18 @@
   0.0d0
   1.0d0
    
-'VICE'
-  'vice'
-  'ice volume'
-  'meter'
+'STROCNX'
+  'strocnx'
+  'ice stress x-direction'
+  'N/m**2'
+  'r2dvar'
+  0.0d0
+  1.0d0
+
+'STROCNY'
+  'strocny'
+  'ice stress y-direction'
+  'N/m**2'
   'r2dvar'
   0.0d0
   1.0d0

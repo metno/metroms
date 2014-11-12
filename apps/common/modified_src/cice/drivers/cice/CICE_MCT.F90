@@ -66,7 +66,7 @@
 
       character (len=240) :: &
            importList = 'SST:SSS:FRZMLT:u:v:SSH', &
-           exportList = 'AICE:VICE'
+           exportList = 'AICE:STROCNX:STROCNY'
 
    integer (int_kind), public :: &
       CICEid,                   &
@@ -363,8 +363,8 @@
          ihi = this_block%ihi
          jlo = this_block%jlo
          jhi = this_block%jhi
-         do j = jlo, jhi
-            do i = ilo, ihi
+         do j = jlo, jhi-1
+            do i = ilo, ihi-1
                ss_tltx(i,j,iblk) =                              &
                     (zeta(i+1,j,iblk)-zeta(i,j,iblk))/dxt(i,j,iblk)
                ss_tlty(i,j,iblk) =                              &
