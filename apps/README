@@ -1,7 +1,20 @@
 HOW TO COMPILE UNDER METROMS:
 
-In folder METROMS/apps, execute './build_roms.sh arctic-20km' 
+Example given for Arctic 20km, coupled ROMS-CICE:
+This has been tested on Intel computer, using Gfortran
+and Ubuntu 12.04. C-shell must be installed for CICE compilation.
+
+1:
+Build MCT by executing './build_mct.sh' in metroms/apps-folder.
+
+2:
+Build CICE by executing './build_cice.sh 2 1'. The numbers indicate
+how many processors you will use in x and y-direction in your CICE
+application. These numbers are the current default in metroms.
+
+3:
+In folder metroms/apps, execute './build_roms.sh arctic-20km' 
 to build roms-3.6 arctic-20km application. To compile in paralell, 
 add the keyword '-j 4' after the name of your application to use 
 4 cpus in the compilation process. You still need to specify which 
-compiler etc you want to use insode the 'build_roms.sh'-file.
+compiler etc you want to use inside the 'build_roms.sh'-file.

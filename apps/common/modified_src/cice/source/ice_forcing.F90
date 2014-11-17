@@ -766,7 +766,8 @@
                  (fid, nrec, fieldname, field_data(:,:,arg,:), dbug, &
                   field_loc, field_type)
 
-            if (ixx==1) call ice_close_nc(fid)
+            call ice_close_nc(fid)	! changed by Keguang, Wang
+            !if (ixx==1) call ice_close_nc(fid)
          endif                  ! ixm ne -99
 
          ! always read ixx data from data file for current year
@@ -2751,6 +2752,8 @@
 !         write (nu_diag,*) 'Tair: ', Tair(10,10,1)
 !         write (nu_diag,*) 'rhoa: ', rhoa(10,10,1)
 !         write (nu_diag,*) 'Qair: ', Qa(10,10,1)
+
+         write (nu_diag,*) 'ixm, ixx, ixp: ', ixm, ixx, ixp
 
 
       end subroutine ecmwf_data

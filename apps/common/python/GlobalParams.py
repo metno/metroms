@@ -1,6 +1,7 @@
 class GlobalParams(object):
     COMMONPATH="/home/sebastm/metroms-master/metroms/apps/common"
     COMMONORIGPATH=COMMONPATH+"/origfiles"
+    RUNDIR="/global/work/sebastm/tmproms/run"
     ########################################################################
     # Internal files:
     ########################################################################

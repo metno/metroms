@@ -1459,7 +1459,7 @@ Nthreads(cice) = NUMCICECORES
 
 !   TimeInterval = 60.0d0 10.0d0  10.0d0
 
-TimeInterval = 7200.0d0
+TimeInterval = 3600.0d0
 
 ! Coupled model standard input file name, [1:Nmodels] KEYWORD entries are
 ! expected with the label code in parenthesis.
@@ -1513,7 +1513,7 @@ TimeInterval = 7200.0d0
 !       Export(...) = NONE
 
  Nexport(ocean) = 6
- Nexport(cice)  = 3
+ Nexport(cice)  = 7
 
   Export(ocean) = SST  \
                   SSS  \
@@ -1544,9 +1544,13 @@ TimeInterval = 7200.0d0
 !                  Uwind \
 !                 Vwind
 
-  Export(cice) = AICE  \
-                 STROCNX \
-                 STROCNY 
+  Export(cice) =  AICE  \
+                  freshAI \
+                  fsaltAI
+                  fhocnAI \
+                  fswthruAI \
+                  strocnx \
+                  strocny
 
 
 ! Import fields per model, [1:Nimport(...)] string values are expected per
@@ -1555,12 +1559,17 @@ TimeInterval = 7200.0d0
 !      Nimport(...) = 0
 !       Import(...) = NONE
 
- Nimport(ocean) = 3
+ Nimport(ocean) = 7
  Nimport(cice)  = 6
 
   Import(ocean) = AICE \
-                  STROCNX \
-                  STROCNY
+                  freshAI \
+                  fsaltAI
+                  fhocnAI \
+                  fswthruAI \
+                  strocnx \
+                  strocny
+
 
 !  Import(waves) = Uwind \
 !                  Vwind \

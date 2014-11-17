@@ -410,10 +410,11 @@
 
           CASE ('AICE')         ! Sea ice concentration
 
-            CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code), A, Asize)
+            CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code),A,Asize)
             Iimport=Iimport+1
             write(6,*) 'ROMS rank ', MyRank,                            &
-     & ' received aice field (max/min): ', maxval(A), ' ', minval(A)
+     &           ' received ',trim(code),' field (max/min): ',          &
+     &           maxval(A),' ',minval(A)
             scale=1.0_r8
             add_offset=0.0_r8
             CALL ROMS_import2d (ng, tile,                               &
@@ -426,7 +427,40 @@
      &                          status)
 
 
-          CASE ('STROCNX')         ! ice-ocean stress x-dir
+       
+          CASE ('freshAI')         ! Fresh water flux
+
+            CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code), A, Asize)
+            Iimport=Iimport+1
+            write(6,*) 'ROMS rank ', MyRank,                            &
+     &           ' received ',trim(code),' field (max/min): ',          &
+     &           maxval(A),' ',minval(A)
+
+          CASE ('fsaltAI')         ! Salt flux
+
+            CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code), A, Asize)
+            Iimport=Iimport+1
+            write(6,*) 'ROMS rank ', MyRank,                            &
+     &           ' received ',trim(code),' field (max/min): ',          &
+     &           maxval(A),' ',minval(A)
+
+          CASE ('fhocnAI')         ! Nonradiative heat flux
+
+            CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code), A, Asize)
+            Iimport=Iimport+1
+            write(6,*) 'ROMS rank ', MyRank,                            &
+     &           ' received ',trim(code),' field (max/min): ',          &
+     &           maxval(A),' ',minval(A)
+
+          CASE ('fswthruAI')         ! Radiative heat flux through ice
+
+            CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code), A, Asize)
+            Iimport=Iimport+1
+            write(6,*) 'ROMS rank ', MyRank,                            &
+     &           ' received ',trim(code),' field (max/min): ',          &
+     &           maxval(A),' ',minval(A)
+
+          CASE ('strocnx')         ! ice-ocean stress x-dir
 
             CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code), A, Asize)
             Iimport=Iimport+1
@@ -434,9 +468,10 @@
      & ' received strocnx field (max/min): ', maxval(A), ' ', minval(A)
             scale=1.0_r8
             add_offset=0.0_r8
-! Handling strx (and stry) as rho points though they are U-points on
-! B-grid. Psi points could work but there is an offset of 1 between CICE
-! and ROMS that I don't know if it matters or not.
+! Had Istr etc here first, and gtype as r2dvar -> visible processor map
+! IstrR and r2dvar worked better. Now trying p2dvar, i.e. psi-point.
+! But there's a one grid point offset between CICE and ROMS that bugs me
+! CICE U(i,j) = ROMS psi(i-1,j-1). Or so I recon at least :)
             CALL ROMS_import2d (ng, tile,                               &
      &                          id, gtype, scale, add_offset,           &
      &                          Asize, A,                               &
@@ -475,9 +510,8 @@
              sa  = ICE(ng)%strx(i-1,j-1)*aice_psi        
              
              ! finally area-wheigted stress on c-grid u-point
-             ! Also divide by rho0 as that is what ROMS needs aparently.
              if ((aice_psip+aice_psi).gt.1e-12) then
-                ICE(ng)%stru(i,j) = (sap+sa)/(aice_psip+aice_psi)/rho0  
+                ICE(ng)%stru(i,j) = (sap+sa)/(aice_psip+aice_psi) 
              else
                 ICE(ng)%stru(i,j) = 0
              endif          
@@ -495,7 +529,10 @@
      &            ICE(ng)%aice_u)
 #endif
 
-          CASE ('STROCNY')         ! ice-ocean stress y-dir 
+
+
+          CASE ('strocny')         ! ice-ocean stress y-dir 
+
 
             CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code), A, Asize)
             Iimport=Iimport+1
@@ -538,7 +575,7 @@
              
              if ((aice_psip+aice_psi).gt.1e-12) then
             ! finally area-wheigted stress on c-grid u-point
-                ICE(ng)%strv(i,j) = (sap+sa)/(aice_psip+aice_psi)/rho0
+                ICE(ng)%strv(i,j) = (sap+sa)/(aice_psip+aice_psi)
              else
                 ICE(ng)%strv(i,j) = 0
              endif
@@ -557,7 +594,6 @@
      &            ICE(ng)%aice_v)
 #endif
         
-       
         END SELECT
       END DO
 !
