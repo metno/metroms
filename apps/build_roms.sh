@@ -89,6 +89,9 @@ tar -xf ${metroms_base}/static_libs/roms-3.6.tar.gz
 touch $MY_ROMS_SRC/ROMS/Nonlinear/frazil_ice_prod_mod.F
 # JD end
 
+#SM: Same here, added temporary for new file
+touch $MY_ROMS_SRC/ROMS/Modules/mod_ice.F
+
 # Set path of the directory containing makefile configuration (*.mk) files.
 # The user has the option to specify a customized version of these files
 # in a different directory than the one distributed with the source code,

@@ -8,7 +8,7 @@
       use ice_flux, only: sst, uocn, vocn, zeta, ss_tltx, ss_tlty,&
            sss,frzmlt, fresh_ai, fsalt_ai,&
            fhocn_ai,fswthru_ai, strocnx, strocny
-      use ice_state, only: aice,vice
+      use ice_state, only: aice
       use ice_boundary, only: ice_HaloUpdate
       use ice_fileunits, only: ice_stdout, ice_stderr ! these might be the same
 
@@ -68,7 +68,7 @@
       character (len=240) :: &
            importList = 'SST:SSS:FRZMLT:u:v:SSH', &
            exportList = &
-           'AICE:VICE:freshAI:fsaltAI:fhocnAI:fswthruAI:strocnx:strocny'
+           'AICE:freshAI:fsaltAI:fhocnAI:fswthruAI:strocnx:strocny'
 
    integer (int_kind), public :: &
       CICEid,                   &
@@ -203,8 +203,6 @@
 !
 ! Exporting aice
       call ice2ocn_send_field(aice,'AICE')
-! Exporting vice
-      call ice2ocn_send_field(vice,'VICE')
 ! Exporting fresh_ai
       call ice2ocn_send_field(fresh_ai,'freshAI')
 ! Exporting fsalt_ai
@@ -290,9 +288,9 @@
          do j = jlo, jhi
             do i = ilo, ihi
                uocn(i,j,iblk) =                            &     
-                    0.5*(uocn(i,j,iblk)*HTN(i,j,iblk)        &
-                    +uocn(i+1,j,iblk)*HTN(i+1,j,iblk)) &
-                    /dxu(i,j,iblk)
+                    0.5*(uocn(i+1,j,iblk)*HTE(i,j,iblk)        &
+                    +uocn(i+1,j+1,iblk)*HTE(i,j+1,iblk)) &
+                    /dyu(i,j,iblk)
             enddo
          enddo
       enddo
@@ -321,9 +319,9 @@
          do j = jlo, jhi
             do i = ilo, ihi
                vocn(i,j,iblk) =                                 &
-                    0.5*(vocn(i,j,iblk)*HTE(i,j,iblk)        &
-                    +vocn(i,j+1,iblk)*HTE(i,j+1,iblk))  &
-                    /dyu(i,j,iblk)
+                     0.5*(vocn(i,j+1,iblk)*HTN(i,j,iblk)        &
+                          +vocn(i+1,j+1,iblk)*HTN(i+1,j,iblk))  &
+                        /dxu(i,j,iblk)
             enddo
          enddo
       enddo
@@ -350,8 +348,8 @@
          ihi = this_block%ihi
          jlo = this_block%jlo
          jhi = this_block%jhi
-         do j = jlo, jhi
-            do i = ilo, ihi
+         do j = jlo, jhi-1
+            do i = ilo, ihi-1
                ss_tltx(i,j,iblk) =                              &
                     (zeta(i+1,j,iblk)-zeta(i,j,iblk))/dxt(i,j,iblk)
                ss_tlty(i,j,iblk) =                              &

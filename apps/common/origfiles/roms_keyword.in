@@ -1513,7 +1513,7 @@ TimeInterval = 3600.0d0
 !       Export(...) = NONE
 
  Nexport(ocean) = 6
- Nexport(cice)  = 8
+ Nexport(cice)  = 7
 
   Export(ocean) = SST  \
                   SSS  \
@@ -1545,7 +1545,6 @@ TimeInterval = 3600.0d0
 !                 Vwind
 
   Export(cice) =  AICE  \
-                  VICE \
                   freshAI \
                   fsaltAI
                   fhocnAI \
@@ -1560,11 +1559,10 @@ TimeInterval = 3600.0d0
 !      Nimport(...) = 0
 !       Import(...) = NONE
 
- Nimport(ocean) = 8
+ Nimport(ocean) = 7
  Nimport(cice)  = 6
 
   Import(ocean) = AICE \
-                  VICE \
                   freshAI \
                   fsaltAI
                   fhocnAI \
