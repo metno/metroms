@@ -805,7 +805,7 @@
           sustr(i,j)=cff*(Taux(i-1,j)+Taux(i,j))
           ! add with stress from ice model
           sustr(i,j)=sustr(i,j)*(1-ICE(ng)%aice_u(i,j))                 &
-                     +ICE(ng)%stru(i,j)*ICE(ng)%aice_u(i,j)/rho0
+                     +ICE(ng)%stru(i,j)/rho0
 # ifdef MASKING
           sustr(i,j)=sustr(i,j)*umask(i,j)
 # endif
@@ -818,7 +818,7 @@
           svstr(i,j)=cff*(Tauy(i,j-1)+Tauy(i,j))
           ! add stress from ice model
           svstr(i,j)=svstr(i,j)*(1-ICE(ng)%aice_v(i,j))                 &
-                     +ICE(ng)%strv(i,j)*ICE(ng)%aice_v(i,j)/rho0
+                     +ICE(ng)%strv(i,j)/rho0
 # ifdef MASKING
           svstr(i,j)=svstr(i,j)*vmask(i,j)
 # endif
