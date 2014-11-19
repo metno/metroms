@@ -798,7 +798,6 @@
 !
 !  Compute kinematic, surface wind stress (m2/s2).
 !
-!      write(6,*) 'before ', maxval(sustr), minval(sustr)
       cff=0.5_r8/rho0
       DO j=JstrR,JendR
         DO i=Istr,IendR
@@ -811,8 +810,6 @@
 # endif
         END DO
       END DO
-!      write(6,*) 'after sustr ', maxval(sustr), minval(sustr)
-!      write(6,*) 'svstr ', maxval(svstr), minval(svstr)
       DO j=Jstr,JendR
         DO i=IstrR,IendR
           svstr(i,j)=cff*(Tauy(i,j-1)+Tauy(i,j))
@@ -824,7 +821,6 @@
 # endif
         END DO
       END DO
-!      write(6,*) 'after svsrs', maxval(svstr), minval(svstr)
  
 !
 !-----------------------------------------------------------------------
