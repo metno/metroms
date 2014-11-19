@@ -212,8 +212,10 @@
 ! Exporting fswthru_ai
       call ice2ocn_send_field(fswthru_ai,'fswthruAI')
 ! Export stress vector (These are on the velocity point (Ugrid)
-      call ice2ocn_send_field(strocnx,'strocnx')
-      call ice2ocn_send_field(strocny,'strocny')
+! Change of sign here as the stress on the ocean acts in opposite
+! directon as the stress on the ice.
+      call ice2ocn_send_field(-strocnx,'strocnx')
+      call ice2ocn_send_field(-strocny,'strocny')
 
 ! Transfere data to ocean
       CALL MCT_Send(cice2ocn_AV, CICEtoROMS)
@@ -287,6 +289,8 @@
          jhi = this_block%jhi
          do j = jlo, jhi
             do i = ilo, ihi
+! there is an annoying offset here stemming from ROMS vs CICE grid indexing.
+! CICE - u/v leads rho, CICE - rho leads u/v
                uocn(i,j,iblk) =                            &     
                     0.5*(uocn(i+1,j,iblk)*HTE(i,j,iblk)        &
                     +uocn(i+1,j+1,iblk)*HTE(i,j+1,iblk)) &
@@ -319,9 +323,9 @@
          do j = jlo, jhi
             do i = ilo, ihi
                vocn(i,j,iblk) =                                 &
-                     0.5*(vocn(i,j+1,iblk)*HTN(i,j,iblk)        &
-                          +vocn(i+1,j+1,iblk)*HTN(i+1,j,iblk))  &
-                        /dxu(i,j,iblk)
+                    0.5*(vocn(i,j+1,iblk)*HTN(i,j,iblk)        &
+                    +vocn(i+1,j+1,iblk)*HTE(i+1,j,iblk))  &
+                    /dxu(i,j,iblk)
             enddo
          enddo
       enddo
