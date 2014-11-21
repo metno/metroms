@@ -8,7 +8,7 @@
       use ice_flux, only: sst, uocn, vocn, zeta, ss_tltx, ss_tlty,&
            sss,frzmlt, fresh_ai, fsalt_ai,&
            fhocn_ai,fswthru_ai, strocnx, strocny
-      use ice_state, only: aice,vice
+      use ice_state, only: aice
       use ice_boundary, only: ice_HaloUpdate
       use ice_fileunits, only: ice_stdout, ice_stderr ! these might be the same
 
@@ -61,13 +61,14 @@
 
       save
 
-      real (kind=dbl_kind) ::   TimeInterval = 7200.0
+!jd      real (kind=dbl_kind) ::   TimeInterval = 7200.0
+      real (kind=dbl_kind) ::   TimeInterval = 3600.0
       real (kind=dbl_kind) ::   tcoupling = 0.0
 
       character (len=240) :: &
            importList = 'SST:SSS:FRZMLT:u:v:SSH', &
            exportList = &
-           'AICE:VICE:freshAI:fsaltAI:fhocnAI:fswthruAI:strocnx:strocny'
+           'AICE:freshAI:fsaltAI:fhocnAI:fswthruAI:strocnx:strocny'
 
    integer (int_kind), public :: &
       CICEid,                   &
@@ -202,8 +203,6 @@
 !
 ! Exporting aice
       call ice2ocn_send_field(aice,'AICE')
-! Exporting vice
-      call ice2ocn_send_field(vice,'VICE')
 ! Exporting fresh_ai
       call ice2ocn_send_field(fresh_ai,'freshAI')
 ! Exporting fsalt_ai
@@ -213,8 +212,10 @@
 ! Exporting fswthru_ai
       call ice2ocn_send_field(fswthru_ai,'fswthruAI')
 ! Export stress vector (These are on the velocity point (Ugrid)
-      call ice2ocn_send_field(strocnx,'strocnx')
-      call ice2ocn_send_field(strocny,'strocny')
+! Change of sign here as the stress on the ocean acts in opposite
+! directon as the stress on the ice.
+      call ice2ocn_send_field(-strocnx,'strocnx')
+      call ice2ocn_send_field(-strocny,'strocny')
 
 ! Transfere data to ocean
       CALL MCT_Send(cice2ocn_AV, CICEtoROMS)
@@ -270,7 +271,7 @@
            ' setting the U (uocn) field(max/min): ',&
            maxval(avdata), ' ', minval(avdata)
 
-      call avec2field(avdata,vocn)
+      call avec2field(avdata,uocn)
       ! unfortunately need to cal ice_HaloUpdate twice for the
       ! interpolations sake (ihi+1)
       call ice_HaloUpdate (uocn, halo_info, &
@@ -288,10 +289,12 @@
          jhi = this_block%jhi
          do j = jlo, jhi
             do i = ilo, ihi
+! there is an annoying offset here stemming from ROMS vs CICE grid indexing.
+! CICE - u/v leads rho, CICE - rho leads u/v
                uocn(i,j,iblk) =                            &     
-                    0.5*(uocn(i,j,iblk)*HTN(i,j,iblk)        &
-                    +uocn(i+1,j,iblk)*HTN(i+1,j,iblk)) &
-                    /dxu(i,j,iblk)
+                    0.5*(uocn(i+1,j,iblk)*HTE(i,j,iblk)        &
+                    +uocn(i+1,j+1,iblk)*HTE(i,j+1,iblk)) &
+                    /dyu(i,j,iblk)
             enddo
          enddo
       enddo
@@ -320,9 +323,9 @@
          do j = jlo, jhi
             do i = ilo, ihi
                vocn(i,j,iblk) =                                 &
-                    0.5*(vocn(i,j,iblk)*HTE(i,j,iblk)        &
-                    +vocn(i,j+1,iblk)*HTE(i,j+1,iblk))  &
-                    /dyu(i,j,iblk)
+                    0.5*(vocn(i,j+1,iblk)*HTN(i,j,iblk)        &
+                    +vocn(i+1,j+1,iblk)*HTE(i+1,j,iblk))  &
+                    /dxu(i,j,iblk)
             enddo
          enddo
       enddo
@@ -349,8 +352,8 @@
          ihi = this_block%ihi
          jlo = this_block%jlo
          jhi = this_block%jhi
-         do j = jlo, jhi
-            do i = ilo, ihi
+         do j = jlo, jhi-1
+            do i = ilo, ihi-1
                ss_tltx(i,j,iblk) =                              &
                     (zeta(i+1,j,iblk)-zeta(i,j,iblk))/dxt(i,j,iblk)
                ss_tlty(i,j,iblk) =                              &

@@ -306,14 +306,6 @@
   0.0d0
   1.0d0
    
-'VICE'
-  'vice'
-  'ice volume'
-  'meter'
-  'r2dvar'
-  0.0d0
-  1.0d0
-  
 'SSS'
   't(:,:,N,isalt)'
   'sea surface salinity'
@@ -365,7 +357,7 @@
 'strocnx'
   'strocnx'
   'Stress component in x-direction from ice model'
-  'Pa/m^2'
+  'N/m^2'
   'p2dvar'
   0.0d0
   1.0d0
@@ -373,7 +365,7 @@
 'strocny'
   'strocny'
   'Stress component in y-direction from ice model'
-  'Pa/m^2'
+  'N/m^2'
   'p2dvar'
   0.0d0
   1.0d0
