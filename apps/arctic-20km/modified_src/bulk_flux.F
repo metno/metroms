@@ -69,6 +69,7 @@
       USE mod_mixing
       USE mod_ocean
       USE mod_stepping
+      USE mod_ice
 !
 !  Imported variable declarations.
 !
@@ -122,6 +123,15 @@
      &                     FORCES(ng) % EminusP,                        &
      &                     FORCES(ng) % evap,                           &
 # endif
+# ifdef CICE_COUPLING
+     &                     ICE(ng) % aice,                              &
+     &                     ICE(ng) % aice_u,                            &
+     &                     ICE(ng) % aice_v,                            &
+     &                     ICE(ng) % fhocnAI,                           &
+     &                     ICE(ng) % fswthruAI,                         &
+     &                     ICE(ng) % stru,                              &
+     &                     ICE(ng) % strv,                              &
+# endif
      &                     FORCES(ng) % sustr,                          &
      &                     FORCES(ng) % svstr)
 # ifdef PROFILE
@@ -158,6 +168,15 @@
      &                           srflx, stflx,                          &
 # ifdef EMINUSP
      &                           EminusP, evap,                         &
+# endif
+# ifdef CICE_COUPLING
+     &                           aice,                                  &
+     &                           aice_u,                                &
+     &                           aice_v,                                &
+     &                           fhocnAI,                               &
+     &                           fswthruAI,                             &
+     &                           stru,                                  &
+     &                           strv,                                  &
 # endif
      &                           sustr, svstr)
 !***********************************************************************
@@ -213,10 +232,18 @@
       real(r8), intent(inout) :: shflx(LBi:,LBj:)
       real(r8), intent(inout) :: srflx(LBi:,LBj:)
       real(r8), intent(inout) :: stflx(LBi:,LBj:,:)
-
 #  ifdef EMINUSP
       real(r8), intent(out) :: EminusP(LBi:,LBj:)
       real(r8), intent(out) :: evap(LBi:,LBj:)
+#  endif
+#  ifdef CICE_COUPLING
+      real(r8), intent(in) :: aice(LBi:,LBj:)
+      real(r8), intent(in) :: aice_u(LBi:,LBj:)
+      real(r8), intent(in) :: aice_v(LBi:,LBj:)
+      real(r8), intent(in) :: fhocnAI(LBi:,LBj:)
+      real(r8), intent(in) :: fswthruAI(LBi:,LBj:)
+      real(r8), intent(in) :: stru(LBi:,LBj:)
+      real(r8), intent(in) :: strv(LBi:,LBj:)
 #  endif
       real(r8), intent(out) :: sustr(LBi:,LBj:)
       real(r8), intent(out) :: svstr(LBi:,LBj:)
@@ -259,6 +286,15 @@
 #  ifdef EMINUSP
       real(r8), intent(out) :: EminusP(LBi:UBi,LBj:UBj)
       real(r8), intent(out) :: evap(LBi:UBi,LBj:UBj)
+#  endif
+#  ifdef CICE_COUPLING
+      real(r8), intent(in) :: aice(LBi:UBi,LBj:UBj)
+      real(r8), intent(in) :: aice_u(LBi:UBi,LBj:UBj)
+      real(r8), intent(in) :: aice_v(LBi:UBi,LBj:UBj)
+      real(r8), intent(in) :: fhocnAI(LBi:UBi,LBj:UBj)
+      real(r8), intent(in) :: fswthruAI(LBi:UBi,LBj:UBj)
+      real(r8), intent(in) :: stru(LBi:UBi,LBj:UBj)
+      real(r8), intent(in) :: strv(LBi:UBi,LBj:UBj)
 #  endif
       real(r8), intent(out) :: sustr(LBi:UBi,LBj:UBj)
       real(r8), intent(out) :: svstr(LBi:UBi,LBj:UBj)
@@ -783,6 +819,12 @@
           evap(i,j)=LHeat(i,j)/Hlv(i,j)
           stflx(i,j,isalt)=cff*(evap(i,j)-rain(i,j))
 # endif
+# ifdef CICE_COUPLING
+          ! merge with fluxes from ice model
+          srflx(i,j)=srflx(i,j)*(1-aice(i,j))+fswthruAI(i,j)*Hscale
+          stflx(i,j,itemp)=stflx(i,j,itemp)*(1-aice(i,j))+              &
+     &         (fswthruAI(i,j)+fhocnAI(i,j))*Hscale
+# endif
 # ifdef MASKING
           stflx(i,j,itemp)=stflx(i,j,itemp)*rmask(i,j)
 #   ifdef EMINUSP
@@ -803,9 +845,10 @@
       DO j=JstrR,JendR
         DO i=Istr,IendR
           sustr(i,j)=cff*(Taux(i-1,j)+Taux(i,j))
-          ! add with stress from ice model
-          sustr(i,j)=sustr(i,j)*(1-ICE(ng)%aice_u(i,j))                 &
-                     +ICE(ng)%stru(i,j)/rho0
+# ifdef CICE_COUPLING
+          ! merge with stress from ice model
+          sustr(i,j)=sustr(i,j)*(1-aice_u(i,j))+stru(i,j)/rho0
+# endif
 # ifdef MASKING
           sustr(i,j)=sustr(i,j)*umask(i,j)
 # endif
@@ -816,9 +859,10 @@
       DO j=Jstr,JendR
         DO i=IstrR,IendR
           svstr(i,j)=cff*(Tauy(i,j-1)+Tauy(i,j))
-          ! add stress from ice model
-          svstr(i,j)=svstr(i,j)*(1-ICE(ng)%aice_v(i,j))                 &
-                     +ICE(ng)%strv(i,j)/rho0
+# ifdef CICE_COUPLING
+          ! merge with stress from ice model
+          svstr(i,j)=svstr(i,j)*(1-aice_v(i,j))+strv(i,j)/rho0
+# endif
 # ifdef MASKING
           svstr(i,j)=svstr(i,j)*vmask(i,j)
 # endif

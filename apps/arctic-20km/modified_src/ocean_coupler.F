@@ -105,9 +105,9 @@
       TYPE(Router)   :: ROMStoWRF             ! Router variables
 # endif
 # ifdef CICE_COUPLING
-      TYPE(AttrVect) :: cice2ocn_AV            ! AttrVect variables
+      TYPE(AttrVect) :: cice2ocn_AV           ! AttrVect variables
       TYPE(AttrVect) :: ocn2cice_AV
-      TYPE(Router)   :: ROMStoCICE             ! Router variables
+      TYPE(Router)   :: ROMStoCICE            ! Router variables
 # endif
       TYPE(GlobalSegMap) :: GSMapROMS         ! GloabalSegMap variables
 
@@ -126,6 +126,7 @@
 #  include "mct_roms_wrf.h"
 # endif
 # ifdef CICE_COUPLING
+
       SUBROUTINE initialize_ocn2cice_coupling (ng, tile)
       USE mod_param
       USE mod_parallel
@@ -407,8 +408,7 @@
 
         SELECT CASE (TRIM(code))
 
-
-          CASE ('AICE')         ! Sea ice concentration
+          CASE ('AICE')           ! Sea ice concentration
 
             CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code),A,Asize)
             Iimport=Iimport+1
@@ -423,10 +423,8 @@
      &                          IstrR, IendR, JstrR, JendR,             &
      &                          LBi, UBi, LBj, UBj,                     &
      &                          Fields(id)%ImpMin, Fields(id)%ImpMax,   &
-     &                          ICE(ng)%a,                              &
+     &                          ICE(ng)%aice,                           &
      &                          status)
-
-
        
           CASE ('freshAI')         ! Fresh water flux
 
@@ -436,7 +434,7 @@
      &           ' received ',trim(code),' field (max/min): ',          &
      &           maxval(A),' ',minval(A)
 
-          CASE ('fsaltAI')         ! Salt flux
+          CASE ('fsaltAI')       ! Salt flux
 
             CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code), A, Asize)
             Iimport=Iimport+1
@@ -451,6 +449,16 @@
             write(6,*) 'ROMS rank ', MyRank,                            &
      &           ' received ',trim(code),' field (max/min): ',          &
      &           maxval(A),' ',minval(A)
+            scale=1.0_r8
+            add_offset=0.0_r8
+            CALL ROMS_import2d (ng, tile,                               &
+     &                          id, gtype, scale, add_offset,           &
+     &                          Asize, A,                               &
+     &                          IstrR, IendR, JstrR, JendR,             &
+     &                          LBi, UBi, LBj, UBj,                     &
+     &                          Fields(id)%ImpMin, Fields(id)%ImpMax,   &
+     &                          ICE(ng)%fhocnAI,                        &
+     &                          status)
 
           CASE ('fswthruAI')         ! Radiative heat flux through ice
 
@@ -459,6 +467,16 @@
             write(6,*) 'ROMS rank ', MyRank,                            &
      &           ' received ',trim(code),' field (max/min): ',          &
      &           maxval(A),' ',minval(A)
+            scale=1.0_r8
+            add_offset=0.0_r8
+            CALL ROMS_import2d (ng, tile,                               &
+     &                          id, gtype, scale, add_offset,           &
+     &                          Asize, A,                               &
+     &                          IstrR, IendR, JstrR, JendR,             &
+     &                          LBi, UBi, LBj, UBj,                     &
+     &                          Fields(id)%ImpMin, Fields(id)%ImpMax,   &
+     &                          ICE(ng)%fswthruAI,                      &
+     &                          status)
 
           CASE ('strocnx')         ! ice-ocean stress x-dir
 
@@ -488,19 +506,22 @@
 ! ICE(ng)%a are rho-points.
 
              !ice fraction on u-point
-             ICE(ng)%aice_u(i,j) = (ICE(ng)%a(i-1,j)*GRID(ng)%omn(i-1,j)+ICE(ng)%a(i,j)*GRID(ng)%omn(i,j)) / (GRID(ng)%omn(i-1,j)+GRID(ng)%omn(i,j))
+             ICE(ng)%aice_u(i,j) =                                      &
+     &              (ICE(ng)%aice(i-1,j)*GRID(ng)%omn(i-1,j)            &
+     &              +ICE(ng)%aice(i,j)*GRID(ng)%omn(i,j)) /             &
+     &              (GRID(ng)%omn(i-1,j)+GRID(ng)%omn(i,j))
              !ice fraction on psi-point (B-grid u(i-1,j-1) point)
              !first i,j+1 (psip), then i,j (psi)
-             aice_psip =( ICE(ng)%a(i-1,j)*GRID(ng)%omn(i-1,j)          &
-     &                   +ICE(ng)%a(i-1,j+1)*GRID(ng)%omn(i-1,j+1)      &
-     &                   +ICE(ng)%a(i,j+1)*GRID(ng)%omn(i,j+1)          &
-     &                   +ICE(ng)%a(i,j)*GRID(ng)%omn(i,j))             &
+             aice_psip =( ICE(ng)%aice(i-1,j)*GRID(ng)%omn(i-1,j)          &
+     &                   +ICE(ng)%aice(i-1,j+1)*GRID(ng)%omn(i-1,j+1)      &
+     &                   +ICE(ng)%aice(i,j+1)*GRID(ng)%omn(i,j+1)          &
+     &                   +ICE(ng)%aice(i,j)*GRID(ng)%omn(i,j))             &
      &                  /(GRID(ng)%omn(i-1,j)+GRID(ng)%omn(i-1,j+1)     &
      &                     +GRID(ng)%omn(i,j+1)+GRID(ng)%omn(i,j))
-             aice_psi =( ICE(ng)%a(i-1,j-1)*GRID(ng)%omn(i-1,j-1)       &
-     &                   +ICE(ng)%a(i-1,j)*GRID(ng)%omn(i-1,j)          &
-     &                   +ICE(ng)%a(i,j)*GRID(ng)%omn(i,j)              &
-     &                   +ICE(ng)%a(i,j-1)*GRID(ng)%omn(i,j-1))         &
+             aice_psi =( ICE(ng)%aice(i-1,j-1)*GRID(ng)%omn(i-1,j-1)       &
+     &                   +ICE(ng)%aice(i-1,j)*GRID(ng)%omn(i-1,j)          &
+     &                   +ICE(ng)%aice(i,j)*GRID(ng)%omn(i,j)              &
+     &                   +ICE(ng)%aice(i,j-1)*GRID(ng)%omn(i,j-1))         &
      &                  /(GRID(ng)%omn(i-1,j-1)+GRID(ng)%omn(i-1,j)     &
      &                      +GRID(ng)%omn(i,j)+GRID(ng)%omn(i,j-1))
 
@@ -529,10 +550,7 @@
      &            ICE(ng)%aice_u)
 #endif
 
-
-
           CASE ('strocny')         ! ice-ocean stress y-dir 
-
 
             CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code), A, Asize)
             Iimport=Iimport+1
@@ -553,19 +571,22 @@
             do i = LBi+1,UBi-1
 
              !ice fraction on v-point
-             ICE(ng)%aice_v(i,j) = (ICE(ng)%a(i,j-1)*GRID(ng)%omn(i,j-1)+ICE(ng)%a(i,j)*GRID(ng)%omn(i,j)) / (GRID(ng)%omn(i,j-1)+GRID(ng)%omn(i,j))
+             ICE(ng)%aice_v(i,j) =                                      &
+     &              (ICE(ng)%aice(i,j-1)*GRID(ng)%omn(i,j-1)+           &
+     &              ICE(ng)%aice(i,j)*GRID(ng)%omn(i,j)) /              &
+     &              (GRID(ng)%omn(i,j-1)+GRID(ng)%omn(i,j))
              !ice fraction on psi-point (B-grid u(i-1,j-1) point)
              !first j+1 (psip), then j (psi)
-             aice_psip =( ICE(ng)%a(i,j-1)*GRID(ng)%omn(i,j-1)          &
-     &                   +ICE(ng)%a(i,j)*GRID(ng)%omn(i,j)              &
-     &                   +ICE(ng)%a(i+1,j)*GRID(ng)%omn(i+1,j)          &
-     &                   +ICE(ng)%a(i+1,j-1)*GRID(ng)%omn(i+1,j-1))     &
+             aice_psip =( ICE(ng)%aice(i,j-1)*GRID(ng)%omn(i,j-1)          &
+     &                   +ICE(ng)%aice(i,j)*GRID(ng)%omn(i,j)              &
+     &                   +ICE(ng)%aice(i+1,j)*GRID(ng)%omn(i+1,j)          &
+     &                   +ICE(ng)%aice(i+1,j-1)*GRID(ng)%omn(i+1,j-1))     &
      &                  /(GRID(ng)%omn(i,j-1)+GRID(ng)%omn(i,j)         &
      &                     +GRID(ng)%omn(i+1,j)+GRID(ng)%omn(i+1,j-1))
-             aice_psi =( ICE(ng)%a(i-1,j-1)*GRID(ng)%omn(i-1,j-1)       &
-     &                   +ICE(ng)%a(i-1,j)*GRID(ng)%omn(i-1,j)          &
-     &                   +ICE(ng)%a(i,j)*GRID(ng)%omn(i,j)              &
-     &                   +ICE(ng)%a(i,j-1)*GRID(ng)%omn(i,j-1))         &
+             aice_psi =( ICE(ng)%aice(i-1,j-1)*GRID(ng)%omn(i-1,j-1)       &
+     &                   +ICE(ng)%aice(i-1,j)*GRID(ng)%omn(i-1,j)          &
+     &                   +ICE(ng)%aice(i,j)*GRID(ng)%omn(i,j)              &
+     &                   +ICE(ng)%aice(i,j-1)*GRID(ng)%omn(i,j-1))         &
      &                  /(GRID(ng)%omn(i-1,j-1)+GRID(ng)%omn(i-1,j)     &
                             +GRID(ng)%omn(i,j)+GRID(ng)%omn(i,j-1))
              ! ice stress on b-grid u-point = psi(i+1,j+1) -> j-1 offset
@@ -674,8 +695,8 @@
             
            do j=JstrR,JendR
             do i=IstrR,IendR
-             if (OCEAN(ng)%qfraz_accum(i,j) .gt.0.0_r8) then
-              OCEAN(ng)%qfraz_accum(i,j)= &
+             if (OCEAN(ng)%qfraz_accum(i,j).gt.0.0_r8) then
+              OCEAN(ng)%qfraz_accum(i,j)=                               &
      &               OCEAN(ng)%qfraz_accum(i,j)/ncouple
              else
 !jd Assume 5-meter thickness of layer. Here melt potential should be a proper 
@@ -690,7 +711,7 @@
             CALL ROMS_export2d (ng, tile,                               &
      &                          id, gtype, scale, add_offset,           &
      &                          LBi, UBi, LBj, UBj,                     &
-     &                          OCEAN(ng)%qfraz_accum(:,:),            &
+     &                          OCEAN(ng)%qfraz_accum(:,:),             &
      &                          Fields(id)%ExpMin, Fields(id)%ExpMax,   &
      &                          Asize, A,                               &
      &                          status)
@@ -837,7 +858,7 @@
 !
 !========================================================================
 !                                                                       !
-!  This routine finalizes ocean and wave models coupling data streams.  !
+!  This routine finalizes ocean and ice models coupling data streams.  !
 !                                                                       !
 !========================================================================
 !

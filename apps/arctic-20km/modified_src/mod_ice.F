@@ -34,14 +34,18 @@
         implicit none
 
         TYPE T_ICE 
-          real(r8), pointer :: strx(:,:)
-          real(r8), pointer :: stry(:,:)
-          real(r8), pointer :: stru(:,:)
-          real(r8), pointer :: strv(:,:)
-          real(r8), pointer :: a(:,:)
-          real(r8), pointer :: aice_u(:,:)
-          real(r8), pointer :: aice_v(:,:)
+          real(r8), pointer :: aice(:,:)      ! ice concentration
+          real(r8), pointer :: aice_u(:,:)    ! ice concentration on u-points
+          real(r8), pointer :: aice_v(:,:)    ! ice concentration on v-points
+          real(r8), pointer :: fhocnAI(:,:)   ! nonradiative heat flux under ice
+          real(r8), pointer :: fswthruAI(:,:) ! radiative heat flux under ice
+          real(r8), pointer :: strx(:,:)      ! x-stress on CICE psi-points
+          real(r8), pointer :: stry(:,:)      ! y-stress on CICE psi-points
+          real(r8), pointer :: stru(:,:)      ! x-stress on ROMS u-points
+          real(r8), pointer :: strv(:,:)      ! y-stress on ROMS v-points
         END TYPE T_ICE
+
+! Note that all fluxes come multiplied by the (CICE) ice concentration, so e.g. strx = a*strx
 
         TYPE (T_ICE), allocatable :: ICE(:)
 
@@ -54,22 +58,26 @@
         integer, intent(in) :: ng, LBi, UBi, LBj, UBj
 
         if (ng.eq.1) allocate ( ICE(Ngrids) )
-        allocate ( ICE(ng)%strx(LBi:UBi,LBj:UBj) )
-        allocate ( ICE(ng)%stry(LBi:UBi,LBj:UBj) )
-        allocate ( ICE(ng)%stru(LBi:UBi,LBj:UBj) )
-        allocate ( ICE(ng)%strv(LBi:UBi,LBj:UBj) )
-        allocate ( ICE(ng)%a(LBi:UBi,LBj:UBj) )
+        allocate ( ICE(ng)%aice(LBi:UBi,LBj:UBj) )
         allocate ( ICE(ng)%aice_u(LBi:UBi,LBj:UBj) )
         allocate ( ICE(ng)%aice_v(LBi:UBi,LBj:UBj) )
+        allocate ( ICE(ng)%fhocnAI(LBi:UBi,LBj:UBj) )
+        allocate ( ICE(ng)%fswthruAI(LBi:UBi,LBj:UBj) )
+        allocate ( ICE(ng)%strx(LBi:UBi,LBj:UBj) ) ! Could be local variable in ocean_coupler? 
+        allocate ( ICE(ng)%stry(LBi:UBi,LBj:UBj) ) ! Could be local variable in ocean_coupler?
+        allocate ( ICE(ng)%stru(LBi:UBi,LBj:UBj) )
+        allocate ( ICE(ng)%strv(LBi:UBi,LBj:UBj) )
         
+        ICE(ng)%aice = 0
+        ICE(ng)%aice_u = 0
+        ICE(ng)%aice_v = 0
+        ICE(ng)%fhocnAI = 0
+        ICE(ng)%fswthruAI = 0
         ICE(ng)%strx = 0
         ICE(ng)%stry = 0
         ICE(ng)%stru = 0
         ICE(ng)%strv = 0
-        ICE(ng)%a = 0
-        ICE(ng)%aice_u = 0
-        ICE(ng)%aice_v = 0
-
+        
         RETURN
         END SUBROUTINE allocate_ice
         END MODULE mod_ice
