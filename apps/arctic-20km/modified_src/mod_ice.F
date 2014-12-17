@@ -39,6 +39,8 @@
           real(r8), pointer :: aice_v(:,:)    ! ice concentration on v-points
           real(r8), pointer :: fhocnAI(:,:)   ! nonradiative heat flux under ice
           real(r8), pointer :: fswthruAI(:,:) ! radiative heat flux under ice
+          real(r8), pointer :: freshAI(:,:)   ! freshwater flux ice to ocean (kg/s/m**2)
+          real(r8), pointer :: fsaltAI(:,:)   ! salt flux ice to ocean (kg/s/m**2)
           real(r8), pointer :: strx(:,:)      ! x-stress on CICE psi-points
           real(r8), pointer :: stry(:,:)      ! y-stress on CICE psi-points
           real(r8), pointer :: stru(:,:)      ! x-stress on ROMS u-points
@@ -63,6 +65,8 @@
         allocate ( ICE(ng)%aice_v(LBi:UBi,LBj:UBj) )
         allocate ( ICE(ng)%fhocnAI(LBi:UBi,LBj:UBj) )
         allocate ( ICE(ng)%fswthruAI(LBi:UBi,LBj:UBj) )
+        allocate ( ICE(ng)%freshAI(LBi:UBi,LBj:UBj) )
+        allocate ( ICE(ng)%fsaltAI(LBi:UBi,LBj:UBj) )
         allocate ( ICE(ng)%strx(LBi:UBi,LBj:UBj) ) ! Could be local variable in ocean_coupler? 
         allocate ( ICE(ng)%stry(LBi:UBi,LBj:UBj) ) ! Could be local variable in ocean_coupler?
         allocate ( ICE(ng)%stru(LBi:UBi,LBj:UBj) )
@@ -72,6 +76,8 @@
         ICE(ng)%aice_u = 0
         ICE(ng)%aice_v = 0
         ICE(ng)%fhocnAI = 0
+        ICE(ng)%freshAI = 0
+        ICE(ng)%fsaltAI = 0
         ICE(ng)%fswthruAI = 0
         ICE(ng)%strx = 0
         ICE(ng)%stry = 0

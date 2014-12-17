@@ -433,6 +433,16 @@
             write(6,*) 'ROMS rank ', MyRank,                            &
      &           ' received ',trim(code),' field (max/min): ',          &
      &           maxval(A),' ',minval(A)
+            scale=1.0_r8
+            add_offset=0.0_r8
+            CALL ROMS_import2d (ng, tile,                               &
+     &                          id, gtype, scale, add_offset,           &
+     &                          Asize, A,                               &
+     &                          IstrR, IendR, JstrR, JendR,             &
+     &                          LBi, UBi, LBj, UBj,                     &
+     &                          Fields(id)%ImpMin, Fields(id)%ImpMax,   &
+     &                          ICE(ng)%freshAI,                           &
+     &                          status)
 
           CASE ('fsaltAI')       ! Salt flux
 
@@ -441,6 +451,16 @@
             write(6,*) 'ROMS rank ', MyRank,                            &
      &           ' received ',trim(code),' field (max/min): ',          &
      &           maxval(A),' ',minval(A)
+            scale=1.0_r8
+            add_offset=0.0_r8
+            CALL ROMS_import2d (ng, tile,                               &
+     &                          id, gtype, scale, add_offset,           &
+     &                          Asize, A,                               &
+     &                          IstrR, IendR, JstrR, JendR,             &
+     &                          LBi, UBi, LBj, UBj,                     &
+     &                          Fields(id)%ImpMin, Fields(id)%ImpMax,   &
+     &                          ICE(ng)%fsaltAI,                        &
+     &                          status)
 
           CASE ('fhocnAI')         ! Nonradiative heat flux
 

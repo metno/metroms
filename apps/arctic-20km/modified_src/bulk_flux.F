@@ -129,6 +129,8 @@
      &                     ICE(ng) % aice_v,                            &
      &                     ICE(ng) % fhocnAI,                           &
      &                     ICE(ng) % fswthruAI,                         &
+     &                     ICE(ng) % freshAI,                           &
+     &                     ICE(ng) % fsaltAI,                           &
      &                     ICE(ng) % stru,                              &
      &                     ICE(ng) % strv,                              &
 # endif
@@ -175,6 +177,8 @@
      &                           aice_v,                                &
      &                           fhocnAI,                               &
      &                           fswthruAI,                             &
+     &                           freshAI,                               &
+     &                           fsaltAI,                               &
      &                           stru,                                  &
      &                           strv,                                  &
 # endif
@@ -242,6 +246,8 @@
       real(r8), intent(in) :: aice_v(LBi:,LBj:)
       real(r8), intent(in) :: fhocnAI(LBi:,LBj:)
       real(r8), intent(in) :: fswthruAI(LBi:,LBj:)
+      real(r8), intent(in) :: freshAI(LBi:,LBj:)
+      real(r8), intent(in) :: fsaltAI(LBi:,LBj:)
       real(r8), intent(in) :: stru(LBi:,LBj:)
       real(r8), intent(in) :: strv(LBi:,LBj:)
 #  endif
@@ -293,6 +299,8 @@
       real(r8), intent(in) :: aice_v(LBi:UBi,LBj:UBj)
       real(r8), intent(in) :: fhocnAI(LBi:UBi,LBj:UBj)
       real(r8), intent(in) :: fswthruAI(LBi:UBi,LBj:UBj)
+      real(r8), intent(in) :: freshAI(LBi:UBi,LBj:UBj)
+      real(r8), intent(in) :: fsaltAI(LBi:UBi,LBj:UBj)
       real(r8), intent(in) :: stru(LBi:UBi,LBj:UBj)
       real(r8), intent(in) :: strv(LBi:UBi,LBj:UBj)
 #  endif
@@ -824,6 +832,12 @@
           srflx(i,j)=srflx(i,j)*(1-aice(i,j))+fswthruAI(i,j)*Hscale
           stflx(i,j,itemp)=stflx(i,j,itemp)*(1-aice(i,j))+              &
      &         (fswthruAI(i,j)+fhocnAI(i,j))*Hscale
+! Calculation of virtual salt flux is completed in set_vbc. Here, the 
+! freshwater flux and the salt flux is combined to give a modified 
+! freshwater flux. Assumes that volume is not changed in ROMS. 
+          stflx(i,j,isalt) = stflx(i,j,isalt)*(1-aice(i,j))             &
+     &         -cff*( freshAI(i,j)                                      &
+     &         -fsaltAI(i,j)/max(t(i,j,N(ng),nrhs,isalt),0.1_r8) )
 # endif
 # ifdef MASKING
           stflx(i,j,itemp)=stflx(i,j,itemp)*rmask(i,j)
