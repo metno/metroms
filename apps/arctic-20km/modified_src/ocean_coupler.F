@@ -523,7 +523,7 @@
             do i = LBi+2,UBi
 ! I wonder if all the omn terms are overkill.
 ! omn = RHO-grid area (meters2).
-! ICE(ng)%a are rho-points.
+! ICE(ng)%aice are rho-points.
 
              !ice fraction on u-point
              ICE(ng)%aice_u(i,j) =                                      &

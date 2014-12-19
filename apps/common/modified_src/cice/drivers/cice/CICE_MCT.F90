@@ -183,6 +183,7 @@ contains
     WRITE (ice_stdout,*) ' CICE: Router_init. Done.'
     
     deallocate(start,length)
+    call zero_i2o_fields
 
   end subroutine init_mct
 
