@@ -1995,8 +1995,13 @@
       do j=jlo,jhi
        do i=ilo,ihi
         deg2rad = pi/c180
+!jd I dont understand that this could be correct. New attempt below
+!jd        solar_time = mod(real(sec,kind=dbl_kind),secday)/c3600 &
+!jd                   + c12*sin(p5*TLON(i,j))
+!jd new code
         solar_time = mod(real(sec,kind=dbl_kind),secday)/c3600 &
-                   + c12*sin(p5*TLON(i,j))
+                   + TLON(i,j)/(deg2rad*15) ! 15 degrees per hour
+!jd end
         hour_angle = (c12 - solar_time)*pi/c12
         declin = 23.44_dbl_kind*cos((172._dbl_kind-yday) &
                  * c2*pi/c365)*deg2rad     ! use dayyr instead of c365???
