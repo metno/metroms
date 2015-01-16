@@ -1,6 +1,6 @@
 &setup_nml
     days_per_year  = 365
-  , use_leap_years = .false.
+  , use_leap_years = .true.
   , year_init      = 1997
   , istep0         = 0
   , dt             = 3600.0
@@ -16,9 +16,9 @@
   , restart_dir    = '<cicedir>/rundir/restart/'
   , restart_file   = 'iced'
   , pointer_file   = '<cicedir>/rundir/restart/ice.restart_file'
-  , dumpfreq       = 'm'
-  , dumpfreq_n     = 1
-  , dump_last      = .false.
+  , dumpfreq       = 'd'
+  , dumpfreq_n     = 5
+  , dump_last      = .true.
   , diagfreq       = 24
   , diag_type      = 'stdout'
   , diag_file      = 'ice_diag.d'
