@@ -46,6 +46,7 @@
       USE mod_grid
       USE mod_ocean
       USE mod_stepping
+      USE mod_ice
 
       integer, intent(in) :: ng, tile
 !
@@ -68,8 +69,8 @@
      &                      GRID(ng) % Hz,                              &
      &                      GRID(ng) % z_r,                             &
      &                      OCEAN(ng) % t,                              &
-     &                      Ocean(ng) % qfraz,                          &
-     &                      Ocean(ng) % qfraz_accum)
+     &                      ICE(ng) % qfraz,                          &
+     &                      ICE(ng) % qfraz_accum)
 # ifdef PROFILE
       CALL wclock_off (ng, iNLM, 44)
 # endif

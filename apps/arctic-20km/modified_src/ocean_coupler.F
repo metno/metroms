@@ -742,13 +742,13 @@
             
            do j=JstrR,JendR
             do i=IstrR,IendR
-             if (OCEAN(ng)%qfraz_accum(i,j).gt.0.0_r8) then
-              OCEAN(ng)%qfraz_accum(i,j)=                               &
-     &               OCEAN(ng)%qfraz_accum(i,j)/ncouple
+             if (ICE(ng)%qfraz_accum(i,j).gt.0.0_r8) then
+              ICE(ng)%qfraz_accum(i,j)=                               &
+     &               ICE(ng)%qfraz_accum(i,j)/ncouple
              else
 !jd Assume 5-meter thickness of layer. Here melt potential should be a proper 
 !jd weight over a typical mixed (?)/ near-ice layer. 
-             OCEAN(ng)%qfraz_accum(i,j) = rho0*Cp *                     &
+             ICE(ng)%qfraz_accum(i,j) = rho0*Cp *                     &
      &        min(t_freeze(OCEAN(ng)%t(i,j,N(ng),NOUT,isalt),0.0_r8)    &
      &        - OCEAN(ng)%t(i,j,N(ng),NOUT,itemp), 0.0_r8 ) * 5.0_r8
              end if
@@ -758,7 +758,7 @@
             CALL ROMS_export2d (ng, tile,                               &
      &                          id, gtype, scale, add_offset,           &
      &                          LBi, UBi, LBj, UBj,                     &
-     &                          OCEAN(ng)%qfraz_accum(:,:),             &
+     &                          ICE(ng)%qfraz_accum(:,:),             &
      &                          Fields(id)%ExpMin, Fields(id)%ExpMax,   &
      &                          Asize, A,                               &
      &                          status)
@@ -769,7 +769,7 @@
             Iexport=Iexport+1
 
 !jd Reset accumulation array
-            ocean(ng)%qfraz_accum(:,:) = 0
+            ICE(ng)%qfraz_accum(:,:) = 0
 
 
           CASE ('u')

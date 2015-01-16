@@ -45,7 +45,13 @@
           real(r8), pointer :: stry(:,:)      ! y-stress on CICE psi-points
           real(r8), pointer :: stru(:,:)      ! x-stress on ROMS u-points
           real(r8), pointer :: strv(:,:)      ! y-stress on ROMS v-points
+#if defined CICE_COUPLING
+          real(r8), pointer :: qfraz(:,:)
+          real(r8), pointer :: qfraz_accum(:,:)
+#endif
         END TYPE T_ICE
+
+
 
 ! Note that all fluxes come multiplied by the (CICE) ice concentration, so e.g. strx = a*strx
 
@@ -59,6 +65,9 @@
       
         integer, intent(in) :: ng, LBi, UBi, LBj, UBj
 
+        real(r8), parameter :: IniVal = 0.0_r8
+
+
         if (ng.eq.1) allocate ( ICE(Ngrids) )
         allocate ( ICE(ng)%aice(LBi:UBi,LBj:UBj) )
         allocate ( ICE(ng)%aice_u(LBi:UBi,LBj:UBj) )
@@ -71,18 +80,26 @@
         allocate ( ICE(ng)%stry(LBi:UBi,LBj:UBj) ) ! Could be local variable in ocean_coupler?
         allocate ( ICE(ng)%stru(LBi:UBi,LBj:UBj) )
         allocate ( ICE(ng)%strv(LBi:UBi,LBj:UBj) )
+#if defined CICE_COUPLING
+        allocate ( ICE(ng) % qfraz(LBi:UBi,LBj:UBj))
+        allocate ( ICE(ng) % qfraz_accum(LBi:UBi,LBj:UBj))
+#endif
         
-        ICE(ng)%aice = 0
-        ICE(ng)%aice_u = 0
-        ICE(ng)%aice_v = 0
-        ICE(ng)%fhocnAI = 0
-        ICE(ng)%freshAI = 0
-        ICE(ng)%fsaltAI = 0
-        ICE(ng)%fswthruAI = 0
-        ICE(ng)%strx = 0
-        ICE(ng)%stry = 0
-        ICE(ng)%stru = 0
-        ICE(ng)%strv = 0
+        ICE(ng)%aice = IniVal
+        ICE(ng)%aice_u = IniVal
+        ICE(ng)%aice_v = IniVal
+        ICE(ng)%fhocnAI = IniVal
+        ICE(ng)%freshAI = IniVal
+        ICE(ng)%fsaltAI = IniVal
+        ICE(ng)%fswthruAI = IniVal
+        ICE(ng)%strx = IniVal
+        ICE(ng)%stry = IniVal
+        ICE(ng)%stru = IniVal
+        ICE(ng)%strv = IniVal
+# if defined CICE_COUPLING
+        ICE(ng) % qfraz = IniVal
+        ICE(ng) % qfraz_accum = IniVal
+#endif
         
         RETURN
         END SUBROUTINE allocate_ice
