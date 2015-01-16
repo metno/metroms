@@ -99,7 +99,7 @@ module CICE_MCT
 
 contains
   
-  subroutine init_mct
+  subroutine init_mct()
 !
 !  MCT interface initialization
    !
@@ -183,16 +183,20 @@ contains
     WRITE (ice_stdout,*) ' CICE: Router_init. Done.'
     
     deallocate(start,length)
-    call zero_i2o_fields
+
+    call CICE_MCT_coupling
+!jd    call zero_i2o_fields
 
   end subroutine init_mct
 
 !***********************************************************************
 
 
-  subroutine CICE_MCT_coupling(time,dt)
+!jd  subroutine CICE_MCT_coupling(time,dt)
+  subroutine CICE_MCT_coupling()
     use ice_grid, only: HTN, HTE, dxu, dyu, dxt, dyt
-    real(kind=dbl_kind), intent(in) :: time,dt
+    use ice_calendar, only: dt, time, write_ic 
+!jd    real(kind=dbl_kind), intent(in) :: time,dt
     real(kind=dbl_kind), pointer :: avdata(:)
     integer     :: ilo, ihi, jlo, jhi ! beginning and end of physical domain
     type(block) :: this_block         ! block information for current block

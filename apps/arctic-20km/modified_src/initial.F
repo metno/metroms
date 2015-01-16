@@ -683,7 +683,10 @@
 !-----------------------------------------------------------------------
 !
       DO tile=first_tile(ng),last_tile(ng),+1
-!        CALL ocn2cice_coupling (ng, tile)
+!jd ncouple put to 1 intermediate. This is the accumulation steps for frazil ice
+!jd when frazil ice is read from restart file, this variable could be 
+!jd reconsidered
+        CALL ocn2cice_coupling (ng, tile,1)
       END DO
 !$OMP BARRIER
       IF (Master) WRITE (stdout,'(/)')

@@ -16,8 +16,8 @@
   , restart_dir    = '<cicedir>/rundir/restart/'
   , restart_file   = 'iced'
   , pointer_file   = '<cicedir>/rundir/restart/ice.restart_file'
-  , dumpfreq       = 'd'
-  , dumpfreq_n     = 5
+  , dumpfreq       = 'm'
+  , dumpfreq_n     = 1
   , dump_last      = .true.
   , diagfreq       = 24
   , diag_type      = 'stdout'
