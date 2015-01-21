@@ -66,7 +66,7 @@
       integer (kind=int_kind), parameter, public :: &
          ice_stdin  =  505, & ! reserved unit for standard input
          ice_stdout =  506, & ! reserved unit for standard output
-         ice_stderr =  506    ! reserved unit for standard error
+         ice_stderr =  507    ! reserved unit for standard error
 
       integer (kind=int_kind), parameter :: &
          ice_IOUnitsMinUnit = NUMIN, & ! do not use unit numbers below 
@@ -87,12 +87,15 @@
 
       subroutine init_fileunits
 
-         nu_diag = ice_stdout  ! default
+         nu_diag = 508 ! ice_stdout  ! default
 
          ice_IOUnitsInUse = .false.
          ice_IOUnitsInUse(ice_stdin)  = .true. ! reserve unit 505
          ice_IOUnitsInUse(ice_stdout) = .true. ! reserve unit 506
          ice_IOUnitsInUse(ice_stderr) = .true.
+     
+         ice_IOUnitsInUse(nu_diag) = .true.
+         open(UNIT=nu_diag,FILE='cice_nu_diag')
 
          open(UNIT=ice_stdout,FILE='cice_stdout')
          if (ice_stdout.ne.ice_stderr) then
