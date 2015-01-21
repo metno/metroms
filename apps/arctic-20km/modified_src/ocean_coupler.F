@@ -407,8 +407,91 @@
 
         SELECT CASE (TRIM(code))
 
+          CASE ('iarr')
+  
+            CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code), A, Asize)
+            Iimport=Iimport+1
+            scale=1.0_r8
+            add_offset=0.0_r8
+            CALL ROMS_import2d (ng, tile,                               &
+     &                          id, gtype, scale, add_offset,           &
+     &                          Asize, A,                               &
+     &                          IstrR, IendR, JstrR, JendR,             &
+     &                          LBi, UBi, LBj, UBj,                     &
+     &                          Fields(id)%ImpMin, Fields(id)%ImpMax,   &
+     &                          ICE(ng)%i_arr,                          &
+     &                          status)
+          do i=LBi+1,UBi-1
+          do j=LBj,UBj
+            ICE(ng)%i_arr(i,j) = (ICE(ng)%i_arr(i-1,j)+ICE(ng)%i_arr(i+1,j))*0.5
+          enddo
+          enddo         
+          
+             CALL mp_exchange2d (ng, tile, iNLM, 1,                     &
+     &            LBi, UBi, LBj, UBj,                                   &
+     &            NghostPoints, EWperiodic(ng), NSperiodic(ng),         &
+     &            ICE(ng)%i_arr)
 
-          CASE ('AICE')         ! Sea ice concentration
+          CASE ('jarr')
+  
+            CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code), A, Asize)
+            Iimport=Iimport+1
+            scale=1.0_r8
+            add_offset=0.0_r8
+            CALL ROMS_import2d (ng, tile,                               &
+     &                          id, gtype, scale, add_offset,           &
+     &                          Asize, A,                               &
+     &                          IstrR, IendR, JstrR, JendR,             &
+     &                          LBi, UBi, LBj, UBj,                     &
+     &                          Fields(id)%ImpMin, Fields(id)%ImpMax,   &
+     &                          ICE(ng)%j_arr,                          &
+     &                          status)
+          do i=LBi,UBi
+          do j=LBj+1,UBj-1
+            ICE(ng)%j_arr(i,j) = (ICE(ng)%j_arr(i,j-1)+ICE(ng)%j_arr(i,j+1))*0.5
+          enddo
+          enddo
+
+             CALL mp_exchange2d (ng, tile, iNLM, 1,                     &
+     &            LBi, UBi, LBj, UBj,                                   &
+     &            NghostPoints, EWperiodic(ng), NSperiodic(ng),         &
+     &            ICE(ng)%j_arr)
+
+          CASE ('ULON')
+  
+            CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code), A, Asize)
+            Iimport=Iimport+1
+            write(6,*) 'ROMS rank ', MyRank,                            &
+     &           ' received ',trim(code),' field (max/min): ',          &
+     &           maxval(A),' ',minval(A) 
+            scale=1.0_r8
+            add_offset=0.0_r8
+            CALL ROMS_import2d (ng, tile,                               &
+     &                          id, gtype, scale, add_offset,           &
+     &                          Asize, A,                               &
+     &                          IstrR, IendR, JstrR, JendR,             &
+     &                          LBi, UBi, LBj, UBj,                     &
+     &                          Fields(id)%ImpMin, Fields(id)%ImpMax,   &
+     &                          ICE(ng)%ulon,                           &
+     &                          status)
+
+
+          CASE ('ULAT')
+
+            CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code), A, Asize)
+            Iimport=Iimport+1
+            scale=1.0_r8
+            add_offset=0.0_r8
+            CALL ROMS_import2d (ng, tile,                               &
+     &                          id, gtype, scale, add_offset,           &
+     &                          Asize, A,                               &
+     &                          IstrR, IendR, JstrR, JendR,             &
+     &                          LBi, UBi, LBj, UBj,                     &
+     &                          Fields(id)%ImpMin, Fields(id)%ImpMax,   &
+     &                          ICE(ng)%ulat,                           &
+     &                          status)
+
+         CASE ('AICE')         ! Sea ice concentration
 
             CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code),A,Asize)
             Iimport=Iimport+1
@@ -596,6 +679,7 @@
         
         END SELECT
       END DO
+
 !
 !-----------------------------------------------------------------------
 !  Export fields from ocean (ROMS) to sea ice (CICE) model.

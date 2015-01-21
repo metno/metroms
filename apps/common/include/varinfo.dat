@@ -711,6 +711,43 @@
   'r2dvar'
   1.0d0
 
+'iarr'
+   'bla'
+   'bla'
+   'bla'
+   'ocean_time'
+   'idIarr'
+   'p2dvar'
+   1.0d0
+
+'jarr'
+   'bla'
+   'bla'
+   'bla'
+   'ocean_time'
+   'idJarr'
+   'p2dvar'
+   1.0d0
+
+'ULON'
+   'ulon'
+   'bla'
+   'bla'
+   'ocean_time'
+   'idUlon'
+   'p2dvar'
+   1.0d0
+
+'ULAT'
+    'ulat'
+    'bla'
+    'bla'
+    'oceam_time'
+    'idUlat'
+    'p2dvar'
+    1.0d0
+
+
 'hice'
   'average ice thickness in cell'
   'meter'

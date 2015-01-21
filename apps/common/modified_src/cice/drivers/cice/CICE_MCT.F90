@@ -68,7 +68,7 @@
       character (len=240) :: &
            importList = 'SST:SSS:FRZMLT:u:v:SSH', &
            exportList = &
-           'AICE:freshAI:fsaltAI:fhocnAI:fswthruAI:strocnx:strocny'
+           'AICE:freshAI:fsaltAI:fhocnAI:fswthruAI:strocnx:strocny:ULAT:ULON:iarr:jarr'
 
    integer (int_kind), public :: &
       CICEid,                   &
@@ -176,7 +176,7 @@
 
 
  subroutine CICE_MCT_coupling(time,dt)
-   use ice_grid, only: HTN, HTE, dxu, dyu, dxt, dyt
+   use ice_grid, only: HTN, HTE, dxu, dyu, dxt,dyt,ULAT,ULON,ANGLE, i_arr, j_arr
    real(kind=dbl_kind), intent(in) :: time,dt
    real(kind=dbl_kind), pointer :: avdata(:)
    integer     :: ilo, ihi, jlo, jhi ! beginning and end of physical domain
@@ -197,10 +197,47 @@
          write(ice_stdout,*) 'dt = ', dt
          write(ice_stdout,*) '*********************************************'
       END IF
+
+      do iblk = 1, nblocks
+         this_block = get_block(blocks_ice(iblk),iblk)
+         ilo = this_block%ilo
+         ihi = this_block%ihi
+         jlo = this_block%jlo
+         jhi = this_block%jhi
+ 
+         do i = ilo,ihi
+         do j = jlo,jhi 
+           i_arr(i,j,iblk) = this_block%i_glob(i)
+           j_arr(i,j,iblk) = this_block%j_glob(j)
+         enddo
+         enddo
+      enddo
+
       Asize=GlobalSegMap_lsize(GSMapCICE, MPI_COMM_ICE)
       allocate(avdata(Asize))
       avdata=0.0
+! Export debug stuff
+      call ice2ocn_send_field(ULAT,'ULAT')
+      call ice2ocn_send_field(ULON,'ULON')
+      call ice2ocn_send_field(i_arr,'iarr')
+      call ice2ocn_send_field(j_arr,'jarr')
 !
+     
+      do iblk = 1, nblocks
+         this_block = get_block(blocks_ice(iblk),iblk)
+         ilo = this_block%ilo
+         ihi = this_block%ihi
+         jlo = this_block%jlo
+         jhi = this_block%jhi
+ 
+      do i = ilo,ihi
+      do j = jlo,jhi
+         i_arr(i,j,iblk) = (i_arr(i-1,j,iblk)+i_arr(i+1,j,iblk))*0.5
+         j_arr(i,j,iblk) = (j_arr(i,j-1,iblk)+j_arr(i,j+1,iblk))*0.5
+      enddo
+      enddo
+      enddo
+
 ! Exporting aice
       call ice2ocn_send_field(aice,'AICE')
 ! Exporting fresh_ai
@@ -435,6 +472,34 @@
         enddo
      enddo
    end subroutine field2avec
+
+
+   subroutine avecIntField(field, fieldname)
+     use ice_domain_size, only: max_blocks
+     integer (kind=int_kind), dimension (nx_block,ny_block,max_blocks), &
+          intent(in):: field
+     character(len=*),intent(in) :: fieldname
+     integer(kind=int_kind), pointer :: avec(:)
+
+     n = 0
+     do iblk = 1, nblocks
+        this_block = get_block(blocks_ice(iblk),iblk)
+        ilo = this_block%ilo
+        ihi = this_block%ihi
+        jlo = this_block%jlo
+        jhi = this_block%jhi
+        do j = jlo, jhi
+           do i = ilo, ihi
+              n = n+1
+              avec(n) = field(i,j,iblk)
+           enddo
+        enddo
+     enddo
+     CALL AttrVect_importIAttr(cice2ocn_AV, trim(fieldname), avdata)
+
+   end subroutine avecIntField
+
+
 
  end subroutine CICE_MCT_coupling
 

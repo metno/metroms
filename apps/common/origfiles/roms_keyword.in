@@ -354,8 +354,8 @@ Hout(idUvel) == T                          ! 3D U-velocity
 Hout(idVvel) == T                          ! 3D V-velocity
 Hout(idWvel) == F                          ! 3D W-velocity
 Hout(idOvel) == F                          ! omega vertical velocity
-Hout(idUbar) == T                          ! 2D U-velocity
-Hout(idVbar) == T                          ! 2D V-velocity
+Hout(idUbar) == F                          ! 2D U-velocity
+Hout(idVbar) == F                          ! 2D V-velocity
 Hout(idFsur) == T                          ! free-surface
 
 Hout(idTvar) == T T                        ! temperature and salinity
@@ -398,6 +398,10 @@ Hout(idSSSf) == F                          ! sea surface salinity corr. flux
 
 ! Logical switches (TRUE/FALSE) to activate writing of ice prognostic
 ! variables into HISTORY output file.
+Hout(idIarr) == T
+Hout(idJarr) == T
+Hout(idUlon) == T
+Hout(idUlat) == T
 Hout(idUice) == F
 Hout(idVice) == F
 Hout(idAice) == F
@@ -1513,7 +1517,7 @@ TimeInterval = 3600.0d0
 !       Export(...) = NONE
 
  Nexport(ocean) = 6
- Nexport(cice)  = 7
+ Nexport(cice)  = 11
 
   Export(ocean) = SST  \
                   SSS  \
@@ -1550,7 +1554,11 @@ TimeInterval = 3600.0d0
                   fhocnAI \
                   fswthruAI \
                   strocnx \
-                  strocny
+                  strocny \
+                  ULAT  \
+                  ULON \
+                  iarr \
+                  jarr
 
 
 ! Import fields per model, [1:Nimport(...)] string values are expected per
@@ -1559,7 +1567,7 @@ TimeInterval = 3600.0d0
 !      Nimport(...) = 0
 !       Import(...) = NONE
 
- Nimport(ocean) = 7
+ Nimport(ocean) = 11
  Nimport(cice)  = 6
 
   Import(ocean) = AICE \
@@ -1568,7 +1576,11 @@ TimeInterval = 3600.0d0
                   fhocnAI \
                   fswthruAI \
                   strocnx \
-                  strocny
+                  strocny \
+                  ULAT \
+                  ULON \
+                  iarr \
+                  jarr
 
 
 !  Import(waves) = Uwind \

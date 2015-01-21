@@ -41,6 +41,10 @@
           real(r8), pointer :: a(:,:)
           real(r8), pointer :: aice_u(:,:)
           real(r8), pointer :: aice_v(:,:)
+          real(r8), pointer :: ulat(:,:)
+          real(r8), pointer :: ulon(:,:)
+          real(r8), pointer :: i_arr(:,:)
+          real(r8), pointer :: j_arr(:,:)
         END TYPE T_ICE
 
         TYPE (T_ICE), allocatable :: ICE(:)
@@ -61,6 +65,10 @@
         allocate ( ICE(ng)%a(LBi:UBi,LBj:UBj) )
         allocate ( ICE(ng)%aice_u(LBi:UBi,LBj:UBj) )
         allocate ( ICE(ng)%aice_v(LBi:UBi,LBj:UBj) )
+        allocate ( ICE(ng)%ulat(LBi:UBi,LBj:UBj) )
+        allocate ( ICE(ng)%ulon(LBi:UBi,LBj:UBj) )
+        allocate ( ICE(ng)%i_arr(LBi:UBi,LBj:UBj) )
+        allocate ( ICE(ng)%j_arr(LBi:UBi,LBj:UBj) )
         
         ICE(ng)%strx = 0
         ICE(ng)%stry = 0
@@ -69,6 +77,10 @@
         ICE(ng)%a = 0
         ICE(ng)%aice_u = 0
         ICE(ng)%aice_v = 0
+        ICE(ng)%ulat = 0
+        ICE(ng)%ulon = 0
+        ICE(ng)%i_arr = 0
+        ICE(ng)%j_arr = 0
 
         RETURN
         END SUBROUTINE allocate_ice

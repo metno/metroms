@@ -369,4 +369,42 @@
   'p2dvar'
   0.0d0
   1.0d0
- 
+
+
+'ULAT'
+  'ulat'
+  'Stress component in y-direction from ice model'
+  'nej'
+  'p2dvar'
+  0.0d0
+  1.0d0
+
+
+'ULON'
+  'ulon'
+  'Stress component in y-direction from ice model'
+  'jo'
+  'p2dvar'
+  0.0d0
+  1.0d0
+
+'iarr'
+  'iarr'
+  'bla'
+  'bla'
+  'p2dvar'
+  0.0d0
+  1.0d0
+
+'jarr'
+  'jarr'
+  'bla'
+  'bla'
+  'p2dvar'
+  0.0d0
+  1.0d0
+
+
+
+
+

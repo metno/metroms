@@ -63,6 +63,10 @@
          ANGLET     ! ANGLE converted to T-cells
 
       real (kind=dbl_kind), dimension (nx_block,ny_block,max_blocks), public, save :: &
+        i_arr , &
+        j_arr
+
+      real (kind=dbl_kind), dimension (nx_block,ny_block,max_blocks), public, save :: &
          cyp    , & ! 1.5*HTE - 0.5*HTE
          cxp    , & ! 1.5*HTN - 0.5*HTN
          cym    , & ! 0.5*HTE - 1.5*HTE
