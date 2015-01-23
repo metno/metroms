@@ -87,8 +87,11 @@ setenv THRD     no        # set to yes for OpenMP threading
 if ( $THRD == 'yes') setenv OMP_NUM_THREADS 2 # positive integer 
 
 ### File unit numbers
-setenv NUMIN 11           # minimum file unit number
-setenv NUMAX 99           # maximum file unit number
+#setenv NUMIN 11           # minimum file unit number
+#setenv NUMAX 99           # maximum file unit number
+# Redefiend when coupled with ROMS (JD: 20150116), std_in,std_out goes to 505,506, respectively.
+setenv NUMIN 511           # minimum file unit number
+setenv NUMAX 599           # maximum file unit number
 
 ### Set SRCDIR and EXEDIR to your own paths!
 setenv SRCDIR $SYSTEM_USERDIR

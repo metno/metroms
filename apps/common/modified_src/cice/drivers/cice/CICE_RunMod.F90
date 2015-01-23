@@ -63,7 +63,8 @@
          call ice_step
 
          ! CALL MCT ROMS coupling routine
-         call CICE_MCT_coupling(time, dt)
+!jd         call CICE_MCT_coupling(time, dt)
+         call CICE_MCT_coupling
 
          istep  = istep  + 1    ! update time step counters
          istep1 = istep1 + 1

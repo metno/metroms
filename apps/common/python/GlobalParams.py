@@ -1,7 +1,9 @@
 class GlobalParams(object):
-    COMMONPATH="/home/sebastm/metroms-master/metroms/apps/common"
+    import getpass
+    username=getpass.getuser()
+    COMMONPATH="/disk1/"+username+"/metroms/apps/common"
     COMMONORIGPATH=COMMONPATH+"/origfiles"
-    RUNDIR="/global/work/sebastm/tmproms/run"
+    RUNDIR="/disk1/"+username+"/tmproms/run"
     ########################################################################
     # Internal files:
     ########################################################################

@@ -160,11 +160,15 @@
 # endif
       DO j=JstrR,JendR
         DO i=IstrR,IendR
-!
+!jd - start I think this is wrong. 
+!jd!
+!jd!  Local daylight is a function of the declination (Dangle) and hour 
+!jd!  angle adjusted for the local meridian (Hangle-lonr(i,j)/15.0). 
+!jd!  The 15.0 factor is because the sun moves 15 degrees every hour.
+!jd! - New
 !  Local daylight is a function of the declination (Dangle) and hour 
-!  angle adjusted for the local meridian (Hangle-lonr(i,j)/15.0). 
-!  The 15.0 factor is because the sun moves 15 degrees every hour.
-!
+!  angle adjusted for the local longitude (Hangle-lonr(i,j))
+!jd - end
           LatRad=latr(i,j)*deg2rad
           cff1=SIN(LatRad)*SIN(Dangle)
           cff2=COS(LatRad)*COS(Dangle)
@@ -179,7 +183,11 @@
 !  Ocean Dynamics, pp 606).
 !
           srflx(i,j)=0.0_r8
-          zenith=cff1+cff2*COS(Hangle-lonr(i,j)*deg2rad/15.0_r8)
+!jd Start original
+!jd          zenith=cff1+cff2*COS(Hangle-lonr(i,j)*deg2rad/15.0_r8)
+!jd new 
+          zenith=cff1+cff2*COS(Hangle-lonr(i,j)*deg2rad)
+!jd end
           IF (zenith.gt.0.0_r8) THEN
             cff=(0.7859_r8+0.03477_r8*Tair(i,j))/                     &
      &          (1.0_r8+0.00412_r8*Tair(i,j))

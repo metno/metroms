@@ -105,9 +105,9 @@
       TYPE(Router)   :: ROMStoWRF             ! Router variables
 # endif
 # ifdef CICE_COUPLING
-      TYPE(AttrVect) :: cice2ocn_AV            ! AttrVect variables
+      TYPE(AttrVect) :: cice2ocn_AV           ! AttrVect variables
       TYPE(AttrVect) :: ocn2cice_AV
-      TYPE(Router)   :: ROMStoCICE             ! Router variables
+      TYPE(Router)   :: ROMStoCICE            ! Router variables
 # endif
       TYPE(GlobalSegMap) :: GSMapROMS         ! GloabalSegMap variables
 
@@ -126,6 +126,7 @@
 #  include "mct_roms_wrf.h"
 # endif
 # ifdef CICE_COUPLING
+
       SUBROUTINE initialize_ocn2cice_coupling (ng, tile)
       USE mod_param
       USE mod_parallel
@@ -407,91 +408,7 @@
 
         SELECT CASE (TRIM(code))
 
-          CASE ('iarr')
-  
-            CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code), A, Asize)
-            Iimport=Iimport+1
-            scale=1.0_r8
-            add_offset=0.0_r8
-            CALL ROMS_import2d (ng, tile,                               &
-     &                          id, gtype, scale, add_offset,           &
-     &                          Asize, A,                               &
-     &                          IstrR, IendR, JstrR, JendR,             &
-     &                          LBi, UBi, LBj, UBj,                     &
-     &                          Fields(id)%ImpMin, Fields(id)%ImpMax,   &
-     &                          ICE(ng)%i_arr,                          &
-     &                          status)
-          do i=LBi+1,UBi-1
-          do j=LBj,UBj
-            ICE(ng)%i_arr(i,j) = (ICE(ng)%i_arr(i-1,j)+ICE(ng)%i_arr(i+1,j))*0.5
-          enddo
-          enddo         
-          
-             CALL mp_exchange2d (ng, tile, iNLM, 1,                     &
-     &            LBi, UBi, LBj, UBj,                                   &
-     &            NghostPoints, EWperiodic(ng), NSperiodic(ng),         &
-     &            ICE(ng)%i_arr)
-
-          CASE ('jarr')
-  
-            CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code), A, Asize)
-            Iimport=Iimport+1
-            scale=1.0_r8
-            add_offset=0.0_r8
-            CALL ROMS_import2d (ng, tile,                               &
-     &                          id, gtype, scale, add_offset,           &
-     &                          Asize, A,                               &
-     &                          IstrR, IendR, JstrR, JendR,             &
-     &                          LBi, UBi, LBj, UBj,                     &
-     &                          Fields(id)%ImpMin, Fields(id)%ImpMax,   &
-     &                          ICE(ng)%j_arr,                          &
-     &                          status)
-          do i=LBi,UBi
-          do j=LBj+1,UBj-1
-            ICE(ng)%j_arr(i,j) = (ICE(ng)%j_arr(i,j-1)+ICE(ng)%j_arr(i,j+1))*0.5
-          enddo
-          enddo
-
-             CALL mp_exchange2d (ng, tile, iNLM, 1,                     &
-     &            LBi, UBi, LBj, UBj,                                   &
-     &            NghostPoints, EWperiodic(ng), NSperiodic(ng),         &
-     &            ICE(ng)%j_arr)
-
-          CASE ('ULON')
-  
-            CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code), A, Asize)
-            Iimport=Iimport+1
-            write(6,*) 'ROMS rank ', MyRank,                            &
-     &           ' received ',trim(code),' field (max/min): ',          &
-     &           maxval(A),' ',minval(A) 
-            scale=1.0_r8
-            add_offset=0.0_r8
-            CALL ROMS_import2d (ng, tile,                               &
-     &                          id, gtype, scale, add_offset,           &
-     &                          Asize, A,                               &
-     &                          IstrR, IendR, JstrR, JendR,             &
-     &                          LBi, UBi, LBj, UBj,                     &
-     &                          Fields(id)%ImpMin, Fields(id)%ImpMax,   &
-     &                          ICE(ng)%ulon,                           &
-     &                          status)
-
-
-          CASE ('ULAT')
-
-            CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code), A, Asize)
-            Iimport=Iimport+1
-            scale=1.0_r8
-            add_offset=0.0_r8
-            CALL ROMS_import2d (ng, tile,                               &
-     &                          id, gtype, scale, add_offset,           &
-     &                          Asize, A,                               &
-     &                          IstrR, IendR, JstrR, JendR,             &
-     &                          LBi, UBi, LBj, UBj,                     &
-     &                          Fields(id)%ImpMin, Fields(id)%ImpMax,   &
-     &                          ICE(ng)%ulat,                           &
-     &                          status)
-
-         CASE ('AICE')         ! Sea ice concentration
+          CASE ('AICE')           ! Sea ice concentration
 
             CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code),A,Asize)
             Iimport=Iimport+1
@@ -506,10 +423,8 @@
      &                          IstrR, IendR, JstrR, JendR,             &
      &                          LBi, UBi, LBj, UBj,                     &
      &                          Fields(id)%ImpMin, Fields(id)%ImpMax,   &
-     &                          ICE(ng)%a,                              &
+     &                          ICE(ng)%aice,                           &
      &                          status)
-
-
        
           CASE ('freshAI')         ! Fresh water flux
 
@@ -518,14 +433,34 @@
             write(6,*) 'ROMS rank ', MyRank,                            &
      &           ' received ',trim(code),' field (max/min): ',          &
      &           maxval(A),' ',minval(A)
+            scale=1.0_r8
+            add_offset=0.0_r8
+            CALL ROMS_import2d (ng, tile,                               &
+     &                          id, gtype, scale, add_offset,           &
+     &                          Asize, A,                               &
+     &                          IstrR, IendR, JstrR, JendR,             &
+     &                          LBi, UBi, LBj, UBj,                     &
+     &                          Fields(id)%ImpMin, Fields(id)%ImpMax,   &
+     &                          ICE(ng)%freshAI,                           &
+     &                          status)
 
-          CASE ('fsaltAI')         ! Salt flux
+          CASE ('fsaltAI')       ! Salt flux
 
             CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code), A, Asize)
             Iimport=Iimport+1
             write(6,*) 'ROMS rank ', MyRank,                            &
      &           ' received ',trim(code),' field (max/min): ',          &
      &           maxval(A),' ',minval(A)
+            scale=1.0_r8
+            add_offset=0.0_r8
+            CALL ROMS_import2d (ng, tile,                               &
+     &                          id, gtype, scale, add_offset,           &
+     &                          Asize, A,                               &
+     &                          IstrR, IendR, JstrR, JendR,             &
+     &                          LBi, UBi, LBj, UBj,                     &
+     &                          Fields(id)%ImpMin, Fields(id)%ImpMax,   &
+     &                          ICE(ng)%fsaltAI,                        &
+     &                          status)
 
           CASE ('fhocnAI')         ! Nonradiative heat flux
 
@@ -534,6 +469,16 @@
             write(6,*) 'ROMS rank ', MyRank,                            &
      &           ' received ',trim(code),' field (max/min): ',          &
      &           maxval(A),' ',minval(A)
+            scale=1.0_r8
+            add_offset=0.0_r8
+            CALL ROMS_import2d (ng, tile,                               &
+     &                          id, gtype, scale, add_offset,           &
+     &                          Asize, A,                               &
+     &                          IstrR, IendR, JstrR, JendR,             &
+     &                          LBi, UBi, LBj, UBj,                     &
+     &                          Fields(id)%ImpMin, Fields(id)%ImpMax,   &
+     &                          ICE(ng)%fhocnAI,                        &
+     &                          status)
 
           CASE ('fswthruAI')         ! Radiative heat flux through ice
 
@@ -542,6 +487,16 @@
             write(6,*) 'ROMS rank ', MyRank,                            &
      &           ' received ',trim(code),' field (max/min): ',          &
      &           maxval(A),' ',minval(A)
+            scale=1.0_r8
+            add_offset=0.0_r8
+            CALL ROMS_import2d (ng, tile,                               &
+     &                          id, gtype, scale, add_offset,           &
+     &                          Asize, A,                               &
+     &                          IstrR, IendR, JstrR, JendR,             &
+     &                          LBi, UBi, LBj, UBj,                     &
+     &                          Fields(id)%ImpMin, Fields(id)%ImpMax,   &
+     &                          ICE(ng)%fswthruAI,                      &
+     &                          status)
 
           CASE ('strocnx')         ! ice-ocean stress x-dir
 
@@ -554,7 +509,7 @@
 ! Had Istr etc here first, and gtype as r2dvar -> visible processor map
 ! IstrR and r2dvar worked better. Now trying p2dvar, i.e. psi-point.
 ! But there's a one grid point offset between CICE and ROMS that bugs me
-! CICE U(i,j) = ROMS psi(i-1,j-1). Or so I recon at least :)
+! CICE U(i,j) = ROMS psi(i-1,j-1). )
             CALL ROMS_import2d (ng, tile,                               &
      &                          id, gtype, scale, add_offset,           &
      &                          Asize, A,                               &
@@ -566,39 +521,26 @@
            
             do j = LBj+1,UBj-1
             do i = LBi+2,UBi
-! I wonder if all the omn terms are overkill.
-! omn = RHO-grid area (meters2).
-! ICE(ng)%a are rho-points.
+!jd Start I think this should be simplified, and that the ice concentration
+!jd should used as weight in the interpolation of stress. strocnx is allready
+!jd the product of stress and ice concentration when recived from CICE.
 
+! seb - Yes you're right. Total brainfart from me there :(
+
+!jd I also think we should remove the metric terms (omn) here. This is 
+!jd normally not taken into account in ROMS when interpolation from 
+!jd rho to u/v points, although it is included in ROMS. 
+!jd
+!jd new code
              !ice fraction on u-point
-             ICE(ng)%aice_u(i,j) = (ICE(ng)%a(i-1,j)*GRID(ng)%omn(i-1,j)+ICE(ng)%a(i,j)*GRID(ng)%omn(i,j)) / (GRID(ng)%omn(i-1,j)+GRID(ng)%omn(i,j))
-             !ice fraction on psi-point (B-grid u(i-1,j-1) point)
-             !first i,j+1 (psip), then i,j (psi)
-             aice_psip =( ICE(ng)%a(i-1,j)*GRID(ng)%omn(i-1,j)          &
-     &                   +ICE(ng)%a(i-1,j+1)*GRID(ng)%omn(i-1,j+1)      &
-     &                   +ICE(ng)%a(i,j+1)*GRID(ng)%omn(i,j+1)          &
-     &                   +ICE(ng)%a(i,j)*GRID(ng)%omn(i,j))             &
-     &                  /(GRID(ng)%omn(i-1,j)+GRID(ng)%omn(i-1,j+1)     &
-     &                     +GRID(ng)%omn(i,j+1)+GRID(ng)%omn(i,j))
-             aice_psi =( ICE(ng)%a(i-1,j-1)*GRID(ng)%omn(i-1,j-1)       &
-     &                   +ICE(ng)%a(i-1,j)*GRID(ng)%omn(i-1,j)          &
-     &                   +ICE(ng)%a(i,j)*GRID(ng)%omn(i,j)              &
-     &                   +ICE(ng)%a(i,j-1)*GRID(ng)%omn(i,j-1))         &
-     &                  /(GRID(ng)%omn(i-1,j-1)+GRID(ng)%omn(i-1,j)     &
-     &                      +GRID(ng)%omn(i,j)+GRID(ng)%omn(i,j-1))
+             ICE(ng)%aice_u(i,j) =                                      &
+     &              0.5_r8*( ICE(ng)%aice(i-1,j) + ICE(ng)%aice(i,j) )
 
-             ! ice stress on b-grid u-point = psi(i+1,j+1), hence the offset of i-1.
-             ! sap for j+1 sa for j
-             sap = ICE(ng)%strx(i-1,j)*aice_psip
-             sa  = ICE(ng)%strx(i-1,j-1)*aice_psi        
+             ! Stress from B-vel (CICE)-> C-u points (ROMS) (northeast -> west) 
+             ICE(ng)%stru(i,j) =                                        &
+     &            0.5_r8*(ICE(ng)%strx(i-1,j) + ICE(ng)%strx(i-1,j-1))
              
-             ! finally area-wheigted stress on c-grid u-point
-             if ((aice_psip+aice_psi).gt.1e-12) then
-                ICE(ng)%stru(i,j) = (sap+sa)/(aice_psip+aice_psi) 
-             else
-                ICE(ng)%stru(i,j) = 0
-             endif          
-
+!jd end
            end do
           end do
 #ifdef DISTRIBUTE
@@ -612,10 +554,7 @@
      &            ICE(ng)%aice_u)
 #endif
 
-
-
           CASE ('strocny')         ! ice-ocean stress y-dir 
-
 
             CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code), A, Asize)
             Iimport=Iimport+1
@@ -634,34 +573,15 @@
 
             do j = LBj+1,UBj
             do i = LBi+1,UBi-1
+             !ice fraction on v-point (south)
+             ICE(ng)%aice_v(i,j) =                                      &
+     &              0.5_r8*( ICE(ng)%aice(i,j-1) + ICE(ng)%aice(i,j) )
 
-             !ice fraction on v-point
-             ICE(ng)%aice_v(i,j) = (ICE(ng)%a(i,j-1)*GRID(ng)%omn(i,j-1)+ICE(ng)%a(i,j)*GRID(ng)%omn(i,j)) / (GRID(ng)%omn(i,j-1)+GRID(ng)%omn(i,j))
-             !ice fraction on psi-point (B-grid u(i-1,j-1) point)
-             !first j+1 (psip), then j (psi)
-             aice_psip =( ICE(ng)%a(i,j-1)*GRID(ng)%omn(i,j-1)          &
-     &                   +ICE(ng)%a(i,j)*GRID(ng)%omn(i,j)              &
-     &                   +ICE(ng)%a(i+1,j)*GRID(ng)%omn(i+1,j)          &
-     &                   +ICE(ng)%a(i+1,j-1)*GRID(ng)%omn(i+1,j-1))     &
-     &                  /(GRID(ng)%omn(i,j-1)+GRID(ng)%omn(i,j)         &
-     &                     +GRID(ng)%omn(i+1,j)+GRID(ng)%omn(i+1,j-1))
-             aice_psi =( ICE(ng)%a(i-1,j-1)*GRID(ng)%omn(i-1,j-1)       &
-     &                   +ICE(ng)%a(i-1,j)*GRID(ng)%omn(i-1,j)          &
-     &                   +ICE(ng)%a(i,j)*GRID(ng)%omn(i,j)              &
-     &                   +ICE(ng)%a(i,j-1)*GRID(ng)%omn(i,j-1))         &
-     &                  /(GRID(ng)%omn(i-1,j-1)+GRID(ng)%omn(i-1,j)     &
-                            +GRID(ng)%omn(i,j)+GRID(ng)%omn(i,j-1))
-             ! ice stress on b-grid u-point = psi(i+1,j+1) -> j-1 offset
-             ! sap for j+1 sa for j
-             sap = ICE(ng)%stry(i,j-1)*aice_psip
-             sa  = ICE(ng)%stry(i-1,j-1)*aice_psi
+             ! Stress from B-vel (CICE)-> C grid v  (ROMS) (northeast -> south) 
+             ICE(ng)%strv(i,j) =                                        &
+     &            0.5_r8*(ICE(ng)%stry(i,j-1) + ICE(ng)%stry(i-1,j-1))
              
-             if ((aice_psip+aice_psi).gt.1e-12) then
-            ! finally area-wheigted stress on c-grid u-point
-                ICE(ng)%strv(i,j) = (sap+sa)/(aice_psip+aice_psi)
-             else
-                ICE(ng)%strv(i,j) = 0
-             endif
+!jd end
             
 
            end do
@@ -758,13 +678,13 @@
             
            do j=JstrR,JendR
             do i=IstrR,IendR
-             if (OCEAN(ng)%qfraz_accum(i,j) .gt.0.0_r8) then
-              OCEAN(ng)%qfraz_accum(i,j)= &
-     &               OCEAN(ng)%qfraz_accum(i,j)/ncouple
+             if (ICE(ng)%qfraz_accum(i,j).gt.0.0_r8) then
+              ICE(ng)%qfraz_accum(i,j)=                               &
+     &               ICE(ng)%qfraz_accum(i,j)/ncouple
              else
 !jd Assume 5-meter thickness of layer. Here melt potential should be a proper 
 !jd weight over a typical mixed (?)/ near-ice layer. 
-             OCEAN(ng)%qfraz_accum(i,j) = rho0*Cp *                     &
+             ICE(ng)%qfraz_accum(i,j) = rho0*Cp *                     &
      &        min(t_freeze(OCEAN(ng)%t(i,j,N(ng),NOUT,isalt),0.0_r8)    &
      &        - OCEAN(ng)%t(i,j,N(ng),NOUT,itemp), 0.0_r8 ) * 5.0_r8
              end if
@@ -774,7 +694,7 @@
             CALL ROMS_export2d (ng, tile,                               &
      &                          id, gtype, scale, add_offset,           &
      &                          LBi, UBi, LBj, UBj,                     &
-     &                          OCEAN(ng)%qfraz_accum(:,:),            &
+     &                          ICE(ng)%qfraz_accum(:,:),             &
      &                          Fields(id)%ExpMin, Fields(id)%ExpMax,   &
      &                          Asize, A,                               &
      &                          status)
@@ -785,7 +705,7 @@
             Iexport=Iexport+1
 
 !jd Reset accumulation array
-            ocean(ng)%qfraz_accum(:,:) = 0
+            ICE(ng)%qfraz_accum(:,:) = 0
 
 
           CASE ('u')
@@ -921,7 +841,7 @@
 !
 !========================================================================
 !                                                                       !
-!  This routine finalizes ocean and wave models coupling data streams.  !
+!  This routine finalizes ocean and ice models coupling data streams.  !
 !                                                                       !
 !========================================================================
 !

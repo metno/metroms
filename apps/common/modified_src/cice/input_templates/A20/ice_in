@@ -1,14 +1,14 @@
 &setup_nml
     days_per_year  = 365
-  , use_leap_years = .false.
+  , use_leap_years = .true.
   , year_init      = 1997
   , istep0         = 0
   , dt             = 3600.0
   , npt            = 744
   , ndtd           = 1
-  , runtype        = 'initial'
+  , runtype        = 'continue'
   , ice_ic         = 'default'
-  , restart        = .false.
+  , restart        = .true.
   , restart_ext    = .false.
   , use_restart_time = .true.
   , restart_format = 'nc'
@@ -18,7 +18,7 @@
   , pointer_file   = '<cicedir>/rundir/restart/ice.restart_file'
   , dumpfreq       = 'm'
   , dumpfreq_n     = 1
-  , dump_last      = .false.
+  , dump_last      = .true.
   , diagfreq       = 24
   , diag_type      = 'stdout'
   , diag_file      = 'ice_diag.d'
@@ -28,7 +28,7 @@
   , lonpnt(1)      =   0.
   , latpnt(2)      =  80.
   , lonpnt(2)      = -10.
-  , dbug           = .false.
+  , dbug           = .true.
   , histfreq       = 'm','d','h','x','x'
   , histfreq_n     =  1 , 1 , 2 , 1 , 1
   , hist_avg       = .false.
@@ -153,7 +153,7 @@
   , ycycle          = 1
   , atm_data_format = 'nc'
   , atm_data_type   = 'ecmwf'
-  , atm_data_dir    = '/global/work/sebastm/mct/ERA/'
+  , atm_data_dir    = '/disk1/atmforcing/'
   , calc_strair     = .true.
   , calc_Tsfc       = .true.
   , precip_units    = 'mm_per_month'

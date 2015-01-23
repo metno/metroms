@@ -5,7 +5,8 @@ workingdir=${PWD}
 cd ../
 metroms_base=${PWD} 
 cd ../
-tup=/global/work/sebastm #${PWD}
+#tup=/global/work/sebastm #
+tup=${PWD}
 
 # Build MCT
 mkdir -p ${tup}/tmproms

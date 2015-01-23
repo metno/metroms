@@ -77,10 +77,6 @@
           real(r8), pointer :: v(:,:,:,:)
           real(r8), pointer :: W(:,:,:)
           real(r8), pointer :: wvel(:,:,:)
-# if defined CICE_COUPLING
-          real(r8), pointer :: qfraz(:,:)
-          real(r8), pointer :: qfraz_accum(:,:)
-#endif
 # if defined NEARSHORE_MELLOR
           real(r8), pointer :: rulag3d(:,:,:)
           real(r8), pointer :: rvlag3d(:,:,:)
@@ -311,10 +307,6 @@
       allocate ( OCEAN(ng) % v(LBi:UBi,LBj:UBj,N(ng),2) )
       allocate ( OCEAN(ng) % W(LBi:UBi,LBj:UBj,0:N(ng)) )
       allocate ( OCEAN(ng) % wvel(LBi:UBi,LBj:UBj,0:N(ng)) )
-# if defined CICE_COUPLING
-      allocate ( OCEAN(ng) % qfraz(LBi:UBi,LBj:UBj))
-      allocate ( OCEAN(ng) % qfraz_accum(LBi:UBi,LBj:UBj))
-#endif
 
 # if defined NEARSHORE_MELLOR
       allocate ( OCEAN(ng) % rulag3d(LBi:UBi,LBj:UBj,N(ng)) )
@@ -604,10 +596,6 @@
             OCEAN(ng) % zeta(i,j,1) = IniVal
             OCEAN(ng) % zeta(i,j,2) = IniVal
             OCEAN(ng) % zeta(i,j,3) = IniVal
-# if defined CICE_COUPLING
-              OCEAN(ng) % qfraz(i,j) = IniVal
-              OCEAN(ng) % qfraz_accum(i,j) = IniVal
-#endif
 # if defined NEARSHORE_MELLOR
             OCEAN(ng) % rulag2d(i,j) = IniVal
             OCEAN(ng) % rvlag2d(i,j) = IniVal
