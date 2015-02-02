@@ -398,10 +398,6 @@ Hout(idSSSf) == F                          ! sea surface salinity corr. flux
 
 ! Logical switches (TRUE/FALSE) to activate writing of ice prognostic
 ! variables into HISTORY output file.
-Hout(idIarr) == T
-Hout(idJarr) == T
-Hout(idUlon) == T
-Hout(idUlat) == T
 Hout(idUice) == F
 Hout(idVice) == F
 Hout(idAice) == F
@@ -1517,7 +1513,7 @@ TimeInterval = 3600.0d0
 !       Export(...) = NONE
 
  Nexport(ocean) = 6
- Nexport(cice)  = 11
+ Nexport(cice)  = 7
 
   Export(ocean) = SST  \
                   SSS  \
@@ -1554,11 +1550,7 @@ TimeInterval = 3600.0d0
                   fhocnAI \
                   fswthruAI \
                   strocnx \
-                  strocny \
-                  ULAT  \
-                  ULON \
-                  iarr \
-                  jarr
+                  strocny 
 
 
 ! Import fields per model, [1:Nimport(...)] string values are expected per
@@ -1567,7 +1559,7 @@ TimeInterval = 3600.0d0
 !      Nimport(...) = 0
 !       Import(...) = NONE
 
- Nimport(ocean) = 11
+ Nimport(ocean) = 7
  Nimport(cice)  = 6
 
   Import(ocean) = AICE \
@@ -1576,11 +1568,7 @@ TimeInterval = 3600.0d0
                   fhocnAI \
                   fswthruAI \
                   strocnx \
-                  strocny \
-                  ULAT \
-                  ULON \
-                  iarr \
-                  jarr
+                  strocny 
 
 
 !  Import(waves) = Uwind \

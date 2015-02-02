@@ -153,7 +153,7 @@
   , ycycle          = 1
   , atm_data_format = 'nc'
   , atm_data_type   = 'ecmwf'
-  , atm_data_dir    = '/disk1/atmforcing/'
+  , atm_data_dir    = '/global/work/sebastm/mct/ERA/'
   , calc_strair     = .true.
   , calc_Tsfc       = .true.
   , precip_units    = 'mm_per_month'

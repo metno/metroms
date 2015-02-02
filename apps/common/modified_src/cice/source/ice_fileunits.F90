@@ -58,7 +58,9 @@
          nu_rst_pointer, &  ! pointer to latest restart file
          nu_history    , &  ! binary history output file
          nu_hdr        , &  ! header file for binary history output
-         nu_diag            ! diagnostics output file
+         nu_diag       , &  ! diagnostics output file
+         nu_dump_accum , &  ! dump file for accumulated fluxes
+         nu_restart_accum   ! restart file for accumulated fluxes
 
       character (6), parameter, public :: &
          nml_filename = 'ice_in' ! namelist input file name
@@ -66,7 +68,12 @@
       integer (kind=int_kind), parameter, public :: &
          ice_stdin  =  505, & ! reserved unit for standard input
          ice_stdout =  506, & ! reserved unit for standard output
-         ice_stderr =  507    ! reserved unit for standard error
+         ice_stderr =  507, & ! reserved unit for standard error
+         ice_altout =  508
+
+      character (11), parameter, public :: &
+         stdout_file = 'cice_stdout', &
+         altout_file = 'cice_altout'
 
       integer (kind=int_kind), parameter :: &
          ice_IOUnitsMinUnit = NUMIN, & ! do not use unit numbers below 
@@ -93,7 +100,8 @@
          ice_IOUnitsInUse(ice_stdin)  = .true. ! reserve unit 505
          ice_IOUnitsInUse(ice_stdout) = .true. ! reserve unit 506
          ice_IOUnitsInUse(ice_stderr) = .true.
-     
+         ice_IOUnitsInUse(ice_altout) = .true.     
+
          ice_IOUnitsInUse(nu_diag) = .true.
          open(UNIT=nu_diag,FILE='cice_nu_diag')
 
@@ -126,6 +134,9 @@
          call get_fileunit(nu_rst_pointer)
          call get_fileunit(nu_history)
          call get_fileunit(nu_hdr)
+         !seb
+         call get_fileunit(nu_dump_accum)
+         call get_fileunit(nu_restart_accum)
 
       end subroutine init_fileunits
 
@@ -207,6 +218,8 @@
          call release_fileunit(nu_history)
          call release_fileunit(nu_hdr)
          if (nu_diag /= ice_stdout) call release_fileunit(nu_diag)
+         call release_fileunit(nu_dump_accum)
+         call release_fileunit(nu_restart_accum)
           
       end subroutine release_all_fileunits
 

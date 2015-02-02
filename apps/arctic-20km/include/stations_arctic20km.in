@@ -83,10 +83,6 @@ Sout(idHbbl) == F                          ! depth of bottom boundary layer
 Sout(idMtke) == F                          ! turbulent kinetic energy
 Sout(idMtls) == F                          ! turbulent length scale
 
-Sout(idIarr) == T
-Sout(idJarr) == T
-Sout(idUlon) == T
-Sout(idUlat) == T
 Sout(idHice) == T                          ! ice thckness
 Sout(idAice) == T                          ! ice concentration
 Sout(idUice) == T                          ! ice xi velocity component

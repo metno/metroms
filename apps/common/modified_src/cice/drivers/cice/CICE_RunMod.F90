@@ -60,7 +60,7 @@
 
       timeLoop: do
 
-         call ice_step
+         call ice_step ! restarts written at the end of this call
 
          ! CALL MCT ROMS coupling routine
 !jd         call CICE_MCT_coupling(time, dt)
@@ -108,6 +108,8 @@
 
       subroutine ice_step
 
+      use ice_accum_fields, only: write_restart_accum_fields, & 
+          bool_accum, accumulate_i2o_fields, update_accum_clock
       use ice_age, only: write_restart_age
       use ice_aerosol, only: write_restart_aero
       use ice_boundary, only: ice_HaloUpdate
@@ -242,6 +244,10 @@
          call accum_hist (dt)               ! history file
          call ice_timer_stop(timer_hist)    ! history
 
+
+         call accumulate_i2o_fields(dt)  ! seb
+         call update_accum_clock(dt)
+
          call ice_timer_start(timer_readwrite)  ! reading/writing
          if (write_restart == 1) then
             call dumpfile     ! core variables for restarting
@@ -255,8 +261,11 @@
             if (skl_bgc)      call write_restart_bgc
             if (tr_brine)     call write_restart_hbrine
             if (kdyn == 2)    call write_restart_eap
+            if (bool_accum) call write_restart_accum_fields
             call final_restart
          endif
+
+           
 
          call ice_timer_stop(timer_readwrite)  ! reading/writing
 

@@ -10,6 +10,7 @@
 ! Oct. 2004: Adapted from POP version by William H. Lipscomb, LANL
 
    use ice_kinds_mod
+   use ice_fileunits, only: ice_stdout
 #if (defined CCSM) || (defined SEQ_MCT)
    use cpl_interface_mod, only : cpl_interface_init
    use cpl_fields_mod, only : cpl_fields_icename
@@ -85,6 +86,7 @@
    mpiR16 = MPI_REAL16
    mpiR8  = MPI_REAL8
    mpiR4  = MPI_REAL4
+   write(ice_stdout,*) 'me and MASTER', my_task, master_task
 
  end subroutine init_communicate
 

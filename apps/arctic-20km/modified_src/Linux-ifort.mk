@@ -28,7 +28,7 @@
 # First the defaults
 #
                FC := ifort
-           FFLAGS := -mcmodel=large -xHOST #-Nmpi
+           FFLAGS := -nobuffered_io -mcmodel=large -xHOST #-Nmpi
               CPP := /usr/bin/cpp
          CPPFLAGS := -P -traditional
                CC := icc
@@ -84,7 +84,7 @@ ifdef USE_OpenMP
 endif
 
 ifdef USE_DEBUG
-           FFLAGS += -g -check bounds -traceback
+           FFLAGS += -g -check all -traceback -debug all
 #           FFLAGS += -g -check uninit -ftrapuv -traceback
            CFLAGS += -g
          CXXFLAGS += -g

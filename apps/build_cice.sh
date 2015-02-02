@@ -11,8 +11,8 @@ export workingdir=${PWD}
 cd ../
 metroms_base=${PWD} 
 cd ../
-#tup=/global/work/sebastm #${PWD}
-tup=${PWD}
+tup=/global/work/sebastm #${PWD}
+#tup=${PWD}
 
 # Build CICE
 mkdir -p ${tup}/tmproms

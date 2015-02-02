@@ -301,9 +301,7 @@
       !-----------------------------------------------------------------
       ! read from input file
       !-----------------------------------------------------------------
-
       call get_fileunit(nu_nml)
-
       if (my_task == master_task) then
          open (nu_nml, file=nml_filename, status='old',iostat=nml_error)
          if (nml_error /= 0) then
@@ -313,28 +311,28 @@
          endif 
 
          do while (nml_error > 0)
-            print*,'Reading setup_nml'
+            write(ice_stdout,*) 'Reading setup_nml'
                read(nu_nml, nml=setup_nml,iostat=nml_error)
                if (nml_error /= 0) exit
-            print*,'Reading grid_nml'
+            write(ice_stdout,*) 'Reading grid_nml'
                read(nu_nml, nml=grid_nml,iostat=nml_error)
                if (nml_error /= 0) exit
-            print*,'Reading tracer_nml'
+            write(ice_stdout,*) 'Reading tracer_nml'
                read(nu_nml, nml=tracer_nml,iostat=nml_error)
                if (nml_error /= 0) exit
-            print*,'Reading thermo_nml'
+            write(ice_stdout,*) 'Reading thermo_nml'
                read(nu_nml, nml=thermo_nml,iostat=nml_error)
                if (nml_error /= 0) exit
-            print*,'Reading dynamics_nml'
+            write(ice_stdout,*) 'Reading dynamics_nml'
                read(nu_nml, nml=dynamics_nml,iostat=nml_error)
                if (nml_error /= 0) exit
-            print*,'Reading shortwave_nml'
+            write(ice_stdout,*) 'Reading shortwave_nml'
                read(nu_nml, nml=shortwave_nml,iostat=nml_error)
                if (nml_error /= 0) exit
-            print*,'Reading ponds_nml'
+            write(ice_stdout,*) 'Reading ponds_nml'
                read(nu_nml, nml=ponds_nml,iostat=nml_error)
                if (nml_error /= 0) exit
-            print*,'Reading forcing_nml'
+            write(ice_stdout,*) 'Reading forcing_nml'
                read(nu_nml, nml=forcing_nml,iostat=nml_error)
                if (nml_error /= 0) exit
          end do
@@ -345,7 +343,7 @@
          call abort_ice('ice: error reading namelist')
       endif
       call release_fileunit(nu_nml)
-
+      
       !-----------------------------------------------------------------
       ! set up diagnostics output and resolve conflicts
       !-----------------------------------------------------------------

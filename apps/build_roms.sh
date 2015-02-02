@@ -56,13 +56,13 @@ export ROMS_APPLICATION=$1
 
 export USE_MPI=on
 export USE_MPIF90=on
-export FORT=gfortran
-#export FORT=ifort # Use this on Vilje
+#export FORT=gfortran
+export FORT=ifort # Use this on Vilje
 
 export USE_OpenMP=
 export USE_LARGE=on
 
-export USE_DEBUG=
+export USE_DEBUG=on
 export USE_NETCDF4=on
 
 export USE_CICE=on
@@ -76,7 +76,7 @@ workingdir=${PWD}
 cd ../
 metroms_base=${PWD} 
 cd ../
-tup=${PWD}
+tup=/global/work/sebastm # ${PWD}
 
 tmpdir=tmproms
 

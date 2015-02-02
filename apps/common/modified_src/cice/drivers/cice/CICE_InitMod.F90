@@ -55,12 +55,12 @@
       use ice_algae, only: get_forcing_bgc
       use ice_calendar, only: dt, dt_dyn, time, istep, istep1, write_ic, &
           init_calendar, calendar
-      use ice_communicate, only: init_communicate
+      use ice_communicate, only: init_communicate, my_task, master_task
       use ice_diagnostics, only: init_diags
       use ice_domain, only: init_domain_blocks
       use ice_dyn_eap, only: init_eap
       use ice_dyn_shared, only: kdyn, init_evp
-      use ice_fileunits, only: init_fileunits
+      use ice_fileunits, only: init_fileunits, ice_stdout
       use ice_flux, only: init_coupler_flux, init_history_therm, &
           init_history_dyn, init_flux_atm, init_flux_ocn
       use ice_forcing, only: init_forcing_ocn, init_forcing_atmo, &
@@ -84,10 +84,13 @@
 #endif
       use CICE_MCT, only: init_mct
 
+      call init_fileunits       ! unit numbers
       call init_communicate     ! initial setup for message passing
 
-      call init_fileunits       ! unit numbers
+      write(ice_stdout,*) 'calling input data'
+      write(ice_stdout,*) 'me and master', my_task, master_task
       call input_data           ! namelist variables
+      write(ice_stdout,*) 'now stuff should have been printed'
       if (trim(runid) == 'bering') call check_finished_file
       call init_zbgc            ! vertical biogeochemistry namelist
 
@@ -106,6 +109,7 @@
          call init_evp (dt_dyn) ! define evp dynamics parameters, variables
       endif
 
+      write(ice_stdout,*) 'calling init_coupler_flux'
       call init_coupler_flux    ! initialize fluxes exchanged with coupler
 #ifdef popcice
       call sst_sss              ! POP data for CICE initialization
@@ -118,7 +122,8 @@
       call init_state           ! initialize the ice state
       call init_transport       ! initialize horizontal transport
       call ice_HaloRestore_init ! restored boundary conditions
-
+ 
+      write(ice_stdout,*) 'calling init_restart'
       call init_restart         ! initialize restart variables
 
       call init_diags           ! initialize diagnostic output points
@@ -165,7 +170,8 @@
 !=======================================================================
 
       subroutine init_restart
-
+      
+      use ice_accum_fields, only: init_accum_fields, read_restart_accum_fields
       use ice_aerosol, only: init_aerosol
       use ice_age, only: init_age, restart_age, read_restart_age
       use ice_blocks, only: nx_block, ny_block
@@ -192,7 +198,7 @@
           nt_iage, nt_FY, nt_alvl, nt_vlvl, nt_apnd, nt_hpnd, nt_ipnd, tr_brine
       use ice_zbgc, only: init_bgc
       use ice_zbgc_shared, only: skl_bgc
-
+      use ice_fileunits
       integer(kind=int_kind) :: iblk
 
       if (trim(runtype) == 'continue') then 
@@ -207,6 +213,11 @@
          !!! uncomment if EAP restart data exists
          ! if (kdyn == 2) call read_restart_eap
       endif         
+    
+      write(ice_stdout,*) 'calling init accum'
+      call init_accum_fields
+      write(ice_stdout,*) 'calling restart accum'
+      call read_restart_accum_fields
 
       ! tracers
       ! ice age tracer   

@@ -10,6 +10,9 @@ module CICE_MCT
   use ice_boundary, only: ice_HaloUpdate
   use ice_fileunits, only: ice_stdout, ice_stderr ! these might be the same
 
+  use ice_accum_fields
+
+
 !  MCT framework for ROMS coupling
 !
 !  Componenent model registry.
@@ -60,39 +63,29 @@ module CICE_MCT
 
   save
 
-!jd Coupling fields and indexes
-  integer, parameter :: nfields = 7,  &
-       idaice=1, &
-       idfresh=2, &
-       idfsalt=3, &
-       idfhocn=4, &
-       idfswthru=5, &
-       idstrocnx=6, &
-       idstrocny=7
-
-!jd Time-accumulation of coupling fields. 
-  real (kind=dbl_kind), dimension (nx_block,ny_block,max_blocks,nfields)::&
-       accum_i2o_fields ! Time accumulation of fields sendt to ROMS
+!!jd Coupling fields and indexes
+!  integer, parameter :: nfields = 7,  &
+!       idaice=1, &
+!       idfresh=2, &
+!       idfsalt=3, &
+!       idfhocn=4, &
+!       idfswthru=5, &
+!       idstrocnx=6, &
+!       idstrocny=7
+!
+!!jd Time-accumulation of coupling fields. 
+!  real (kind=dbl_kind), dimension (nx_block,ny_block,max_blocks,nfields)::&
+!       accum_i2o_fields ! Time accumulation of fields sendt to ROMS
   
 
 !jd      real (kind=dbl_kind) ::   TimeInterval = 7200.0
-<<<<<<< HEAD
-      real (kind=dbl_kind) ::   TimeInterval = 3600.0
-      real (kind=dbl_kind) ::   tcoupling = 0.0
-
-      character (len=240) :: &
-           importList = 'SST:SSS:FRZMLT:u:v:SSH', &
-           exportList = &
-           'AICE:freshAI:fsaltAI:fhocnAI:fswthruAI:strocnx:strocny:ULAT:ULON:iarr:jarr'
-=======
   real (kind=dbl_kind) ::   TimeInterval = 3600.0
-  real (kind=dbl_kind) ::   tcoupling = 0.0
+ ! real (kind=dbl_kind) ::   tcoupling = 0.0
   
   character (len=240) :: &
        importList = 'SST:SSS:FRZMLT:u:v:SSH', &
        exportList = &
        'AICE:freshAI:fsaltAI:fhocnAI:fswthruAI:strocnx:strocny'
->>>>>>> master
 
   integer (int_kind), public :: &
        CICEid,                   &
@@ -202,15 +195,6 @@ contains
 !***********************************************************************
 
 
-<<<<<<< HEAD
- subroutine CICE_MCT_coupling(time,dt)
-   use ice_grid, only: HTN, HTE, dxu, dyu, dxt,dyt,ULAT,ULON,ANGLE, i_arr, j_arr
-   real(kind=dbl_kind), intent(in) :: time,dt
-   real(kind=dbl_kind), pointer :: avdata(:)
-   integer     :: ilo, ihi, jlo, jhi ! beginning and end of physical domain
-   type(block) :: this_block         ! block information for current block
-   integer     :: i,j,Asize,iblk,n
-=======
 !jd  subroutine CICE_MCT_coupling(time,dt)
   subroutine CICE_MCT_coupling()
     use ice_grid, only: HTN, HTE, dxu, dyu, dxt, dyt
@@ -220,53 +204,17 @@ contains
     integer     :: ilo, ihi, jlo, jhi ! beginning and end of physical domain
     type(block) :: this_block         ! block information for current block
     integer     :: i,j,Asize,iblk,n
->>>>>>> master
 
 !        ***********************************
 !             ROMS coupling
 !        ***********************************
 !
-<<<<<<< HEAD
-   tcoupling = tcoupling + dt
-   IF (tcoupling >= TimeInterval) THEN
-      IF (my_task == master_task) THEN
-         write(ice_stdout,*) '*********************************************'
 
-         write(ice_stdout,*) 'CICE - Ocean: coupling routine called from CICE'
-         write(ice_stdout,*) 'time = ', time
-         write(ice_stdout,*) 'dt = ', dt
-         write(ice_stdout,*) '*********************************************'
-      END IF
-
-      do iblk = 1, nblocks
-         this_block = get_block(blocks_ice(iblk),iblk)
-         ilo = this_block%ilo
-         ihi = this_block%ihi
-         jlo = this_block%jlo
-         jhi = this_block%jhi
- 
-         do i = ilo,ihi
-         do j = jlo,jhi 
-           i_arr(i,j,iblk) = this_block%i_glob(i)
-           j_arr(i,j,iblk) = this_block%j_glob(j)
-         enddo
-         enddo
-      enddo
-
-      Asize=GlobalSegMap_lsize(GSMapCICE, MPI_COMM_ICE)
-      allocate(avdata(Asize))
-      avdata=0.0
-! Export debug stuff
-      call ice2ocn_send_field(ULAT,'ULAT')
-      call ice2ocn_send_field(ULON,'ULON')
-      call ice2ocn_send_field(i_arr,'iarr')
-      call ice2ocn_send_field(j_arr,'jarr')
-=======
-
-    tcoupling = tcoupling + dt
-    call accumulate_i2o_fields(dt)
+  !  tcoupling = tcoupling + dt
+!    call update_accum_clock(dt)
+!    call accumulate_i2o_fields(dt) !this is done in RunMod before restart
     
-    IF (tcoupling >= TimeInterval) THEN
+    IF (accum_time >= TimeInterval) THEN
        IF (my_task == master_task) THEN
           write(ice_stdout,*) '*********************************************'
           
@@ -280,24 +228,7 @@ contains
        avdata=0.0
 
 !jd 
-       call mean_i2o_fields(tcoupling)
->>>>>>> master
-!
-     
-      do iblk = 1, nblocks
-         this_block = get_block(blocks_ice(iblk),iblk)
-         ilo = this_block%ilo
-         ihi = this_block%ihi
-         jlo = this_block%jlo
-         jhi = this_block%jhi
- 
-      do i = ilo,ihi
-      do j = jlo,jhi
-         i_arr(i,j,iblk) = (i_arr(i-1,j,iblk)+i_arr(i+1,j,iblk))*0.5
-         j_arr(i,j,iblk) = (j_arr(i,j-1,iblk)+j_arr(i,j+1,iblk))*0.5
-      enddo
-      enddo
-      enddo
+       call mean_i2o_fields()
 
 ! Exporting aice
        call ice2ocn_send_field(accum_i2o_fields(:,:,:,idaice),'AICE')
@@ -469,7 +400,7 @@ contains
        
 
       
-       tcoupling = 0.0
+      ! tcoupling = 0.0
        call zero_i2o_fields
        
        deallocate(avdata)
@@ -541,41 +472,82 @@ contains
   end subroutine CICE_MCT_coupling
   
   
-  subroutine accumulate_i2o_fields(dt)
-    use ice_state, only: aice
-    use ice_flux, only: fresh_ai, fsalt_ai,&
-         fhocn_ai,fswthru_ai, strocnx, strocny
+!  subroutine accumulate_i2o_fields(dt)
+!    use ice_state, only: aice
+!    use ice_flux, only: fresh_ai, fsalt_ai,&
+!         fhocn_ai,fswthru_ai, strocnx, strocny
+!    
+!    real(kind=dbl_kind), intent(in) :: dt
+!    
+!    call accum_field(idaice, aice, dt)
+!    call accum_field(idfresh, fresh_ai, dt)
+!    call accum_field(idfsalt, fsalt_ai, dt)
+!    call accum_field(idfhocn, fhocn_ai, dt)
+!    call accum_field(idfswthru, fswthru_ai, dt)
+!    call accum_field(idstrocnx, strocnx, dt)
+!    call accum_field(idstrocny, strocny, dt)
+!    
+!  contains 
     
-    real(kind=dbl_kind), intent(in) :: dt
+!    subroutine accum_field(id,field)
+!      integer,intent(in) :: id
+!      real (kind=dbl_kind), dimension (nx_block,ny_block,max_blocks), &
+!           intent(in):: field
+!      accum_i2o_fields(:,:,:,id) = accum_i2o_fields(:,:,:,id) &
+!           + dt*field(:,:,:)
+!    end subroutine accum_field
     
-    call accum_field(idaice, aice)
-    call accum_field(idfresh, fresh_ai)
-    call accum_field(idfsalt, fsalt_ai)
-    call accum_field(idfhocn, fhocn_ai)
-    call accum_field(idfswthru, fswthru_ai)
-    call accum_field(idstrocnx, strocnx)
-    call accum_field(idstrocny, strocny)
-    
-  contains 
-    
-    subroutine accum_field(id,field)
-      integer,intent(in) :: id
-      real (kind=dbl_kind), dimension (nx_block,ny_block,max_blocks), &
-           intent(in):: field
-      accum_i2o_fields(:,:,:,id) = accum_i2o_fields(:,:,:,id) &
-           + dt*field(:,:,:)
-    end subroutine accum_field
-    
-  end subroutine accumulate_i2o_fields
+!  end subroutine accumulate_i2o_fields
   
-  subroutine mean_i2o_fields(dtcouple)
-    real(kind=dbl_kind), intent(in) :: dtcouple
-    accum_i2o_fields(:,:,:,:) = accum_i2o_fields(:,:,:,:) / dtcouple
-  end subroutine mean_i2o_fields
-  
-  subroutine zero_i2o_fields
-    accum_i2o_fields(:,:,:,:) = c0
-  end subroutine zero_i2o_fields
+!  subroutine mean_i2o_fields(dtcouple)
+!    real(kind=dbl_kind), intent(in) :: dtcouple
+!    accum_i2o_fields(:,:,:,:) = accum_i2o_fields(:,:,:,:) / dtcouple
+!  end subroutine mean_i2o_fields
+!  
+!  subroutine zero_i2o_fields
+!    accum_i2o_fields(:,:,:,:) = c0
+!  end subroutine zero_i2o_fields
+
+!  subroutine write_restart_accum_fields()
+!      use ice_communicate, only: my_task, master_task
+!      use ice_domain_size, only: ncat
+!      use ice_fileunits, only: nu_diag, nu_dump_accum_fields
+!      use ice_restart,only: write_restart_field
+!
+!      ! local variables
+!
+!      logical (kind=log_kind) :: diag
+!
+!      diag = .true.
+!
+!      !-----------------------------------------------------------------
+!
+!      call write_restart_field(nu_dump_accum,0,accum,'ruf8', &
+!                               'accum',nfields,diag)
+!
+!      end subroutine write_restart_accum_fields()
+!
+!
+!      subroutine read_restart_accum_fields()
+!
+!      use ice_communicate, only: my_task, master_task
+!      use ice_fileunits, only: nu_diag, nu_restart_accum_fields
+!      use ice_restart,only: read_restart_field
+!
+!      ! local variables
+!
+!      logical (kind=log_kind) :: &
+!         diag
+!
+!      diag = .true.
+!
+!      if (my_task == master_task) write(nu_diag,*) 'min/max age (s)'
+!
+!      call read_restart_field(nu_restart_age,0,accum,'ruf8', &
+!                              'accum',nfields,diag)
+!
+!      end subroutine read_restart_accum_fields
+!
   
   
 end module CICE_MCT
