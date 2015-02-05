@@ -14,7 +14,6 @@
       module CICE_InitMod
 
       use ice_kinds_mod
-
       implicit none
       private
       public :: CICE_Initialize, cice_init
@@ -87,10 +86,7 @@
       call init_fileunits       ! unit numbers
       call init_communicate     ! initial setup for message passing
 
-      write(ice_stdout,*) 'calling input data'
-      write(ice_stdout,*) 'me and master', my_task, master_task
       call input_data           ! namelist variables
-      write(ice_stdout,*) 'now stuff should have been printed'
       if (trim(runid) == 'bering') call check_finished_file
       call init_zbgc            ! vertical biogeochemistry namelist
 
@@ -109,7 +105,6 @@
          call init_evp (dt_dyn) ! define evp dynamics parameters, variables
       endif
 
-      write(ice_stdout,*) 'calling init_coupler_flux'
       call init_coupler_flux    ! initialize fluxes exchanged with coupler
 #ifdef popcice
       call sst_sss              ! POP data for CICE initialization
@@ -123,7 +118,6 @@
       call init_transport       ! initialize horizontal transport
       call ice_HaloRestore_init ! restored boundary conditions
  
-      write(ice_stdout,*) 'calling init_restart'
       call init_restart         ! initialize restart variables
 
       call init_diags           ! initialize diagnostic output points
@@ -171,7 +165,6 @@
 
       subroutine init_restart
       
-      use ice_accum_fields, only: init_accum_fields, read_restart_accum_fields
       use ice_aerosol, only: init_aerosol
       use ice_age, only: init_age, restart_age, read_restart_age
       use ice_blocks, only: nx_block, ny_block
@@ -199,26 +192,26 @@
       use ice_zbgc, only: init_bgc
       use ice_zbgc_shared, only: skl_bgc
       use ice_fileunits
+      use ice_accum_fields, only: init_accum_fields, read_restart_accum_fields
       integer(kind=int_kind) :: iblk
+
+      call init_accum_fields
 
       if (trim(runtype) == 'continue') then 
          ! start from core restart file
          call restartfile()           ! given by pointer in ice_in
          call calendar(time)          ! update time parameters
+         call read_restart_accum_fields
          if (kdyn == 2) call read_restart_eap ! EAP
       else if (restart) then          ! ice_ic = core restart file
          call restartfile (ice_ic)    !  or 'default' or 'none'
+         call read_restart_accum_fields
          !!! uncomment to create netcdf
          ! call restartfile_v4 (ice_ic)  ! CICE v4.1 binary restart file
          !!! uncomment if EAP restart data exists
          ! if (kdyn == 2) call read_restart_eap
       endif         
     
-      write(ice_stdout,*) 'calling init accum'
-      call init_accum_fields
-      write(ice_stdout,*) 'calling restart accum'
-      call read_restart_accum_fields
-
       ! tracers
       ! ice age tracer   
       if (tr_iage) then 

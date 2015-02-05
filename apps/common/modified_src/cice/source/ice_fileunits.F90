@@ -69,11 +69,13 @@
          ice_stdin  =  505, & ! reserved unit for standard input
          ice_stdout =  506, & ! reserved unit for standard output
          ice_stderr =  507, & ! reserved unit for standard error
-         ice_altout =  508
+         ice_altout =  508, &
+         ice_altstd = 510
 
       character (11), parameter, public :: &
          stdout_file = 'cice_stdout', &
-         altout_file = 'cice_altout'
+         altout_file = 'cice_altout', &
+         altstd_file = 'cice_altstd'
 
       integer (kind=int_kind), parameter :: &
          ice_IOUnitsMinUnit = NUMIN, & ! do not use unit numbers below 
@@ -94,18 +96,20 @@
 
       subroutine init_fileunits
 
-         nu_diag = 508 ! ice_stdout  ! default
+         nu_diag = 509 ! ice_stdout  ! default
 
          ice_IOUnitsInUse = .false.
          ice_IOUnitsInUse(ice_stdin)  = .true. ! reserve unit 505
          ice_IOUnitsInUse(ice_stdout) = .true. ! reserve unit 506
          ice_IOUnitsInUse(ice_stderr) = .true.
          ice_IOUnitsInUse(ice_altout) = .true.     
+         ice_IOUnitsInUse(ice_altstd) = .true.     
 
          ice_IOUnitsInUse(nu_diag) = .true.
          open(UNIT=nu_diag,FILE='cice_nu_diag')
-
-         open(UNIT=ice_stdout,FILE='cice_stdout')
+         open(UNIT=ice_altstd,FILE=altstd_file)
+         open(UNIT=ice_altout,FILE=altout_file)
+         open(UNIT=ice_stdout,FILE=stdout_file)
          if (ice_stdout.ne.ice_stderr) then
             open(UNIT=ice_stderr,FILE='cice_stderr')
          endif

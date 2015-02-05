@@ -17,6 +17,7 @@
 
       use ice_kinds_mod
 
+      use ice_fileunits, only: ice_stdout
       implicit none
       private
       public :: CICE_Run, ice_step
@@ -59,11 +60,12 @@
    !--------------------------------------------------------------------
 
       timeLoop: do
-
+         
          call ice_step ! restarts written at the end of this call
 
          ! CALL MCT ROMS coupling routine
 !jd         call CICE_MCT_coupling(time, dt)
+
          call CICE_MCT_coupling
 
          istep  = istep  + 1    ! update time step counters
@@ -73,7 +75,6 @@
          call calendar(time)    ! at the end of the timestep
 
          if (stop_now >= 1) exit timeLoop
-
          call ice_timer_start(timer_couple)  ! atm/ocn coupling
          call get_forcing_atmo     ! atmospheric forcing from data
          call get_forcing_ocn(dt)  ! ocean forcing from data
@@ -82,7 +83,6 @@
          if (tr_aero)  call faero_default     ! aerosols
          if (skl_bgc)  call get_forcing_bgc   ! biogeochemistry
          call ice_timer_stop(timer_couple)    ! atm/ocn coupling
-
          call init_flux_atm     ! initialize atmosphere fluxes sent to coupler
          call init_flux_ocn     ! initialize ocean fluxes sent to coupler
 
@@ -109,7 +109,8 @@
       subroutine ice_step
 
       use ice_accum_fields, only: write_restart_accum_fields, & 
-          bool_accum, accumulate_i2o_fields, update_accum_clock
+           accumulate_i2o_fields, update_accum_clock
+      use ice_accum_shared, only: bool_accum
       use ice_age, only: write_restart_age
       use ice_aerosol, only: write_restart_aero
       use ice_boundary, only: ice_HaloUpdate
@@ -142,6 +143,7 @@
       use ice_algae, only: bgc_diags, write_restart_bgc
       use ice_zbgc, only: init_history_bgc, biogeochemistry
       use ice_zbgc_shared, only: skl_bgc
+
 
       integer (kind=int_kind) :: &
          iblk        , & ! block index
@@ -261,11 +263,11 @@
             if (skl_bgc)      call write_restart_bgc
             if (tr_brine)     call write_restart_hbrine
             if (kdyn == 2)    call write_restart_eap
-            if (bool_accum) call write_restart_accum_fields
+            if (bool_accum) then
+              call write_restart_accum_fields  ! seb
+            endif
             call final_restart
          endif
-
-           
 
          call ice_timer_stop(timer_readwrite)  ! reading/writing
 
