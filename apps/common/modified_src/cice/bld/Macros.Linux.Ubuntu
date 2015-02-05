@@ -20,7 +20,7 @@ FREEFLAGS  :=
 # work-around for gcc to ensure that denormailzed numbers are 
 # flushed to zero: -march=pentium4 -msse2 -mfpmath=sse
 #FFLAGS     := -O2 -w -march=pentium4 -msse2 -mfpmath=sse -fconvert=big-endian
-FFLAGS     := -O2 -nobuffered_io -w -fconvert=big-endian -debug all -traceback
+FFLAGS     := -O2   -w -fconvert=big-endian #  -debug all -traceback
 MOD_SUFFIX := mod
 LD         := $(FC)
 LDFLAGS    := $(FFLAGS) -v

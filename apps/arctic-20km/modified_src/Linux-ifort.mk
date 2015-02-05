@@ -28,7 +28,7 @@
 # First the defaults
 #
                FC := ifort
-           FFLAGS := -nobuffered_io -mcmodel=large -xHOST #-Nmpi
+           FFLAGS := -mcmodel=large -xHOST #-Nmpi
               CPP := /usr/bin/cpp
          CPPFLAGS := -P -traditional
                CC := icc

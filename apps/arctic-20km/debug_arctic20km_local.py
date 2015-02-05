@@ -24,6 +24,6 @@ a20params=Params(app,xcpu,ycpu,fclen=240,irestart=0,cicecpu=icecpu)
 modelrun=ModelRun(a20params,Constants.FELT,Constants.FELT)
 
 modelrun.preprocess()
-modelrun.run_roms(Constants.MPI,Constants.NODEBUG,Constants.MET64) #24h hindcast
+modelrun.run_roms(Constants.MPI,Constants.DEBUG,Constants.MET64) #24h hindcast
 modelrun.postprocess()
 
