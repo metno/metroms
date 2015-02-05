@@ -14,7 +14,6 @@
       module CICE_InitMod
 
       use ice_kinds_mod
-
       implicit none
       private
       public :: CICE_Initialize, cice_init
@@ -55,12 +54,12 @@
       use ice_algae, only: get_forcing_bgc
       use ice_calendar, only: dt, dt_dyn, time, istep, istep1, write_ic, &
           init_calendar, calendar
-      use ice_communicate, only: init_communicate
+      use ice_communicate, only: init_communicate, my_task, master_task
       use ice_diagnostics, only: init_diags
       use ice_domain, only: init_domain_blocks
       use ice_dyn_eap, only: init_eap
       use ice_dyn_shared, only: kdyn, init_evp
-      use ice_fileunits, only: init_fileunits
+      use ice_fileunits, only: init_fileunits, ice_stdout
       use ice_flux, only: init_coupler_flux, init_history_therm, &
           init_history_dyn, init_flux_atm, init_flux_ocn
       use ice_forcing, only: init_forcing_ocn, init_forcing_atmo, &
@@ -84,9 +83,9 @@
 #endif
       use CICE_MCT, only: init_mct
 
+      call init_fileunits       ! unit numbers
       call init_communicate     ! initial setup for message passing
 
-      call init_fileunits       ! unit numbers
       call input_data           ! namelist variables
       if (trim(runid) == 'bering') call check_finished_file
       call init_zbgc            ! vertical biogeochemistry namelist
@@ -118,7 +117,7 @@
       call init_state           ! initialize the ice state
       call init_transport       ! initialize horizontal transport
       call ice_HaloRestore_init ! restored boundary conditions
-
+ 
       call init_restart         ! initialize restart variables
 
       call init_diags           ! initialize diagnostic output points
@@ -165,7 +164,7 @@
 !=======================================================================
 
       subroutine init_restart
-
+      
       use ice_aerosol, only: init_aerosol
       use ice_age, only: init_age, restart_age, read_restart_age
       use ice_blocks, only: nx_block, ny_block
@@ -192,22 +191,27 @@
           nt_iage, nt_FY, nt_alvl, nt_vlvl, nt_apnd, nt_hpnd, nt_ipnd, tr_brine
       use ice_zbgc, only: init_bgc
       use ice_zbgc_shared, only: skl_bgc
-
+      use ice_fileunits
+      use ice_accum_fields, only: init_accum_fields, read_restart_accum_fields
       integer(kind=int_kind) :: iblk
+
+      call init_accum_fields
 
       if (trim(runtype) == 'continue') then 
          ! start from core restart file
          call restartfile()           ! given by pointer in ice_in
          call calendar(time)          ! update time parameters
+         call read_restart_accum_fields
          if (kdyn == 2) call read_restart_eap ! EAP
       else if (restart) then          ! ice_ic = core restart file
          call restartfile (ice_ic)    !  or 'default' or 'none'
+         call read_restart_accum_fields
          !!! uncomment to create netcdf
          ! call restartfile_v4 (ice_ic)  ! CICE v4.1 binary restart file
          !!! uncomment if EAP restart data exists
          ! if (kdyn == 2) call read_restart_eap
       endif         
-
+    
       ! tracers
       ! ice age tracer   
       if (tr_iage) then 

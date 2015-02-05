@@ -10,6 +10,11 @@ module CICE_MCT
   use ice_boundary, only: ice_HaloUpdate
   use ice_fileunits, only: ice_stdout, ice_stderr ! these might be the same
 
+  use ice_accum_shared, only: idaice, idfresh, idfsalt, idfhocn, idfswthru, &
+       idstrocnx, idstrocny, accum_time
+  use ice_accum_fields, only: accum_i2o_fields, mean_i2o_fields, zero_i2o_fields
+
+
 !  MCT framework for ROMS coupling
 !
 !  Componenent model registry.
@@ -50,7 +55,7 @@ module CICE_MCT
 
   implicit none
   private
-  
+  logical :: initial_call 
   public  :: init_mct,                  &
        CICE_MCT_coupling,         &
        GSMapCICE,                 &
@@ -60,24 +65,10 @@ module CICE_MCT
 
   save
 
-!jd Coupling fields and indexes
-  integer, parameter :: nfields = 7,  &
-       idaice=1, &
-       idfresh=2, &
-       idfsalt=3, &
-       idfhocn=4, &
-       idfswthru=5, &
-       idstrocnx=6, &
-       idstrocny=7
-
-!jd Time-accumulation of coupling fields. 
-  real (kind=dbl_kind), dimension (nx_block,ny_block,max_blocks,nfields)::&
-       accum_i2o_fields ! Time accumulation of fields sendt to ROMS
-  
 
 !jd      real (kind=dbl_kind) ::   TimeInterval = 7200.0
   real (kind=dbl_kind) ::   TimeInterval = 3600.0
-  real (kind=dbl_kind) ::   tcoupling = 0.0
+ ! real (kind=dbl_kind) ::   tcoupling = 0.0
   
   character (len=240) :: &
        importList = 'SST:SSS:FRZMLT:u:v:SSH', &
@@ -183,10 +174,9 @@ contains
     WRITE (ice_stdout,*) ' CICE: Router_init. Done.'
     
     deallocate(start,length)
-
+    initial_call = .true.
     call CICE_MCT_coupling
-!jd    call zero_i2o_fields
-
+    initial_call = .false.
   end subroutine init_mct
 
 !***********************************************************************
@@ -207,10 +197,9 @@ contains
 !        ***********************************
 !
 
-    tcoupling = tcoupling + dt
-    call accumulate_i2o_fields(dt)
-    
-    IF (tcoupling >= TimeInterval) THEN
+!   update of accumulated time since last coupling (accum_time) and accumulation
+!   of flux fields are done from RunMod (calling functions in ice_accum_fields).
+    IF (accum_time >= TimeInterval .or. initial_call) THEN
        IF (my_task == master_task) THEN
           write(ice_stdout,*) '*********************************************'
           
@@ -224,23 +213,23 @@ contains
        avdata=0.0
 
 !jd 
-       call mean_i2o_fields(tcoupling)
-!
+       call mean_i2o_fields()
+
 ! Exporting aice
-       call ice2ocn_send_field(accum_i2o_fields(:,:,:,idaice),'AICE')
+       call ice2ocn_send_field(accum_i2o_fields(:,:,idaice,:),'AICE')
 ! Exporting fresh_ai
-       call ice2ocn_send_field(accum_i2o_fields(:,:,:,idfresh),'freshAI')
+       call ice2ocn_send_field(accum_i2o_fields(:,:,idfresh,:),'freshAI')
 ! Exporting fsalt_ai
-       call ice2ocn_send_field(accum_i2o_fields(:,:,:,idfsalt),'fsaltAI')
+       call ice2ocn_send_field(accum_i2o_fields(:,:,idfsalt,:),'fsaltAI')
 ! Exporting fhocn_ai
-       call ice2ocn_send_field(accum_i2o_fields(:,:,:,idfhocn),'fhocnAI')
+       call ice2ocn_send_field(accum_i2o_fields(:,:,idfhocn,:),'fhocnAI')
 ! Exporting fswthru_ai
-       call ice2ocn_send_field(accum_i2o_fields(:,:,:,idfswthru),'fswthruAI')
+       call ice2ocn_send_field(accum_i2o_fields(:,:,idfswthru,:),'fswthruAI')
 ! Export stress vector (These are on the velocity point (Ugrid)
 ! Change of sign here as the stress on the ocean acts in opposite
 ! directon as the stress on the ice.
-       call ice2ocn_send_field(-accum_i2o_fields(:,:,:,idstrocnx),'strocnx')
-       call ice2ocn_send_field(-accum_i2o_fields(:,:,:,idstrocny),'strocny')
+       call ice2ocn_send_field(-accum_i2o_fields(:,:,idstrocnx,:),'strocnx')
+       call ice2ocn_send_field(-accum_i2o_fields(:,:,idstrocny,:),'strocny')
 
 ! Transfere data to ocean
        CALL MCT_Send(cice2ocn_AV, CICEtoROMS)
@@ -394,10 +383,8 @@ contains
        call ice_HaloUpdate (ss_tlty, halo_info, &
             field_loc_center, field_type_scalar)
        
-
       
-       tcoupling = 0.0
-       call zero_i2o_fields
+       call zero_i2o_fields ! also accum_time is zeroed
        
        deallocate(avdata)
     END IF
@@ -466,43 +453,5 @@ contains
     end subroutine field2avec
     
   end subroutine CICE_MCT_coupling
-  
-  
-  subroutine accumulate_i2o_fields(dt)
-    use ice_state, only: aice
-    use ice_flux, only: fresh_ai, fsalt_ai,&
-         fhocn_ai,fswthru_ai, strocnx, strocny
-    
-    real(kind=dbl_kind), intent(in) :: dt
-    
-    call accum_field(idaice, aice)
-    call accum_field(idfresh, fresh_ai)
-    call accum_field(idfsalt, fsalt_ai)
-    call accum_field(idfhocn, fhocn_ai)
-    call accum_field(idfswthru, fswthru_ai)
-    call accum_field(idstrocnx, strocnx)
-    call accum_field(idstrocny, strocny)
-    
-  contains 
-    
-    subroutine accum_field(id,field)
-      integer,intent(in) :: id
-      real (kind=dbl_kind), dimension (nx_block,ny_block,max_blocks), &
-           intent(in):: field
-      accum_i2o_fields(:,:,:,id) = accum_i2o_fields(:,:,:,id) &
-           + dt*field(:,:,:)
-    end subroutine accum_field
-    
-  end subroutine accumulate_i2o_fields
-  
-  subroutine mean_i2o_fields(dtcouple)
-    real(kind=dbl_kind), intent(in) :: dtcouple
-    accum_i2o_fields(:,:,:,:) = accum_i2o_fields(:,:,:,:) / dtcouple
-  end subroutine mean_i2o_fields
-  
-  subroutine zero_i2o_fields
-    accum_i2o_fields(:,:,:,:) = c0
-  end subroutine zero_i2o_fields
-  
   
 end module CICE_MCT

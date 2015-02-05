@@ -301,40 +301,39 @@
       !-----------------------------------------------------------------
       ! read from input file
       !-----------------------------------------------------------------
-
       call get_fileunit(nu_nml)
-
       if (my_task == master_task) then
          open (nu_nml, file=nml_filename, status='old',iostat=nml_error)
          if (nml_error /= 0) then
+            write(ice_stdout,*) 'nml_error = ', nml_error
             nml_error = -1
          else
             nml_error =  1
          endif 
 
          do while (nml_error > 0)
-            print*,'Reading setup_nml'
+               write(ice_stdout,*) 'Reading setup_nml'
                read(nu_nml, nml=setup_nml,iostat=nml_error)
                if (nml_error /= 0) exit
-            print*,'Reading grid_nml'
+               write(ice_stdout,*) 'Reading grid_nml'
                read(nu_nml, nml=grid_nml,iostat=nml_error)
                if (nml_error /= 0) exit
-            print*,'Reading tracer_nml'
+               write(ice_stdout,*) 'Reading tracer_nml'
                read(nu_nml, nml=tracer_nml,iostat=nml_error)
                if (nml_error /= 0) exit
-            print*,'Reading thermo_nml'
+               write(ice_stdout,*) 'Reading thermo_nml'
                read(nu_nml, nml=thermo_nml,iostat=nml_error)
                if (nml_error /= 0) exit
-            print*,'Reading dynamics_nml'
+               write(ice_stdout,*) 'Reading dynamics_nml'
                read(nu_nml, nml=dynamics_nml,iostat=nml_error)
                if (nml_error /= 0) exit
-            print*,'Reading shortwave_nml'
+               write(ice_stdout,*) 'Reading shortwave_nml'
                read(nu_nml, nml=shortwave_nml,iostat=nml_error)
                if (nml_error /= 0) exit
-            print*,'Reading ponds_nml'
+               write(ice_stdout,*) 'Reading ponds_nml'
                read(nu_nml, nml=ponds_nml,iostat=nml_error)
                if (nml_error /= 0) exit
-            print*,'Reading forcing_nml'
+               write(ice_stdout,*) 'Reading forcing_nml'
                read(nu_nml, nml=forcing_nml,iostat=nml_error)
                if (nml_error /= 0) exit
          end do
@@ -345,15 +344,13 @@
          call abort_ice('ice: error reading namelist')
       endif
       call release_fileunit(nu_nml)
-
+      
       !-----------------------------------------------------------------
       ! set up diagnostics output and resolve conflicts
       !-----------------------------------------------------------------
-
       if (trim(diag_type) == 'file') call get_fileunit(nu_diag)
       if (my_task == master_task) then
          if (trim(diag_type) == 'file') then
-            write(ice_stdout,*) 'Diagnostic output will be in file ',diag_file
             open (nu_diag, file=diag_file, status='unknown')
          endif
          write(nu_diag,*) '--------------------------------'
@@ -397,7 +394,6 @@
       atm_data_format = 'bin'
       ocn_data_format = 'bin' 
 #endif
-
       chartmp = advection(1:6)
       if (chartmp /= 'upwind' .and. chartmp /= 'remap ') advection = 'remap'
 
@@ -677,7 +673,6 @@
       !-----------------------------------------------------------------
       ! spew
       !-----------------------------------------------------------------
-
       if (my_task == master_task) then
 
          write(nu_diag,*) ' Document ice_in namelist parameters:'
@@ -941,7 +936,6 @@
             write(nu_diag,*) 'max_ntrcr = ',max_ntrcr,' ntrcr = ',ntrcr
             call abort_ice('max_ntrcr < number of namelist tracers')
          endif                               
-
          write(nu_diag,*) ' '
          write(nu_diag,1020) 'ntrcr = ', ntrcr
          write(nu_diag,*) ' '
@@ -971,7 +965,6 @@
          endif
 
       endif                     ! my_task = master_task
-
       call broadcast_scalar(ntrcr,    master_task)
       call broadcast_scalar(nt_Tsfc,  master_task)
       call broadcast_scalar(nt_sice,  master_task)
@@ -985,7 +978,6 @@
       call broadcast_scalar(nt_hpnd,  master_task)
       call broadcast_scalar(nt_ipnd,  master_task)
       call broadcast_scalar(nt_aero,  master_task)
-
       end subroutine input_data
 
 !=======================================================================

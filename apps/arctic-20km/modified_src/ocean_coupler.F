@@ -509,7 +509,7 @@
 ! Had Istr etc here first, and gtype as r2dvar -> visible processor map
 ! IstrR and r2dvar worked better. Now trying p2dvar, i.e. psi-point.
 ! But there's a one grid point offset between CICE and ROMS that bugs me
-! CICE U(i,j) = ROMS psi(i-1,j-1). Or so I recon at least :)
+! CICE U(i,j) = ROMS psi(i-1,j-1). )
             CALL ROMS_import2d (ng, tile,                               &
      &                          id, gtype, scale, add_offset,           &
      &                          Asize, A,                               &
@@ -524,45 +524,13 @@
 !jd Start I think this should be simplified, and that the ice concentration
 !jd should used as weight in the interpolation of stress. strocnx is allready
 !jd the product of stress and ice concentration when recived from CICE.
+
+! seb - Yes you're right. Total brainfart from me there :(
+
 !jd I also think we should remove the metric terms (omn) here. This is 
 !jd normally not taken into account in ROMS when interpolation from 
 !jd rho to u/v points, although it is included in ROMS. 
 !jd
-!jd! I wonder if all the omn terms are overkill.
-!jd! omn = RHO-grid area (meters2).
-!jd! ICE(ng)%aice are rho-points.
-!jd
-!jd             !ice fraction on u-point
-!jd             ICE(ng)%aice_u(i,j) =                                      &
-!jd     &              (ICE(ng)%aice(i-1,j)*GRID(ng)%omn(i-1,j)            &
-!jd     &              +ICE(ng)%aice(i,j)*GRID(ng)%omn(i,j)) /             &
-!jd     &              (GRID(ng)%omn(i-1,j)+GRID(ng)%omn(i,j))
-!jd             !ice fraction on psi-point (B-grid u(i-1,j-1) point)
-!jd             !first i,j+1 (psip), then i,j (psi)
-!jd             aice_psip =( ICE(ng)%aice(i-1,j)*GRID(ng)%omn(i-1,j)          &
-!jd     &                   +ICE(ng)%aice(i-1,j+1)*GRID(ng)%omn(i-1,j+1)      &
-!jd     &                   +ICE(ng)%aice(i,j+1)*GRID(ng)%omn(i,j+1)          &
-!jd     &                   +ICE(ng)%aice(i,j)*GRID(ng)%omn(i,j))             &
-!jd     &                  /(GRID(ng)%omn(i-1,j)+GRID(ng)%omn(i-1,j+1)     &
-!jd     &                     +GRID(ng)%omn(i,j+1)+GRID(ng)%omn(i,j))
-!jd             aice_psi =( ICE(ng)%aice(i-1,j-1)*GRID(ng)%omn(i-1,j-1)       &
-!jd     &                   +ICE(ng)%aice(i-1,j)*GRID(ng)%omn(i-1,j)          &
-!jd     &                   +ICE(ng)%aice(i,j)*GRID(ng)%omn(i,j)              &
-!jd     &                   +ICE(ng)%aice(i,j-1)*GRID(ng)%omn(i,j-1))         &
-!jd     &                  /(GRID(ng)%omn(i-1,j-1)+GRID(ng)%omn(i-1,j)     &
-!jd     &                      +GRID(ng)%omn(i,j)+GRID(ng)%omn(i,j-1))
-!jd
-!jd             ! ice stress on b-grid u-point = psi(i+1,j+1), hence the offset of i-1.
-!jd             ! sap for j+1 sa for j
-!jd             sap = ICE(ng)%strx(i-1,j)*aice_psip
-!jd             sa  = ICE(ng)%strx(i-1,j-1)*aice_psi        
-!jd             
-!jd             ! finally area-wheigted stress on c-grid u-point
-!jd             if ((aice_psip+aice_psi).gt.1e-12) then
-!jd                ICE(ng)%stru(i,j) = (sap+sa)/(aice_psip+aice_psi) 
-!jd             else
-!jd                ICE(ng)%stru(i,j) = 0
-!jd             endif          
 !jd new code
              !ice fraction on u-point
              ICE(ng)%aice_u(i,j) =                                      &
@@ -605,39 +573,6 @@
 
             do j = LBj+1,UBj
             do i = LBi+1,UBi-1
-!jd Similar as stry
-!jd
-!jd             !ice fraction on v-point
-!jd             ICE(ng)%aice_v(i,j) =                                      &
-!jd     &              (ICE(ng)%aice(i,j-1)*GRID(ng)%omn(i,j-1)+           &
-!jd     &              ICE(ng)%aice(i,j)*GRID(ng)%omn(i,j)) /              &
-!jd     &              (GRID(ng)%omn(i,j-1)+GRID(ng)%omn(i,j))
-!jd             !ice fraction on psi-point (B-grid u(i-1,j-1) point)
-!jd             !first j+1 (psip), then j (psi)
-!jd             aice_psip =( ICE(ng)%aice(i,j-1)*GRID(ng)%omn(i,j-1)          &
-!jd     &                   +ICE(ng)%aice(i,j)*GRID(ng)%omn(i,j)              &
-!jd     &                   +ICE(ng)%aice(i+1,j)*GRID(ng)%omn(i+1,j)          &
-!jd     &                   +ICE(ng)%aice(i+1,j-1)*GRID(ng)%omn(i+1,j-1))     &
-!jd     &                  /(GRID(ng)%omn(i,j-1)+GRID(ng)%omn(i,j)         &
-!jd     &                     +GRID(ng)%omn(i+1,j)+GRID(ng)%omn(i+1,j-1))
-!jd             aice_psi =( ICE(ng)%aice(i-1,j-1)*GRID(ng)%omn(i-1,j-1)       &
-!jd     &                   +ICE(ng)%aice(i-1,j)*GRID(ng)%omn(i-1,j)          &
-!jd     &                   +ICE(ng)%aice(i,j)*GRID(ng)%omn(i,j)              &
-!jd     &                   +ICE(ng)%aice(i,j-1)*GRID(ng)%omn(i,j-1))         &
-!jd     &                  /(GRID(ng)%omn(i-1,j-1)+GRID(ng)%omn(i-1,j)     &
-!jd                            +GRID(ng)%omn(i,j)+GRID(ng)%omn(i,j-1))
-!jd             ! ice stress on b-grid u-point = psi(i+1,j+1) -> j-1 offset
-!jd             ! sap for j+1 sa for j
-!jd             sap = ICE(ng)%stry(i,j-1)*aice_psip
-!jd             sa  = ICE(ng)%stry(i-1,j-1)*aice_psi
-!jd             
-!jd             if ((aice_psip+aice_psi).gt.1e-12) then
-!jd            ! finally area-wheigted stress on c-grid u-point
-!jd                ICE(ng)%strv(i,j) = (sap+sa)/(aice_psip+aice_psi)
-!jd             else
-!jd                ICE(ng)%strv(i,j) = 0
-!jd             endif
-!jd new code
              !ice fraction on v-point (south)
              ICE(ng)%aice_v(i,j) =                                      &
      &              0.5_r8*( ICE(ng)%aice(i,j-1) + ICE(ng)%aice(i,j) )
@@ -664,6 +599,7 @@
         
         END SELECT
       END DO
+
 !
 !-----------------------------------------------------------------------
 !  Export fields from ocean (ROMS) to sea ice (CICE) model.
