@@ -14,7 +14,6 @@
       use ice_restart_shared, only: &
           restart, restart_ext, restart_dir, restart_file, pointer_file, &
           runid, runtype, use_restart_time, restart_format, lcdf64, lenstr
-      use seb_write_mod
       implicit none
       private
       public :: init_restart_write, init_restart_read, &
@@ -45,7 +44,7 @@
       ! local variables
 
       character(len=char_len_long) :: &
-         filename, filename0,seb_str
+         filename, filename0
 
       integer (kind=int_kind) :: status
 
@@ -82,11 +81,8 @@
          endif ! use namelist values if use_restart_time = F
 
          ! seb: "hack"... :-\
-        ! status = 1
          status = nf90_get_att(ncid,nf90_global,'accum_time',accum_time)
-         write(seb_str,*) 'accum_time: ', accum_time, ' status: ',  &
-               status, nf90_noerr
-         call seb_write(seb_str)
+
          write(nu_diag,*) 'Restart read at istep=',istep0,time,time_forc
       endif
 

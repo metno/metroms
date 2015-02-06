@@ -6,7 +6,6 @@
       use ice_domain_size, only :  max_blocks
       use ice_kinds_mod
       use ice_constants
-      use seb_write_mod
       use ice_fileunits, only: ice_stdout
       implicit none
 
@@ -123,19 +122,10 @@
       ! local variables
 
       logical (kind=log_kind) :: diag
-      character (len=200) :: my_string
-      integer :: i
       diag = .true.
 
       !-----------------------------------------------------------------
 
-      do i = 1,7
-         write(my_string,*) 'min max i20 for var: ', i, &
-             minval(accum_i2o_fields(:,:,i,:)/accum_time), &
-             maxval(accum_i2o_fields(:,:,i,:)/accum_time), &
-             accum_time
-         call seb_write(my_string)
-      enddo
       call write_restart_field(nu_dump_accum,0, &
                   accum_i2o_fields(:,:,idaice,:),'ruf8', & 
                   'accum_aice',1,diag)
@@ -177,11 +167,8 @@
 
       logical (kind=log_kind) :: &
          diag
-      character (len=200) :: my_string
-      integer :: i
       diag = .true.
 
-      call seb_write('read_restart_field')
       call read_restart_field(nu_restart_accum,0, &
                   accum_i2o_fields(:,:,idaice,:),'ruf8', & 
                   'accum_aice',1,diag)
@@ -203,13 +190,6 @@
       call read_restart_field(nu_restart_accum,0, &
                   accum_i2o_fields(:,:,idstrocny,:),'ruf8', & 
                   'accum_strocny',1,diag)
-      do i = 1,7
-         write(my_string,*) 'min max i20 for var: ', i, &
-             minval(accum_i2o_fields(:,:,i,:)/accum_time), &
-             maxval(accum_i2o_fields(:,:,i,:)/accum_time), &
-             accum_time
-         call seb_write(my_string)
-      enddo
 
       end subroutine read_restart_accum_fields
 
