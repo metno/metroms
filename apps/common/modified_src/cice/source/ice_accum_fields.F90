@@ -168,7 +168,7 @@
       logical (kind=log_kind) :: &
          diag
       diag = .true.
-
+      
       call read_restart_field(nu_restart_accum,0, &
                   accum_i2o_fields(:,:,idaice,:),'ruf8', & 
                   'accum_aice',1,diag)

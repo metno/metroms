@@ -6,7 +6,8 @@
       implicit none
 
       logical (kind=log_kind), public :: &
-               bool_accum = .true.  ! if .true., read age tracer restartfile
+               bool_accum_write = .true.  ! if .true., read age tracer restartfile
+               bool_accum_read = .true.
 
       real (kind=dbl_kind), public :: accum_time
 

@@ -192,6 +192,7 @@
       use ice_zbgc, only: init_bgc
       use ice_zbgc_shared, only: skl_bgc
       use ice_fileunits
+      use ice_accum_shared, only: bool_accum_read
       use ice_accum_fields, only: init_accum_fields, read_restart_accum_fields
       integer(kind=int_kind) :: iblk
 
@@ -201,11 +202,11 @@
          ! start from core restart file
          call restartfile()           ! given by pointer in ice_in
          call calendar(time)          ! update time parameters
-         call read_restart_accum_fields
+         if (bool_accum_read) call read_restart_accum_fields
          if (kdyn == 2) call read_restart_eap ! EAP
       else if (restart) then          ! ice_ic = core restart file
          call restartfile (ice_ic)    !  or 'default' or 'none'
-         call read_restart_accum_fields
+         if (bool_accum_read) call read_restart_accum_fields
          !!! uncomment to create netcdf
          ! call restartfile_v4 (ice_ic)  ! CICE v4.1 binary restart file
          !!! uncomment if EAP restart data exists
