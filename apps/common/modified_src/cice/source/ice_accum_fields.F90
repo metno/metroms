@@ -101,9 +101,11 @@
 ! calculate mean
 
       subroutine mean_i2o_fields()
-
-           accum_i2o_fields(:,:,:,:) = accum_i2o_fields(:,:,:,:) / accum_time
-
+      if (accum_time /= 0) then
+          accum_i2o_fields(:,:,:,:) = accum_i2o_fields(:,:,:,:) / accum_time
+      else
+          accum_i2o_fields(:,:,:,:) = 0
+      endif
       end subroutine mean_i2o_fields
 
 !=======================================================================

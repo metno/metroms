@@ -67,7 +67,7 @@
          status = nf90_open(trim(filename), nf90_nowrite, ncid)
          if (status /= nf90_noerr) call abort_ice( &
             'ice: Error reading restart ncfile '//trim(filename))
-      
+
          if (use_restart_time) then
          status = nf90_get_att(ncid, nf90_global, 'istep1', istep0)
          status = nf90_get_att(ncid, nf90_global, 'time', time)
@@ -81,6 +81,7 @@
          endif ! use namelist values if use_restart_time = F
 
          ! seb: "hack"... :-\
+         status = 1 ! this is needed to get nf90_get_att to report an error. Very weird.
          status = nf90_get_att(ncid,nf90_global,'accum_time',accum_time)
          if (status /= nf90_noerr) then
               bool_accum_read = .false.
@@ -88,6 +89,7 @@
 
          write(nu_diag,*) 'Restart read at istep=',istep0,time,time_forc
       endif
+      call broadcast_scalar(bool_accum_read, master_task)
       if(bool_accum_read) call broadcast_scalar(accum_time, master_task)
       call broadcast_scalar(istep0,master_task)
       call broadcast_scalar(time,master_task)
@@ -187,6 +189,7 @@
          ! seb: a bit of a hack this but it is also the least amount of
          ! change I could come up with.
          if(bool_accum_write) then
+            print*, 'ojoj bool_write prepp'
             status = nf90_put_att(ncid,nf90_global,'accum_time',accum_time)
          endif
 
