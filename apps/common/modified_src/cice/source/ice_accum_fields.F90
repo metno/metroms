@@ -101,9 +101,11 @@
 ! calculate mean
 
       subroutine mean_i2o_fields()
-
-           accum_i2o_fields(:,:,:,:) = accum_i2o_fields(:,:,:,:) / accum_time
-
+      if (accum_time /= 0) then
+          accum_i2o_fields(:,:,:,:) = accum_i2o_fields(:,:,:,:) / accum_time
+      else
+          accum_i2o_fields(:,:,:,:) = 0
+      endif
       end subroutine mean_i2o_fields
 
 !=======================================================================
@@ -168,7 +170,7 @@
       logical (kind=log_kind) :: &
          diag
       diag = .true.
-
+      
       call read_restart_field(nu_restart_accum,0, &
                   accum_i2o_fields(:,:,idaice,:),'ruf8', & 
                   'accum_aice',1,diag)

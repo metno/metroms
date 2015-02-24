@@ -38,7 +38,7 @@
       use ice_domain, only: nblocks
       use ice_fileunits, only: nu_diag, nu_rst_pointer
 
-      use ice_accum_shared, only: bool_accum, accum_time
+      use ice_accum_shared, only: bool_accum_read, accum_time
       character(len=char_len_long), intent(in), optional :: ice_ic
 
       ! local variables
@@ -67,7 +67,7 @@
          status = nf90_open(trim(filename), nf90_nowrite, ncid)
          if (status /= nf90_noerr) call abort_ice( &
             'ice: Error reading restart ncfile '//trim(filename))
-      
+
          if (use_restart_time) then
          status = nf90_get_att(ncid, nf90_global, 'istep1', istep0)
          status = nf90_get_att(ncid, nf90_global, 'time', time)
@@ -81,12 +81,16 @@
          endif ! use namelist values if use_restart_time = F
 
          ! seb: "hack"... :-\
+         status = 1 ! this is needed to get nf90_get_att to report an error. Very weird.
          status = nf90_get_att(ncid,nf90_global,'accum_time',accum_time)
+         if (status /= nf90_noerr) then
+              bool_accum_read = .false.
+         endif
 
          write(nu_diag,*) 'Restart read at istep=',istep0,time,time_forc
       endif
-
-      call broadcast_scalar(accum_time, master_task)
+      call broadcast_scalar(bool_accum_read, master_task)
+      if(bool_accum_read) call broadcast_scalar(accum_time, master_task)
       call broadcast_scalar(istep0,master_task)
       call broadcast_scalar(time,master_task)
       call broadcast_scalar(time_forc,master_task)
@@ -123,7 +127,7 @@
                            tr_bgc_chl_sk, tr_bgc_DMSPd_sk, tr_bgc_Am_sk, &
                            skl_bgc
 
-      use ice_accum_shared, only: bool_accum, accum_time
+      use ice_accum_shared, only: bool_accum_write, accum_time
 
       character(len=char_len_long), intent(in), optional :: filename_spec
 
@@ -184,7 +188,10 @@
 
          ! seb: a bit of a hack this but it is also the least amount of
          ! change I could come up with.
-         status = nf90_put_att(ncid,nf90_global,'accum_time',accum_time)
+         if(bool_accum_write) then
+            print*, 'ojoj bool_write prepp'
+            status = nf90_put_att(ncid,nf90_global,'accum_time',accum_time)
+         endif
 
          nx = nx_global
          ny = ny_global
@@ -272,7 +279,7 @@
             call define_rest_field(ncid,'dms'   ,dims)
          endif
 
-         if (bool_accum) then
+         if (bool_accum_write) then
             call define_rest_field(ncid,'accum_aice',dims)
             call define_rest_field(ncid,'accum_fresh',dims)
             call define_rest_field(ncid,'accum_fsalt',dims)
@@ -401,7 +408,6 @@
       use ice_domain_size, only: max_blocks, ncat
       use ice_fileunits, only: nu_diag
       use ice_read_write, only: ice_read, ice_read_nc
- 
 
       integer (kind=int_kind), intent(in) :: &
            nu            , & ! unit number (not used for netcdf)

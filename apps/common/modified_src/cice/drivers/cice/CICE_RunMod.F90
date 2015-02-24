@@ -110,7 +110,7 @@
 
       use ice_accum_fields, only: write_restart_accum_fields, & 
            accumulate_i2o_fields, update_accum_clock
-      use ice_accum_shared, only: bool_accum
+      use ice_accum_shared, only: bool_accum_write
       use ice_age, only: write_restart_age
       use ice_aerosol, only: write_restart_aero
       use ice_boundary, only: ice_HaloUpdate
@@ -263,9 +263,7 @@
             if (skl_bgc)      call write_restart_bgc
             if (tr_brine)     call write_restart_hbrine
             if (kdyn == 2)    call write_restart_eap
-            if (bool_accum) then
-              call write_restart_accum_fields  ! seb
-            endif
+            if (bool_accum_write) call write_restart_accum_fields  ! seb
             call final_restart
          endif
 

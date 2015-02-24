@@ -766,8 +766,7 @@
                  (fid, nrec, fieldname, field_data(:,:,arg,:), dbug, &
                   field_loc, field_type)
 
-            call ice_close_nc(fid)	! changed by Keguang, Wang
-            !if (ixx==1) call ice_close_nc(fid)
+            call ice_close_nc(fid)
          endif                  ! ixm ne -99
 
          ! always read ixx data from data file for current year
@@ -1995,13 +1994,8 @@
       do j=jlo,jhi
        do i=ilo,ihi
         deg2rad = pi/c180
-!jd I dont understand that this could be correct. New attempt below
-!jd        solar_time = mod(real(sec,kind=dbl_kind),secday)/c3600 &
-!jd                   + c12*sin(p5*TLON(i,j))
-!jd new code
         solar_time = mod(real(sec,kind=dbl_kind),secday)/c3600 &
-                   + TLON(i,j)/(deg2rad*15) ! 15 degrees per hour
-!jd end
+                   + c12*sin(p5*TLON(i,j))
         hour_angle = (c12 - solar_time)*pi/c12
         declin = 23.44_dbl_kind*cos((172._dbl_kind-yday) &
                  * c2*pi/c365)*deg2rad     ! use dayyr instead of c365???
@@ -2486,12 +2480,9 @@
       integer (kind=int_kind), intent(in) :: &
            yr                   ! current forcing year
 
-      fsw_file = &
+      rain_file = &
            trim(atm_data_dir)//'FC_1996_unlim.nc'
-      call file_year(fsw_file,yr)
-
-      flw_file  = fsw_file
-      rain_file = fsw_file
+      call file_year(rain_file,yr)
 
       uwind_file = &
            trim(atm_data_dir)//'AN_1996_unlim.nc'
@@ -2501,13 +2492,12 @@
       tair_file  = uwind_file
       humid_file = uwind_file
       rhoa_file  = uwind_file
+      flw_file   = uwind_file
 
       if (my_task == master_task) then
          write (nu_diag,*) ' '
          write (nu_diag,*) 'Forcing data year =', fyear
          write (nu_diag,*) 'Atmospheric data files:'
-         write (nu_diag,*) trim(fsw_file)
-         write (nu_diag,*) trim(flw_file)
          write (nu_diag,*) trim(rain_file)
          write (nu_diag,*) trim(uwind_file)
          write (nu_diag,*) trim(vwind_file)
@@ -2526,14 +2516,16 @@
 
 ! authors: Keguang Wang, Met.no
 
-      use ice_constants, only: p5, c4, Lsub, secday, &
+      use ice_blocks, only: block, get_block
+      use ice_constants, only: p5, c2, c4, Lsub, secday, &
           field_loc_center, field_type_scalar, field_type_vector
-      use ice_domain, only: nblocks
+      use ice_domain, only: nblocks, blocks_ice
       use ice_flux, only: fsnow, frain, uatm, vatm, strax, stray, wind, &
           fsw, flw, Tair, rhoa, Qa, fcondtopn_f, fsurfn_f, flatn_f
       use ice_state, only: aice,aicen
       use ice_ocean, only: oceanmixed_ice
       use ice_therm_shared, only: calc_Tsfc
+      use ice_grid, only: hm, tlon, tlat, tmask, umask
 
       integer (kind=int_kind) :: &
           i, j        , & ! horizontal indices
@@ -2545,9 +2537,10 @@
           iblk        , & ! block index
           maxrec      , & ! maximum record number
           recslot     , & ! spline slot for current record
-          midmonth        ! middle day of month
+          midmonth    , & ! middle day of month
+          ilo,ihi,jlo,jhi ! beginning and end of physical domain
 
-      logical (kind=log_kind) :: readm, read6
+      logical (kind=log_kind) :: readm, read6, read12
 
       real (kind=dbl_kind), dimension(nx_block,ny_block,max_blocks) :: &
             topmelt, & ! temporary fields
@@ -2555,10 +2548,14 @@
             sublim
 
       real (kind=dbl_kind) :: &
-          sec6hr              ! number of seconds in 6 hours
+          sec6hr,             &! number of seconds in 6 hours
+          sec12hr             ! number of seconds in 12 hours
 
       character (char_len) :: & 
             fieldname    ! field name in netcdf file
+
+      type (block) :: &
+         this_block           ! block information for current block
 
     !-------------------------------------------------------------------
     ! monthly data
@@ -2630,14 +2627,6 @@
       ! forcing for mixed layer model or to calculate wind stress
       ! -----------------------------------------------------------
 
-      fieldname='ssrd'
-      call read_data_nc (readm, 0, fyear, ixm, month, ixp, &
-                      maxrec, fsw_file, fieldname, fsw_data, &
-                      field_loc_center, field_type_scalar)
-      fieldname='strd'
-      call read_data_nc (readm, 0, fyear, ixm, month, ixp, &
-                   maxrec, flw_file, fieldname, flw_data, &
-                   field_loc_center, field_type_scalar)
       fieldname='Tair'
       call read_data_nc (readm, 0, fyear, ixm, month, ixp, &
                    maxrec, tair_file, fieldname, Tair_data, &
@@ -2654,21 +2643,64 @@
 
          ! Interpolate onto current timestep
 
-      call interpolate_data (fsw_data,   fsw)
-      call interpolate_data (flw_data,  flw)
       call interpolate_data (Tair_data, Tair)
       call interpolate_data (rhoa_data, rhoa)
       call interpolate_data (Qa_data,   Qa)
 
     !-------------------------------------------------------------------
-    ! 6-hourly data
+    ! 12-hourly data
     ! 
-    ! Assume that the 6-hourly value is located at the end of the
-    !  6-hour period.  This is the convention for NCEP reanalysis data.
-    !  E.g. record 1 gives conditions at 6 am GMT on 1 January.
+    ! Assume that the 12-hourly value is located at the end of the
+    !  12-hour period.  This is the convention for ECMWF reanalysis data.
+    !  E.g. record 1 gives conditions at 12 am GMT on 1 January.
     !-------------------------------------------------------------------
 
       dataloc = 2               ! data located at end of interval
+      sec12hr = secday/c2       ! seconds in 12 hours
+      maxrec = 730              ! 365*2
+
+      ! current record number
+      recnum = 2*int(yday) - 1 + int(real(sec,kind=dbl_kind)/sec12hr)
+
+      ! Compute record numbers for surrounding data (2 on each side)
+
+      ixm = mod(recnum+maxrec-2,maxrec) + 1
+      ixx = mod(recnum-1,       maxrec) + 1
+!     ixp = mod(recnum,         maxrec) + 1
+
+      ! Compute interpolation coefficients
+      ! If data is located at the end of the time interval, then the
+      !  data value for the current record goes in slot 2
+
+      recslot = 2
+      ixp = -99
+      call interp_coeff (recnum, recslot, sec12hr, dataloc)
+
+      ! Read
+      read12 = .false.
+      if (istep==1 .or. oldrecnum .ne. recnum) read12 = .true.
+
+      ! -----------------------------------------------------------
+      ! read atmospheric forcing 
+      ! -----------------------------------------------------------
+
+      fieldname='rain'
+      call read_data_nc (read12, 0, fyear, ixm, ixx, ixp, &
+                      maxrec, rain_file, fieldname, frain_data, &
+                      field_loc_center, field_type_scalar)
+
+      ! Interpolate to current time step
+      call interpolate_data (frain_data, frain)
+
+    !-------------------------------------------------------------------
+    ! 6-hourly data
+    ! 
+    ! Assume that the 6-hourly value is located at the initial of the
+    !  6-hour period.  This is the convention for ECMWF reanalysis data.
+    !  E.g. record 1 gives conditions at 0 am GMT on 1 January.
+    !-------------------------------------------------------------------
+
+      dataloc = 1               ! data located at end of interval
       sec6hr = secday/c4        ! seconds in 6 hours
       maxrec = 1460             ! 365*4
 
@@ -2697,11 +2729,6 @@
       ! read atmospheric forcing 
       ! -----------------------------------------------------------
 
-      fieldname='rain'
-      call read_data_nc (read6, 0, fyear, ixm, ixx, ixp, &
-                      maxrec, rain_file, fieldname, frain_data, &
-                      field_loc_center, field_type_scalar)
-
       fieldname='Uwind'
       call read_data_nc (read6, 0, fyear, ixm, ixx, ixp, &
                    maxrec, uwind_file, fieldname, uatm_data, &
@@ -2710,55 +2737,64 @@
       call read_data_nc (read6, 0, fyear, ixm, ixx, ixp, &
                    maxrec, vwind_file, fieldname, vatm_data, &
                    field_loc_center, field_type_vector)
-
-      fieldname='ssrd'
-      call read_data_nc (read6, 0, fyear, ixm, ixx, ixp, &
-                      maxrec, fsw_file, fieldname, fsw_data, &
-                      field_loc_center, field_type_scalar)
-      fieldname='strd'
-      call read_data_nc (read6, 0, fyear, ixm, ixx, ixp, &
-                   maxrec, flw_file, fieldname, flw_data, &
-                   field_loc_center, field_type_scalar)
       fieldname='Tair'
       call read_data_nc (read6, 0, fyear, ixm, ixx, ixp, &
                    maxrec, tair_file, fieldname, Tair_data, &
                    field_loc_center, field_type_scalar)
       fieldname='Pair'
-      call read_data_nc (readm, 0, fyear, ixm, month, ixp, &
+      call read_data_nc (read6, 0, fyear, ixm, ixx, ixp, &
                    maxrec, rhoa_file, fieldname, rhoa_data, &
                    field_loc_center, field_type_scalar)
       fieldname='Qair'
       call read_data_nc (read6, 0, fyear, ixm, ixx, ixp, &
                    maxrec, humid_file, fieldname, Qa_data, &
                    field_loc_center, field_type_scalar)
+      fieldname='cloud'
+      call read_data_nc (read6, 0, fyear, ixm, ixx, ixp, &
+                   maxrec, flw_file, fieldname, cldf_data, &
+                   field_loc_center, field_type_scalar)
 
       ! Interpolate to current time step
-      call interpolate_data (frain_data, frain)
       call interpolate_data (uatm_data, uatm)
       call interpolate_data (vatm_data, vatm)
-      call interpolate_data (fsw_data,   fsw)
-      fsw = fsw / 86400.0_dbl_kind
-      call interpolate_data (flw_data,  flw)
-      flw = flw / 86400.0_dbl_kind
       call interpolate_data (Tair_data, Tair)
       Tair = Tair + 273.15_dbl_kind
+      ! note here rhoa represents Pair in the original file
       call interpolate_data (rhoa_data, rhoa)
-
-!         write (nu_diag,*) 'Pair: ', rhoa(10,10,1)
-
       rhoa = rhoa / (Tair * 287.058_dbl_kind)
-      call interpolate_data (Qa_data,   Qa)
+      call interpolate_data (Qa_data,     Qa)
+      call interpolate_data (cldf_data, cldf)
 
-!         write (nu_diag,*) 'rain: ', frain(10,10,1)
-!         write (nu_diag,*) 'u   : ', uatm(10,10,1)
-!         write (nu_diag,*) 'v   : ', vatm(10,10,1)
-!         write (nu_diag,*) 'fsw : ', fsw(10,10,1)
-!         write (nu_diag,*) 'flw : ', flw(10,10,1)
-!         write (nu_diag,*) 'Tair: ', Tair(10,10,1)
-!         write (nu_diag,*) 'rhoa: ', rhoa(10,10,1)
-!         write (nu_diag,*) 'Qair: ', Qa(10,10,1)
+      !$OMP PARALLEL DO PRIVATE(iblk,i,j,ilo,ihi,jlo,jhi,this_block)
+      do iblk = 1, nblocks
+        do j = 1, ny_block
+          do i = 1, nx_block
+             call longwave_parkinson_washington(Tair(i,j,iblk), &
+                                     cldf(i,j,iblk), flw(i,j,iblk))
+          enddo
+        enddo
 
-         write (nu_diag,*) 'ixm, ixx, ixp: ', ixm, ixx, ixp
+      ! AOMIP
+        this_block = get_block(blocks_ice(iblk),iblk)         
+        ilo = this_block%ilo
+        ihi = this_block%ihi
+        jlo = this_block%jlo
+        jhi = this_block%jhi
+
+        call compute_shortwave(nx_block, ny_block, &
+                               ilo, ihi, jlo, jhi, &
+                               TLON (:,:,iblk), &
+                               TLAT (:,:,iblk), &
+                               hm   (:,:,iblk), &
+                               Qa   (:,:,iblk), &
+                               cldf (:,:,iblk), &
+                               fsw  (:,:,iblk))
+
+      enddo  ! iblk
+      !$OMP END PARALLEL DO
+
+
+
 
 
       end subroutine ecmwf_data
