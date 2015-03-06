@@ -725,7 +725,7 @@
       if (istep1 > check_step) dbug = .true.  !! debugging
 
       if (my_task==master_task .and. (dbug)) then
-         write(nu_diag,*) '  ', trim(data_file)
+         write(nu_diag,*) ' ', trim(data_file), '  ', trim(fieldname)
       endif
 
       if (flag) then
@@ -1311,6 +1311,8 @@
          precip_factor = c12/(secday*days_per_year) 
       elseif (trim(precip_units) == 'mm_per_day') then
          precip_factor = c1/secday
+      elseif (trim(precip_units) == 'm_per_12hr') then
+         precip_factor = c1/43.2_dbl_kind
       elseif (trim(precip_units) == 'mm_per_sec' .or. &
               trim(precip_units) == 'mks') then 
          precip_factor = c1    ! mm/sec = kg/m^2 s

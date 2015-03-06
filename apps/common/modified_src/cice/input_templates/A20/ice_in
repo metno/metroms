@@ -2,7 +2,7 @@
     days_per_year  = 365
   , use_leap_years = .true.
   , year_init      = 1997
-  , istep0         = 0
+  , istep0         = 372
   , dt             = 3600.0
   , npt            = 744
   , ndtd           = 1
@@ -10,7 +10,7 @@
   , ice_ic         = 'default'
   , restart        = .true.
   , restart_ext    = .false.
-  , use_restart_time = .true.
+  , use_restart_time = .false.
   , restart_format = 'nc'
   , lcdf64         = .false.
   , restart_dir    = '<cicedir>/rundir/restart/'
@@ -156,7 +156,7 @@
   , atm_data_dir    = '/disk1/atmforcing/'
   , calc_strair     = .true.
   , calc_Tsfc       = .true.
-  , precip_units    = 'mm_per_month'
+  , precip_units    = 'm_per_12hr'
   , ustar_min       = 0.0005
   , update_ocn_f    = .false.
   , oceanmixed_ice  = .false.
