@@ -7,3 +7,4 @@ Before running python-script 'arctic-20km_local.py', run
 The scripts expect a folder structure like this:
 /disk1/<username>/metroms and
 /disk1/<username>/tmproms (this will be made by the build-scripts)
+

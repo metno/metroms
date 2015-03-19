@@ -18,3 +18,4 @@ to build roms-3.6 arctic-20km application. To compile in paralell,
 add the keyword '-j 4' after the name of your application to use 
 4 cpus in the compilation process. You still need to specify which 
 compiler etc you want to use inside the 'build_roms.sh'-file.
+

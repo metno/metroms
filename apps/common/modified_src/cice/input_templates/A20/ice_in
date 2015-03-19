@@ -2,7 +2,7 @@
     days_per_year  = 365
   , use_leap_years = .true.
   , year_init      = 1997
-  , istep0         = 372
+  , istep0         = 0
   , dt             = 3600.0
   , npt            = 744
   , ndtd           = 1
@@ -10,7 +10,7 @@
   , ice_ic         = 'default'
   , restart        = .true.
   , restart_ext    = .false.
-  , use_restart_time = .false.
+  , use_restart_time = .true.
   , restart_format = 'nc'
   , lcdf64         = .false.
   , restart_dir    = '<cicedir>/rundir/restart/'
