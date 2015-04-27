@@ -153,7 +153,7 @@
   , ycycle          = 1
   , atm_data_format = 'nc'
   , atm_data_type   = 'ecmwf'
-  , atm_data_dir    = '/disk1/atmforcing/'
+  , atm_data_dir    = '/work/keguangw/Forcing/Arctic-20km/'
   , calc_strair     = .true.
   , calc_Tsfc       = .true.
   , precip_units    = 'm_per_12hr'
