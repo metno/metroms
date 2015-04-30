@@ -4,7 +4,7 @@
   , year_init      = 1997
   , istep0         = 372
   , dt             = 3600.0
-  , npt            = 744
+  , npt            = 8760
   , ndtd           = 1
   , runtype        = 'continue'
   , ice_ic         = 'default'
