@@ -11,8 +11,8 @@ export workingdir=${PWD}
 cd ../
 metroms_base=${PWD} 
 cd ../
-tup=/work/$USER
-#tup=${PWD}
+#tup=/work/$USER
+tup=${PWD}
 
 # Build CICE
 mkdir -p ${tup}/tmproms
@@ -30,7 +30,9 @@ export MCT_LIBDIR=${tup}/tmproms/MCT/lib
 cp -auv $workingdir/common/modified_src/cice ${tup}/tmproms
 
 # Remove old binaries
-rm -rf ${tup}/tmproms/cice/rundir/compile
+rm -f $CICE_DIR/rundir/cice
+
+#rm -rf ${tup}/tmproms/cice/rundir/compile
 
 #
 # NB! Compile flags needed on Vilje
@@ -39,9 +41,30 @@ rm -rf ${tup}/tmproms/cice/rundir/compile
 
 ./comp_ice $1 $2
 
+# Test if compilation and linking was successfull
+
+if [ ! -f $CICE_DIR/rundir/cice ]; then
+    echo "$CICE_DIR/rundir/cice not found"
+    echo "Error with compilation "
+    exit -1
+fi
+
 # Build a library (for use in the ROMS build)
 cd $CICE_DIR/rundir/compile
 ar rcv libcice.a *.o
 
+cd $CICE_DIR
+
+if [ -d $CICE_DIR/data/atm/A20/ecmwf ]; then
+    echo ls $CICE_DIR/data/atm/A20/ecmwf
+    ls $CICE_DIR/data/atm/A20/ecmwf
+else
+    echo "Directory for atmosphere forcing data should be linked to"
+    echo $CICE_DIR/data/atm/RES/ATM_DATA_TYPE
+    echo "where RES is model setup (A20,??)"
+    echo "and ATM_DATA_TYPE is dataset used (ecmwf/ncar ..)"
+    echo $CICE_DIR/data/atm/A20/ecmwf not found
+    exit
+fi
 
 set +x

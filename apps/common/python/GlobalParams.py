@@ -1,9 +1,9 @@
 class GlobalParams(object):
     import getpass
     username=getpass.getuser()
-    COMMONPATH="/home/metno/"+username+"/metroms/apps/common"
+    COMMONPATH="/disk1/"+username+"/metroms/apps/common"
     COMMONORIGPATH=COMMONPATH+"/origfiles"
-    RUNDIR="/work/"+username+"/tmproms/run"
+    RUNDIR="/disk1/"+username+"/tmproms/run"
     ########################################################################
     # Internal files:
     ########################################################################
