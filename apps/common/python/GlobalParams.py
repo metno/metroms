@@ -18,7 +18,7 @@ class GlobalParams(object):
             print "Environment variable HOME not found in configuration on vilje"
             sys.exit(1)
 
-        METROMSDIR=os.environ.get('METROMS_SRCDIR',HOME+username+'/metroms')
+        METROMSDIR=os.environ.get('METROMS_SRCDIR',HOME+'/metroms')
 
         tmpdir=os.environ.get('METROMS_TMPDIR','/work/'+username)
         RUNDIR=tmpdir+'/tmproms/run'
