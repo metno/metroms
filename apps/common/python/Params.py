@@ -16,7 +16,7 @@ class Params(object):
     
     def __init__(self,app,xcpu,ycpu,fclen,irestart,cicecpu=0):
         self.KEYWORDFILE=GlobalParams.COMMONORIGPATH+"/roms_keyword.in"
-        self.ROMSINFILE=GlobalParams.RUNDIR+"/roms.in"
+        #self.ROMSINFILE=GlobalParams.RUNDIR+"/roms.in"
         self.XCPU=xcpu
         self.YCPU=ycpu
         self.CICECPU=cicecpu
@@ -27,6 +27,7 @@ class Params(object):
             # Name of roms.in keyword-file:
             ########################################################################
             self.RUNPATH=GlobalParams.RUNDIR+"/arctic-20km"
+            self.ROMSINFILE=self.RUNPATH+"/roms.in"
             self.FELT_CLMFILE=self.RUNPATH+"/FOAM.felt"
             self.DELTAT=300
             #self.ROMSINIFILE=self.RUNPATH+"/"+INIFILE
@@ -43,7 +44,6 @@ class Params(object):
             ['XCPU',str(self.XCPU)],
             ['YCPU',str(self.YCPU)],
             ['TSTEPS',str(self.FCLEN*3600/self.DELTAT)],
-            #['DELTAT',"300"],
             ['DELTAT',str(self.DELTAT)],
             ['RATIO',"30"],
             ['IRESTART',str(self.IRESTART)],
@@ -78,6 +78,7 @@ class Params(object):
             # Name of roms.in keyword-file:
             ########################################################################
             self.RUNPATH=GlobalParams.RUNDIR+"/nordic-4km2d-stormsurge"
+            self.ROMSINFILE=self.RUNPATH+"/roms.in"
             self.FELT_CLMFILE=None
             self.DELTAT=10
             #self.ROMSINIFILE=self.RUNPATH+"/"+INIFILE
