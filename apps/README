@@ -4,16 +4,8 @@ Example given for Arctic 20km, coupled ROMS-CICE:
 This has been tested on Intel computer, using Gfortran
 and Ubuntu 12.04. C-shell must be installed for CICE compilation.
 
-First, define the computer you use, (metlocal, vilje, .. (other should be implemented).
-#export METROMS_MYHOST=vilje
-#export METROMS_MYHOST=metlocal
-
-Optionally, set the TMPDIR you want to use 
-(default /disk1/$LOGNAME or /work/$LOGNAME at metlocal and vilje, respectively.)
-
-Optionally, set the path to the local metroms version 
-(default /disk1/$LOGNAME and $HOME, at metlocal and vilje, resp.)
-
+Start with seting the METROMS_MYHOST and METROMS_TMPDIR environmental variables by souring the myenv.bash file (or similar method). 
+soure ./myenv.bash
 
 1:
 Build MCT by executing './build_mct.sh' in metroms/apps-folder.
