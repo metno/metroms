@@ -73,7 +73,11 @@
            ftime              ! forcing time (for restart)
 
       integer (kind=int_kind) :: &
-           oldrecnum = 0      ! old record number (save between steps)
+           oldrecnum = 0 ,&     ! old record number (save between steps)
+!jd        
+           oldrecnum6 = 0, &
+           oldrecnum12 = 0
+!jd
 
       real (kind=dbl_kind), dimension(nx_block,ny_block,max_blocks) :: &
           cldf                ! cloud fraction
@@ -724,11 +728,11 @@
 
       if (istep1 > check_step) dbug = .true.  !! debugging
 
+      if (flag) then
+
       if (my_task==master_task .and. (dbug)) then
          write(nu_diag,*) ' ', trim(data_file), '  ', trim(fieldname)
       endif
-
-      if (flag) then
 
       !-----------------------------------------------------------------
       ! Initialize record counters
@@ -2517,10 +2521,11 @@
       subroutine ecmwf_data
 
 ! authors: Keguang Wang, Met.no
+! Modified: Jens Boldingh Debernard, Met.no
 
       use ice_blocks, only: block, get_block
       use ice_constants, only: p5, c2, c4, Lsub, secday, &
-          field_loc_center, field_type_scalar, field_type_vector
+          field_loc_center, field_type_scalar, field_type_vector, Tffresh
       use ice_domain, only: nblocks, blocks_ice
       use ice_flux, only: fsnow, frain, uatm, vatm, strax, stray, wind, &
           fsw, flw, Tair, rhoa, Qa, fcondtopn_f, fsurfn_f, flatn_f
@@ -2559,6 +2564,9 @@
       type (block) :: &
          this_block           ! block information for current block
 
+#define monthly
+#undef monthly
+#ifdef monthly
     !-------------------------------------------------------------------
     ! monthly data
     !
@@ -2591,11 +2599,15 @@
       readm = .false.
       if (istep==1 .or. (mday==midmonth .and. sec==0)) readm = .true.
 
+      if (readm .and. my_task == master_task ) &
+           write (nu_diag,*) ' Reads monthly fields at', month, mday, sec
+
       ! -----------------------------------------------------------
       ! Rainfall 
       ! -----------------------------------------------------------
 
       fieldname='rain'
+
       call read_data_nc (readm, 0, fyear, ixm, month, ixp, &
                       maxrec, rain_file, fieldname, frain_data, &
                       field_loc_center, field_type_scalar)
@@ -2649,6 +2661,7 @@
       call interpolate_data (rhoa_data, rhoa)
       call interpolate_data (Qa_data,   Qa)
 
+#endif
     !-------------------------------------------------------------------
     ! 12-hourly data
     ! 
@@ -2657,9 +2670,12 @@
     !  E.g. record 1 gives conditions at 12 am GMT on 1 January.
     !-------------------------------------------------------------------
 
-      dataloc = 2               ! data located at end of interval
+!jd      dataloc = 2               ! data located at end of interval
+      dataloc = 1      ! Flux data are averaged over the accumulation peride
+                       ! and valid for the last 12 hours. 
       sec12hr = secday/c2       ! seconds in 12 hours
-      maxrec = 730              ! 365*2
+!jd      maxrec = 730              ! 365*2
+      maxrec=2*days_per_year  ! Should take acount of leap-years
 
       ! current record number
       recnum = 2*int(yday) - 1 + int(real(sec,kind=dbl_kind)/sec12hr)
@@ -2680,19 +2696,28 @@
 
       ! Read
       read12 = .false.
-      if (istep==1 .or. oldrecnum .ne. recnum) read12 = .true.
+      if (istep==1 .or. oldrecnum12 .ne. recnum) read12 = .true.
+      ! Save record number for next time step
+      oldrecnum12 = recnum
 
+
+      if (read12 .and. my_task == master_task ) &
+           write (nu_diag,*) 'istep1',istep1,' Reads 12 hourly fields at', month, mday, sec &
+                , 'recnum,oldrecnum12',recnum, oldrecnum12
+      
       ! -----------------------------------------------------------
       ! read atmospheric forcing 
       ! -----------------------------------------------------------
 
       fieldname='rain'
       call read_data_nc (read12, 0, fyear, ixm, ixx, ixp, &
-                      maxrec, rain_file, fieldname, frain_data, &
+!jd  prepare_forcing routine assumes that preciptation comes in fsnow_data array
+!jd                      maxrec, rain_file, fieldname, frain_data, &
+                      maxrec, rain_file, fieldname, fsnow_data, &
                       field_loc_center, field_type_scalar)
 
       ! Interpolate to current time step
-      call interpolate_data (frain_data, frain)
+      call interpolate_data (fsnow_data, fsnow)
 
     !-------------------------------------------------------------------
     ! 6-hourly data
@@ -2702,9 +2727,12 @@
     !  E.g. record 1 gives conditions at 0 am GMT on 1 January.
     !-------------------------------------------------------------------
 
-      dataloc = 1               ! data located at end of interval
+!jd      dataloc = 1               ! data located at end of interval
+      dataloc = 2    ! data located at end of interval (state variables)
       sec6hr = secday/c4        ! seconds in 6 hours
-      maxrec = 1460             ! 365*4
+
+!jd      maxrec = 1460             ! 365*4
+      maxrec=4*days_per_year  ! Should take acount of leap-years
 
       ! current record number
       recnum = 4*int(yday) - 3 + int(real(sec,kind=dbl_kind)/sec6hr)
@@ -2725,7 +2753,13 @@
 
       ! Read
       read6 = .false.
-      if (istep==1 .or. oldrecnum .ne. recnum) read6 = .true.
+      if (istep==1 .or. oldrecnum6 .ne. recnum) read6 = .true.
+      ! Save record number for next time step
+      oldrecnum6 = recnum
+
+      if (read6 .and. my_task == master_task ) &
+           write (nu_diag,*) ' Reads 6 hourly fields at', month, mday, sec &
+                , 'recnum,oldrecnum6',recnum, oldrecnum6
 
       ! -----------------------------------------------------------
       ! read atmospheric forcing 
@@ -2760,7 +2794,7 @@
       call interpolate_data (uatm_data, uatm)
       call interpolate_data (vatm_data, vatm)
       call interpolate_data (Tair_data, Tair)
-      Tair = Tair + 273.15_dbl_kind
+      Tair = Tair + Tffresh
       ! note here rhoa represents Pair in the original file
       call interpolate_data (rhoa_data, rhoa)
       rhoa = rhoa / (Tair * 287.058_dbl_kind)
@@ -2769,6 +2803,7 @@
 
       !$OMP PARALLEL DO PRIVATE(iblk,i,j,ilo,ihi,jlo,jhi,this_block)
       do iblk = 1, nblocks
+
         do j = 1, ny_block
           do i = 1, nx_block
              call longwave_parkinson_washington(Tair(i,j,iblk), &
@@ -2794,8 +2829,6 @@
 
       enddo  ! iblk
       !$OMP END PARALLEL DO
-
-
 
 
 

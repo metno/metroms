@@ -77,6 +77,7 @@ cd ../
 metroms_base=${PWD} 
 cd ../
 tup=${PWD}
+#tup=/work/$USER
 
 tmpdir=tmproms
 

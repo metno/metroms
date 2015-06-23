@@ -5,7 +5,7 @@ workingdir=${PWD}
 cd ../
 metroms_base=${PWD} 
 cd ../
-#tup=/global/work/sebastm #
+#tup=/work/$USER
 tup=${PWD}
 
 # Build MCT

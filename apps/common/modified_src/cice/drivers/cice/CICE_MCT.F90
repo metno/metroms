@@ -13,7 +13,8 @@ module CICE_MCT
   use ice_accum_shared, only: idaice, idfresh, idfsalt, idfhocn, idfswthru, &
        idstrocnx, idstrocny, accum_time
   use ice_accum_fields, only: accum_i2o_fields, mean_i2o_fields, zero_i2o_fields
-
+  use ice_timers, only: ice_timer_start, ice_timer_stop,&
+       timer_cplrecv, timer_rcvsnd, timer_cplsend,timer_sndrcv
 
 !  MCT framework for ROMS coupling
 !
@@ -58,6 +59,7 @@ module CICE_MCT
   logical :: initial_call 
   public  :: init_mct,                  &
        CICE_MCT_coupling,         &
+       finalize_mct_coupling,     &
        GSMapCICE,                 &
        cice2ocn_AV,               &
        ocn2cice_AV,               &
@@ -185,7 +187,7 @@ contains
 !jd  subroutine CICE_MCT_coupling(time,dt)
   subroutine CICE_MCT_coupling()
     use ice_grid, only: HTN, HTE, dxu, dyu, dxt, dyt
-    use ice_calendar, only: dt, time, write_ic 
+    use ice_calendar, only: dt, time, write_ic ,istep, istep1
 !jd    real(kind=dbl_kind), intent(in) :: time,dt
     real(kind=dbl_kind), pointer :: avdata(:)
     integer     :: ilo, ihi, jlo, jhi ! beginning and end of physical domain
@@ -206,7 +208,10 @@ contains
           write(ice_stdout,*) 'CICE - Ocean: coupling routine called from CICE'
           write(ice_stdout,*) 'time = ', time
           write(ice_stdout,*) 'dt = ', dt
+          write(ice_stdout,*) 'istep ', istep
+          write(ice_stdout,*) 'istep1 ', istep1
           write(ice_stdout,*) '*********************************************'
+          call flush(ice_stdout)
        END IF
        Asize=GlobalSegMap_lsize(GSMapCICE, MPI_COMM_ICE)
        allocate(avdata(Asize))
@@ -214,6 +219,8 @@ contains
 
 !jd 
        call mean_i2o_fields()
+
+       call ice_timer_start(timer_cplsend)
 
 ! Exporting aice
        call ice2ocn_send_field(accum_i2o_fields(:,:,idaice,:),'AICE')
@@ -233,11 +240,13 @@ contains
 
 ! Transfere data to ocean
        CALL MCT_Send(cice2ocn_AV, CICEtoROMS)
+       call ice_timer_stop(timer_cplsend)
 
-
+       call ice_timer_start(timer_cplrecv)
 ! Recive data from ocean
        CALL MCT_Recv(ocn2cice_AV, CICEtoROMS)
        write(ice_stdout,*) 'CICE - Ocean: CICE Received data'
+
 !
 ! SST
 !
@@ -387,6 +396,9 @@ contains
        call zero_i2o_fields ! also accum_time is zeroed
        
        deallocate(avdata)
+
+       call ice_timer_stop(timer_cplrecv)
+
     END IF
 
 
@@ -453,5 +465,19 @@ contains
     end subroutine field2avec
     
   end subroutine CICE_MCT_coupling
+
+  subroutine finalize_mct_coupling
+    implicit none
+    integer :: err
+!-----------------------------------------------------------------------
+!  Deallocate MCT environment.
+!-----------------------------------------------------------------------
+!
+      CALL Router_clean (CICEtoROMS, err)
+      CALL AttrVect_clean (ocn2cice_AV, err)
+      CALL AttrVect_clean (cice2ocn_AV, err)
+      CALL GlobalSegMap_clean (GSMapCICE, err)
+
+  end subroutine finalize_mct_coupling
   
 end module CICE_MCT

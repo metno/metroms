@@ -51,10 +51,10 @@ class Params(object):
             ['STASTEP',str(1*3600/int(self.DELTAT))],
             ['INFOSTEP',str(1*3600/int(self.DELTAT))],
             ['HISSTEPP',str(1*3600/int(self.DELTAT))],
-            ['DEFHISSTEP',"0"],     #if 0; all output in one his-file
+            ['DEFHISSTEP',str(720*3600/int(self.DELTAT))],  #if 0; all output in one his-file
             ['AVGSTEPP',str(24*3600/int(self.DELTAT))],
             ['STARTAVG',"0"],
-            ['DEFAVGSTEP',"0"],     #if 0; all output in one avg-file
+            ['DEFAVGSTEP',str(720*3600/int(self.DELTAT))],  #if 0; all output in one avg-file
             ['STARTTIME',"9877.5"],
             ['TIDEREF',"9877.5"],
             ['TIMEREF',"19700101.00"],
