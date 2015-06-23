@@ -56,8 +56,15 @@ export ROMS_APPLICATION=$1
 
 export USE_MPI=on
 export USE_MPIF90=on
-export FORT=gfortran
-#export FORT=ifort # Use this on Vilje
+
+if [ "${METROMS_MYHOST}" == "metlocal" ]; then
+    export FORT=gfortran
+elif [ "${METROMS_MYHOST}" == "vilje" ]; then
+    export FORT=ifort
+else
+    echo " Computer not defined set environment variable METROMS_MYHOST= metlocal, vilje .."
+    exit
+fi
 
 export USE_OpenMP=
 export USE_LARGE=on
@@ -76,8 +83,16 @@ workingdir=${PWD}
 cd ../
 metroms_base=${PWD} 
 cd ../
-tup=${PWD}
-#tup=/work/$USER
+if [ "$METROMS_TMPDIR" == "" ]; then
+    tup=${PWD}
+else
+    tup=${METROMS_TMPDIR}
+    if [ ! -d $tup ] ; then
+	echo "$tup not defined, set environment variable METROMS_TMPDIR to "
+	echo "override default behaviour"
+	exit 
+    fi
+fi
 
 tmpdir=tmproms
 

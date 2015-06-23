@@ -17,11 +17,16 @@ icecpu=2
 # Choose a predifnes ROMS-application:
 app='a20' # Arctic-20km
 
-a20params=Params(app,xcpu,ycpu,fclen=744,irestart=0,cicecpu=icecpu)
+#a20params=Params(app,xcpu,ycpu,fclen=744,irestart=0,cicecpu=icecpu)
+a20params=Params(app,xcpu,ycpu,fclen=24,irestart=0,cicecpu=icecpu)
+
 #a20params.RUNPATH="/disk1/tmp"
 #a20params.ROMSINFILE=a20params.RUNPATH+"/roms___.in"
 
 modelrun=ModelRun(a20params,Constants.FELT,Constants.FELT)
+
+print GlobalParams.RUNDIR
+print GlobalParams.COMMONPATH
 
 modelrun.preprocess()
 modelrun.run_roms(Constants.MPI,Constants.NODEBUG,Constants.MET64) #24h hindcast

@@ -1,18 +1,35 @@
 #!/bin/bash
 set -x
 
-if [ $# -ne 2 ]
-then
-    echo "Usage: $0 NPX NPY"
-    exit 1
-fi 
+NPX=1; NPY=1
+if [ "${METROMS_MYHOST}" == "metlocal" ]; then
+    NPX=1  
+    NPY=2
+elif [ "${METROMS_MYHOST}" == "vilje" ]; then
+    NPX=1  
+    NPY=2
+fi
+
+#if [ $# -ne 2 ]
+#then
+#    echo "Usage: $0 NPX NPY"
+#    exit 1
+#fi 
 
 export workingdir=${PWD} 
 cd ../
 metroms_base=${PWD} 
 cd ../
-#tup=/work/$USER
-tup=${PWD}
+if [ "$METROMS_TMPDIR" == "" ]; then
+    tup=${PWD}
+else
+    tup=${METROMS_TMPDIR}
+    if [ ! -d $tup ] ; then
+	echo "$tup not defined, set environment variable METROMS_TMPDIR to "
+	echo "override default behaviour"
+	exit 
+    fi
+fi
 
 # Build CICE
 mkdir -p ${tup}/tmproms
@@ -39,7 +56,7 @@ rm -f $CICE_DIR/rundir/cice
 # -O2 -w -convert big_endian -assume byterecl
 #
 
-./comp_ice $1 $2
+./comp_ice $NPX $NPY
 
 # Test if compilation and linking was successfull
 
@@ -53,18 +70,20 @@ fi
 cd $CICE_DIR/rundir/compile
 ar rcv libcice.a *.o
 
-cd $CICE_DIR
+rm -f $CICE_DIR/rundir/cice
 
-if [ -d $CICE_DIR/data/atm/A20/ecmwf ]; then
-    echo ls $CICE_DIR/data/atm/A20/ecmwf
-    ls $CICE_DIR/data/atm/A20/ecmwf
-else
-    echo "Directory for atmosphere forcing data should be linked to"
-    echo $CICE_DIR/data/atm/RES/ATM_DATA_TYPE
-    echo "where RES is model setup (A20,??)"
-    echo "and ATM_DATA_TYPE is dataset used (ecmwf/ncar ..)"
-    echo $CICE_DIR/data/atm/A20/ecmwf not found
-    exit
-fi
+#cd $CICE_DIR
+
+#if [ -d $CICE_DIR/data/atm/A20/ecmwf ]; then
+#    echo ls $CICE_DIR/data/atm/A20/ecmwf
+#    ls $CICE_DIR/data/atm/A20/ecmwf
+#else
+#    echo "Directory for atmosphere forcing data should be linked to"
+#    echo $CICE_DIR/data/atm/RES/ATM_DATA_TYPE
+#    echo "where RES is model setup (A20,??)"
+#    echo "and ATM_DATA_TYPE is dataset used (ecmwf/ncar ..)"
+#    echo $CICE_DIR/data/atm/A20/ecmwf not found
+#    exit
+#fi
 
 set +x
