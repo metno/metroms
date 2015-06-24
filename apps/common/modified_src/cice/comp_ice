@@ -3,8 +3,15 @@
 ### Change these to your own site and user directory! 
 ### You will need to create a Makefile Macro in bld/ and a run_ice script 
 ### in input_templates/.
-setenv SITE Ubuntu 
-#setenv SITE Vilje
+
+if ( $METROMS_MYHOST == "metlocal" ) then
+    setenv SITE Ubuntu 
+else if ( $METROMS_MYHOST == "vilje" ) then
+    setenv SITE Vilje
+else
+    echo $METROMS_MYHOST not defined
+    exit
+endif
 
 ### SYSTEM_USERDIR is predefined on ORNL machines
 setenv SYSTEM_USERDIR $CICE_DIR

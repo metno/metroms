@@ -49,7 +49,7 @@ cp -auv $workingdir/common/modified_src/cice ${tup}/tmproms
 # Remove old binaries
 rm -f $CICE_DIR/rundir/cice
 
-#rm -rf ${tup}/tmproms/cice/rundir/compile
+rm -rf ${tup}/tmproms/cice/rundir/compile
 
 #
 # NB! Compile flags needed on Vilje
