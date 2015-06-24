@@ -7,7 +7,7 @@
 if ( $METROMS_MYHOST == "metlocal" ) then
     setenv SITE Ubuntu 
 else if ( $METROMS_MYHOST == "vilje" ) then
-    setenv SITE Vilje
+    setenv SITE NTNU.vilje
 else
     echo $METROMS_MYHOST not defined
     exit
