@@ -45,8 +45,9 @@
          vocn    , & ! ocean current, y-direction (m/s)
          ss_tltx , & ! sea surface slope, x-direction (m/m)
          ss_tlty , & ! sea surface slope, y-direction
+#ifdef ROMSCOUPLED
          zeta    , & ! sea surface height from ROMS (m)
-
+#endif
        ! out to atmosphere
          strairxT, & ! stress on ice by air, x-direction
          strairyT, & ! stress on ice by air, y-direction
@@ -409,7 +410,9 @@
 
       ss_tltx(:,:,:)= c0              ! sea surface tilt (m/m)
       ss_tlty(:,:,:)= c0
+#ifdef ROMSCOUPLED
       zeta   (:,:,:)= c0              ! sea surface height from ROMS
+#endif ROMSCOUPLED
       uocn  (:,:,:) = c0              ! surface ocean currents (m/s)
       vocn  (:,:,:) = c0
       frzmlt(:,:,:) = c0              ! freezing/melting potential (W/m^2)

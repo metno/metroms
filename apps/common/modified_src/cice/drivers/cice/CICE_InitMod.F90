@@ -81,7 +81,9 @@
 #ifdef popcice
       use drv_forcing, only: sst_sss
 #endif
-      use CICE_MCT, only: init_mct
+#ifdef ROMSCOUPLED
+      use CICE_MCT, only: init_mct, CICE_MCT_coupling
+#endif
 
       call init_fileunits       ! unit numbers
       call init_communicate     ! initial setup for message passing
@@ -95,7 +97,6 @@
       call init_ice_timers      ! initialize all timers
       call ice_timer_start(timer_total)   ! start timing entire run
       call init_grid2           ! grid variables
-
       call init_calendar        ! initialize some calendar stuff
       call init_hist (dt)       ! initialize output history file
 
@@ -157,7 +158,10 @@
 
       if (write_ic) call accum_hist(dt) ! write initial conditions 
 
+#ifdef ROMSCOUPLED
       call init_mct
+      call CICE_MCT_coupling
+#endif
 
       end subroutine cice_init
 
@@ -192,21 +196,29 @@
       use ice_zbgc, only: init_bgc
       use ice_zbgc_shared, only: skl_bgc
       use ice_fileunits
+#ifdef ROMSCOUPLED
       use ice_accum_shared, only: bool_accum_read
       use ice_accum_fields, only: init_accum_fields, read_restart_accum_fields
+#endif
       integer(kind=int_kind) :: iblk
 
+#ifdef ROMSCOUPLED
       call init_accum_fields
+#endif
 
       if (trim(runtype) == 'continue') then 
          ! start from core restart file
          call restartfile()           ! given by pointer in ice_in
          call calendar(time)          ! update time parameters
+#ifdef ROMSCOUPLED
          if (bool_accum_read) call read_restart_accum_fields
+#endif
          if (kdyn == 2) call read_restart_eap ! EAP
       else if (restart) then          ! ice_ic = core restart file
          call restartfile (ice_ic)    !  or 'default' or 'none'
+#ifdef ROMSCOUPLED
          if (bool_accum_read) call read_restart_accum_fields
+#endif
          !!! uncomment to create netcdf
          ! call restartfile_v4 (ice_ic)  ! CICE v4.1 binary restart file
          !!! uncomment if EAP restart data exists

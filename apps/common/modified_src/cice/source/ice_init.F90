@@ -301,7 +301,9 @@
       !-----------------------------------------------------------------
       ! read from input file
       !-----------------------------------------------------------------
+
       call get_fileunit(nu_nml)
+
       if (my_task == master_task) then
          open (nu_nml, file=nml_filename, status='old',iostat=nml_error)
          if (nml_error /= 0) then
@@ -344,13 +346,15 @@
          call abort_ice('ice: error reading namelist')
       endif
       call release_fileunit(nu_nml)
-      
+
       !-----------------------------------------------------------------
       ! set up diagnostics output and resolve conflicts
       !-----------------------------------------------------------------
+
       if (trim(diag_type) == 'file') call get_fileunit(nu_diag)
       if (my_task == master_task) then
          if (trim(diag_type) == 'file') then
+            write(ice_stdout,*) 'Diagnostic output will be in file ',diag_file
             open (nu_diag, file=diag_file, status='unknown')
          endif
          write(nu_diag,*) '--------------------------------'
@@ -394,6 +398,7 @@
       atm_data_format = 'bin'
       ocn_data_format = 'bin' 
 #endif
+
       chartmp = advection(1:6)
       if (chartmp /= 'upwind' .and. chartmp /= 'remap ') advection = 'remap'
 
@@ -673,6 +678,7 @@
       !-----------------------------------------------------------------
       ! spew
       !-----------------------------------------------------------------
+
       if (my_task == master_task) then
 
          write(nu_diag,*) ' Document ice_in namelist parameters:'
@@ -936,6 +942,7 @@
             write(nu_diag,*) 'max_ntrcr = ',max_ntrcr,' ntrcr = ',ntrcr
             call abort_ice('max_ntrcr < number of namelist tracers')
          endif                               
+
          write(nu_diag,*) ' '
          write(nu_diag,1020) 'ntrcr = ', ntrcr
          write(nu_diag,*) ' '
@@ -965,6 +972,7 @@
          endif
 
       endif                     ! my_task = master_task
+
       call broadcast_scalar(ntrcr,    master_task)
       call broadcast_scalar(nt_Tsfc,  master_task)
       call broadcast_scalar(nt_sice,  master_task)
@@ -978,6 +986,7 @@
       call broadcast_scalar(nt_hpnd,  master_task)
       call broadcast_scalar(nt_ipnd,  master_task)
       call broadcast_scalar(nt_aero,  master_task)
+
       end subroutine input_data
 
 !=======================================================================
@@ -1330,10 +1339,12 @@
 
          endif ! atm_data_type
 
+#ifdef ROMSCOUPLED
 !jd Force use of defalut condition ( ice north of edge_init_north for rectangular grid)
 !jd         if (trim(grid_type) == 'rectangular') then
          if (trim(grid_type) == 'leftside_rectangular') then
 !jd-end
+#endif 
 
          ! place ice on left side of domain
          icells = 0

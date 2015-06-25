@@ -47,7 +47,9 @@
           timer_couple, timer_step
       use ice_zbgc_shared, only: skl_bgc
 
+#ifdef ROMSCOUPLED
       use CICE_MCT, only: CICE_MCT_coupling
+#endif
 
    !--------------------------------------------------------------------
    !  initialize error code and step timer
@@ -63,10 +65,9 @@
          
          call ice_step ! restarts written at the end of this call
 
-         ! CALL MCT ROMS coupling routine
-!jd         call CICE_MCT_coupling(time, dt)
-
+#ifdef ROMSCOUPLED
          call CICE_MCT_coupling
+#endif
 
          istep  = istep  + 1    ! update time step counters
          istep1 = istep1 + 1

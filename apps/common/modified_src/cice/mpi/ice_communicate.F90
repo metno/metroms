@@ -33,7 +33,9 @@
 
    integer (int_kind), public :: &
       MPI_COMM_ICE,             &! MPI communicator for ice comms
+#ifdef ROMSCOUPLED
       nprocs,                   &
+#endif
       mpiR16,                   &! MPI type for r16_kind
       mpiR8,                    &! MPI type for dbl_kind
       mpiR4,                    &! MPI type for real_kind
@@ -62,7 +64,10 @@
 !-----------------------------------------------------------------------
 
    include 'mpif.h'   ! MPI Fortran include file
+
    integer (int_kind) :: ierr  ! MPI error flag
+
+   integer (int_kind) :: ice_comm
 
 !-----------------------------------------------------------------------
 !
@@ -70,23 +75,45 @@
 !  ice communications
 !
 !-----------------------------------------------------------------------
+#ifndef ROMSCOUPLED
+#if (defined key_oasis3 || defined key_oasis3mct || defined key_oasis4)
+    ice_comm = localComm       ! communicator from NEMO/OASISn 
+#else
+    ice_comm = MPI_COMM_WORLD  ! Global communicator 
+#endif 
 
-!  Note mpi_init has been called elsewhere in coupled mode
+#if (defined CCSM) || (defined SEQ_MCT)
+   ! CCSM standard coupled mode
+   call cpl_interface_init(cpl_fields_icename, MPI_COMM_ICE)
+#else
 
-   CALL mpi_comm_rank (MPI_COMM_ICE, my_task, ierr)
-   CALL mpi_comm_size (MPI_COMM_ICE, nprocs, ierr)
+#if (defined popcice || defined CICE_IN_NEMO)
+   ! MPI_INIT is called elsewhere in coupled configuration
+#else
+   call MPI_INIT(ierr)
+#endif
 
-   call MPI_BARRIER(MPI_COMM_ICE, ierr)
-   call MPI_COMM_DUP(MPI_COMM_ICE, MPI_COMM_ICE, ierr)
+   call MPI_BARRIER (ice_comm, ierr)
+   call MPI_COMM_DUP(ice_comm, MPI_COMM_ICE, ierr)
 
+#endif
+#endif
    master_task = 0
-   call MPI_COMM_RANK(MPI_COMM_ICE, my_task, ierr)
+   call MPI_COMM_RANK  (MPI_COMM_ICE, my_task, ierr)
+
+!jd#ifdef ROMSCOUPLED
+!jd   CALL mpi_comm_size (MPI_COMM_ICE, nprocs, ierr)
+!jd#endif
 
    mpiR16 = MPI_REAL16
    mpiR8  = MPI_REAL8
    mpiR4  = MPI_REAL4
 
+!-----------------------------------------------------------------------
+
  end subroutine init_communicate
+
+!***********************************************************************
 
  function get_num_procs()
 

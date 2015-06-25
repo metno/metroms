@@ -162,7 +162,7 @@ cc -o makdep $CBLD/makdep.c                         || exit 2
 make  VPFILE=Filepath EXEC=$EXEDIR/cice \
            NXGLOB=$NXGLOB NYGLOB=$NYGLOB \
            BLCKX=$BLCKX BLCKY=$BLCKY MXBLCKS=$MXBLCKS \
-      -f  $CBLD/Makefile MACFILE=$CBLD/Macros.$ARCH || exit 2
+      -f  $CBLD/Makefile MACFILE=$CBLD/Macros.$ARCH  || exit 2
 
 cd ..
 pwd                                         

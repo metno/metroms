@@ -1,3 +1,4 @@
+#ifdef ROMSCOUPLED
 module CICE_MCT
 
   use ice_kinds_mod
@@ -50,7 +51,8 @@ module CICE_MCT
   USE m_Transfer, ONLY : MCT_Send => send
   USE m_Transfer, ONLY : MCT_Recv => recv
   
-  USE ice_communicate, ONLY: MPI_COMM_ICE, nprocs, my_task, master_task
+!jd  USE ice_communicate, ONLY: MPI_COMM_ICE, nprocs, my_task, master_task
+  USE ice_communicate, ONLY: MPI_COMM_ICE, my_task, master_task
 
 !
 
@@ -177,8 +179,8 @@ contains
     
     deallocate(start,length)
     initial_call = .true.
-    call CICE_MCT_coupling
-    initial_call = .false.
+!jd    call CICE_MCT_coupling
+!jd    initial_call = .false.
   end subroutine init_mct
 
 !***********************************************************************
@@ -400,7 +402,7 @@ contains
        call ice_timer_stop(timer_cplrecv)
 
     END IF
-
+    initial_call=.false.
 
 !        ***********************************
   contains
@@ -481,3 +483,4 @@ contains
   end subroutine finalize_mct_coupling
   
 end module CICE_MCT
+#endif

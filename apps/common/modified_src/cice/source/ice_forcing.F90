@@ -73,11 +73,11 @@
            ftime              ! forcing time (for restart)
 
       integer (kind=int_kind) :: &
+!METNO START       
            oldrecnum = 0 ,&     ! old record number (save between steps)
-!jd        
            oldrecnum6 = 0, &
            oldrecnum12 = 0
-!jd
+!METNO END 
 
       real (kind=dbl_kind), dimension(nx_block,ny_block,max_blocks) :: &
           cldf                ! cloud fraction
@@ -181,8 +181,10 @@
          call LY_files(fyear)
       elseif (trim(atm_data_type) == 'hadgem') then
          call hadgem_files(fyear)
+!METNO START
       elseif (trim(atm_data_type) == 'ecmwf') then
          call ecmwf_files(fyear)
+!METNO END
       elseif (trim(atm_data_type) == 'monthly') then
          call monthly_files(fyear)
       elseif (trim(atm_data_type) == 'oned') then
@@ -424,8 +426,10 @@
          call LY_data
       elseif (trim(atm_data_type) == 'hadgem') then
          call hadgem_data
+!METNO START
       elseif (trim(atm_data_type) == 'ecmwf') then
          call ecmwf_data
+!METNO END
       elseif (trim(atm_data_type) == 'monthly') then
          call monthly_data
       elseif (trim(atm_data_type) == 'oned') then
@@ -728,11 +732,13 @@
 
       if (istep1 > check_step) dbug = .true.  !! debugging
 
+!METNO START
       if (flag) then
 
       if (my_task==master_task .and. (dbug)) then
          write(nu_diag,*) ' ', trim(data_file), '  ', trim(fieldname)
       endif
+!METNO END
 
       !-----------------------------------------------------------------
       ! Initialize record counters
@@ -769,8 +775,9 @@
             call ice_read_nc & 
                  (fid, nrec, fieldname, field_data(:,:,arg,:), dbug, &
                   field_loc, field_type)
-
+!METNO START
             call ice_close_nc(fid)
+!METNO END
          endif                  ! ixm ne -99
 
          ! always read ixx data from data file for current year
@@ -1151,10 +1158,12 @@
          i = index(data_file,'.nc') - 5
          tmpname = data_file
          write(data_file,'(a,i4.4,a)') tmpname(1:i), yr, '.nc'
+!METNO START
       elseif (trim(atm_data_type) == 'ecmwf') then ! current ERA naming
          i = index(data_file,'_unlim.nc') - 5
          tmpname = data_file
          write(data_file,'(a,i4.4,a)') tmpname(1:i), yr, '_unlim.nc'
+!METNO END
       else                                     ! LANL/NCAR naming convention
          i = index(data_file,'.dat') - 5
          tmpname = data_file
@@ -1263,7 +1272,9 @@
          enddo
          enddo
 
+!METNO START
       elseif (trim(atm_data_type) == 'LYq' .or. trim(atm_data_type) ==  'ecmwf') then
+!METNO END
 
          ! precip is in mm/s
 
@@ -1315,8 +1326,10 @@
          precip_factor = c12/(secday*days_per_year) 
       elseif (trim(precip_units) == 'mm_per_day') then
          precip_factor = c1/secday
+!METNO START
       elseif (trim(precip_units) == 'm_per_12hr') then
          precip_factor = c1/43.2_dbl_kind
+!METNO END
       elseif (trim(precip_units) == 'mm_per_sec' .or. &
               trim(precip_units) == 'mks') then 
          precip_factor = c1    ! mm/sec = kg/m^2 s
@@ -1376,12 +1389,14 @@
       !-----------------------------------------------------------------
            workx      = uatm(i,j) ! wind velocity, m/s
            worky      = vatm(i,j)
+!METNO START
            if (atm_data_type /= 'ecmwf') then
               uatm (i,j) = workx*cos(ANGLET(i,j)) & ! convert to POP grid
                          + worky*sin(ANGLET(i,j))   ! note uatm, vatm, wind
               vatm (i,j) = worky*cos(ANGLET(i,j)) & !  are on the T-grid here
                          - workx*sin(ANGLET(i,j))
            endif
+!METNO END
         enddo                     ! i
         enddo                     ! j
 
@@ -2470,7 +2485,7 @@
 
       end subroutine hadgem_data
 
-
+!METNO START
 !=======================================================================
 ! ECMWF atmospheric forcing
 !=======================================================================
@@ -2833,7 +2848,7 @@
 
 
       end subroutine ecmwf_data
-
+!METNO END
 
 !=======================================================================
 ! monthly forcing 

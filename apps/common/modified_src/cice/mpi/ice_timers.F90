@@ -52,12 +52,12 @@
       timer_diags,            &! diagnostics/history
       timer_hist,             &! diagnostics/history
 !jd We use these when coupling with roms. Should define preprocessorflag
-!jd #if (defined CCSM) || (defined SEQ_MCT)
+#if (defined CCSM) || (defined SEQ_MCT) || (defined ROMSCOUPLED)
       timer_cplrecv,          &! receive from coupler
       timer_rcvsnd,           &! time between receive to send
       timer_cplsend,          &! send to coupled
       timer_sndrcv,           &! time between send to receive
-!jd #endif
+#endif
       timer_bound,            &! boundary updates
       timer_bgc                ! biogeochemistry
 !      timer_tmp               ! for temporary timings
@@ -174,12 +174,18 @@
    call get_ice_timer(timer_hist,     'History  ',nblocks,distrb_info%nprocs)
    call get_ice_timer(timer_bound,    'Bound',    nblocks,distrb_info%nprocs)
    call get_ice_timer(timer_bgc,      'BGC',      nblocks,distrb_info%nprocs)
-!jd #if (defined CCSM) || (defined SEQ_MCT)
+#if (defined CCSM) || (defined SEQ_MCT) 
    call get_ice_timer(timer_cplrecv,  'Cpl-recv', nblocks,distrb_info%nprocs)
    call get_ice_timer(timer_rcvsnd,   'Rcv->Snd', nblocks,distrb_info%nprocs)
    call get_ice_timer(timer_cplsend,  'Cpl-Send', nblocks,distrb_info%nprocs)
    call get_ice_timer(timer_sndrcv,   'Snd->Rcv', nblocks,distrb_info%nprocs)
-!jd #endif
+#endif
+#ifdef ROMSCOUPLED
+   call get_ice_timer(timer_cplrecv,  'o2i-recv', nblocks,distrb_info%nprocs)
+   call get_ice_timer(timer_rcvsnd,   'Rcv->Snd', nblocks,distrb_info%nprocs)
+   call get_ice_timer(timer_cplsend,  'i2o-wait', nblocks,distrb_info%nprocs)
+   call get_ice_timer(timer_sndrcv,   'Snd->Rcv', nblocks,distrb_info%nprocs)
+#endif
 !   call get_ice_timer(timer_tmp,      '         ',nblocks,distrb_info%nprocs)
 
 !-----------------------------------------------------------------------

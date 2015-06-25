@@ -1,3 +1,4 @@
+#ifdef ROMSCOUPLED
 ! Stuff ice accum needs to share with other modules so to avoid circular
 ! dependencies
 
@@ -22,3 +23,4 @@
          idstrocny=7 
 
       end module ice_accum_shared
+#endif

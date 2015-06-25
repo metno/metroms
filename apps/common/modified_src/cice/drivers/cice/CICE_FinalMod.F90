@@ -32,7 +32,9 @@
       use ice_fileunits, only: nu_diag, release_all_fileunits
       use ice_restart_shared, only: runid
       use ice_timers, only: ice_timer_stop, ice_timer_print_all, timer_total
+#ifdef ROMSCOUPLED
       use CICE_MCT, only: finalize_mct_coupling
+#endif
    !-------------------------------------------------------------------
    ! stop timers and print timer info
    !-------------------------------------------------------------------
@@ -54,12 +56,15 @@
    ! quit MPI
    !-------------------------------------------------------------------
 
+
+#ifndef coupled
+#ifdef ROMSCOUPLED
 !jd Deallocate MCT infrastructure
     call finalize_mct_coupling
-
-!jd#ifndef coupled
-!jd      call end_run       ! quit MPI
-!jd#endif
+#else
+      call end_run       ! quit MPI
+#endif
+#endif
 
       end subroutine CICE_Finalize
 

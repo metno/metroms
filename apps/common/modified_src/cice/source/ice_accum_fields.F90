@@ -1,4 +1,5 @@
 
+#ifdef ROMSCOUPLED
       module ice_accum_fields
 
       use ice_accum_shared
@@ -200,3 +201,6 @@
       end module ice_accum_fields
 
 !=======================================================================
+
+#endif
+

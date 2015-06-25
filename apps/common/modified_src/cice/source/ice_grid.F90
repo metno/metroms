@@ -111,8 +111,12 @@
 
       ! grid dimensions for rectangular grid
       real (kind=dbl_kind), parameter ::  &
+!METNO START
+!kw         dxrect = 30.e5_dbl_kind   ,&! uniform HTN (cm)
+!kw         dyrect = 30.e5_dbl_kind     ! uniform HTE (cm)
          dxrect = 20.e6_dbl_kind   ,&! uniform HTN (cm)
          dyrect = 20.e6_dbl_kind     ! uniform HTE (cm)
+!METNO END
 
       real (kind=dbl_kind), dimension (nx_block,ny_block,max_blocks), public, save :: &
          rndex_global       ! global index for local subdomain (dbl)
@@ -185,8 +189,9 @@
 
          endif
 
-      else  ! rectangular grid
+      else   ! rectangular grid
 
+!METNO START
          if (trim(grid_format) == 'nc') then  ! added for A20, by Keguang
 
             call ice_open_nc(grid_file,fid_grid)
@@ -204,11 +209,11 @@
 
          else
 
-            work_g1(:,:) = 75._dbl_kind/rad_to_deg  ! arbitrary polar latitude
+            work_g1(:,:) = 75._dbl_kind/rad_to_deg !arbitrary polar latitude
             work_g2(:,:) = c1
 
          endif
-
+!METNO END
       endif
 
       call broadcast_array(work_g1, master_task)   ! ULAT
@@ -286,12 +291,14 @@
          endif 
       elseif (trim(grid_type) == 'cpom_grid') then
          call cpomgrid          ! cpom model orca1 type grid
+!METNO START
       else         		! regular rectangular grid
          if (trim(grid_format) == 'nc') then
             call rectgrid_nc
          else
             call rectgrid 
          endif
+!METNO END
       endif
 
       !-----------------------------------------------------------------
@@ -385,13 +392,14 @@
          call abort_ice ('ice: init_grid: ANGLE out of expected range')
       endif
 
-      if (trim(grid_type) == 'cpom_grid') then
-         ANGLET(:,:,:) = ANGLE(:,:,:)
-      else
       !-----------------------------------------------------------------
       ! Compute ANGLE on T-grid
       !-----------------------------------------------------------------
-         ANGLET = c0
+      ANGLET = c0
+      
+      if (trim(grid_type) == 'cpom_grid') then
+         ANGLET(:,:,:) = ANGLE(:,:,:)
+      else
 
       !$OMP PARALLEL DO PRIVATE(iblk,i,j,ilo,ihi,jlo,jhi,this_block, &
       !$OMP                     angle_0,angle_w,angle_s,angle_sw)
@@ -424,7 +432,7 @@
          enddo
       enddo
       !$OMP END PARALLEL DO
-      endif
+      endif ! cpom_grid
       
       call ice_timer_start(timer_bound)
       call ice_HaloUpdate (ANGLET,           halo_info, &
@@ -873,6 +881,7 @@
 
       end subroutine rectgrid
 
+!METNO START
 !=======================================================================
 
 ! Arctic-20km rectanglar land mask and grid. 
@@ -991,10 +1000,7 @@
 #endif
 
       end subroutine rectgrid_nc
-
-
-!=======================================================================
-
+!METNO END
 
 !=======================================================================
 
