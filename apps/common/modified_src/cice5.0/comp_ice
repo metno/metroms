@@ -17,7 +17,7 @@ endif
 setenv SYSTEM_USERDIR $CICE_DIR
 
 ### Grid resolution
-setenv RES A20 ; setenv GRID 322x242
+setenv RES a20 ; setenv GRID 322x242
 #setenv RES col ; setenv GRID 5x5
 #setenv RES gx3 ; setenv GRID 100x116
 #setenv RES gx1 ; setenv GRID 320x384

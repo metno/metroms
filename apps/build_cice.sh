@@ -1,5 +1,7 @@
 #!/bin/bash
 set -x
+CICEVERSION=cice5.0
+#CICEVERSION=cice5.1.2
 
 NPX=1; NPY=1
 if [ "${METROMS_MYHOST}" == "metlocal" ]; then
@@ -42,7 +44,7 @@ fi
 mkdir -p ${tup}/tmproms
 cd ${tup}/tmproms
 # Unpack standard source files
-tar -xf ${metroms_base}/static_libs/cice5.tar.gz
+tar -xf ${metroms_base}/static_libs/$CICEVERSION.tar.gz
 export CICE_DIR=${tup}/tmproms/cice
 cd $CICE_DIR
 
@@ -51,8 +53,9 @@ export MCT_LIBDIR=${tup}/tmproms/MCT/lib
 
 
 # Copy modified source files
-cp -auv $workingdir/common/modified_src/cice ${tup}/tmproms
-
+mkdir -p ${tup}/tmproms/cice
+cp -a $workingdir/common/modified_src/$CICEVERSION/* ${tup}/tmproms/cice/.
+cp -auv $workingdir/common/cice_input_grids/a20 ${tup}/tmproms/cice/input_templates
 # Remove old binaries
 rm -f $CICE_DIR/rundir/cice
 
@@ -81,16 +84,5 @@ rm -f $CICE_DIR/rundir/cice
 
 #cd $CICE_DIR
 
-#if [ -d $CICE_DIR/data/atm/A20/ecmwf ]; then
-#    echo ls $CICE_DIR/data/atm/A20/ecmwf
-#    ls $CICE_DIR/data/atm/A20/ecmwf
-#else
-#    echo "Directory for atmosphere forcing data should be linked to"
-#    echo $CICE_DIR/data/atm/RES/ATM_DATA_TYPE
-#    echo "where RES is model setup (A20,??)"
-#    echo "and ATM_DATA_TYPE is dataset used (ecmwf/ncar ..)"
-#    echo $CICE_DIR/data/atm/A20/ecmwf not found
-#    exit
-#fi
 
 set +x
