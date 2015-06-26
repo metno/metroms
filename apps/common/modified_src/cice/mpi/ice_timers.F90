@@ -59,8 +59,8 @@
       timer_sndrcv,           &! time between send to receive
 #endif
       timer_bound,            &! boundary updates
+      timer_tmp,              & ! for temporary timings
       timer_bgc                ! biogeochemistry
-!      timer_tmp               ! for temporary timings
 
 !-----------------------------------------------------------------------
 !
@@ -182,11 +182,11 @@
 #endif
 #ifdef ROMSCOUPLED
    call get_ice_timer(timer_cplrecv,  'o2i-recv', nblocks,distrb_info%nprocs)
-   call get_ice_timer(timer_rcvsnd,   'Rcv->Snd', nblocks,distrb_info%nprocs)
+   call get_ice_timer(timer_rcvsnd,   'o2i-post', nblocks,distrb_info%nprocs)
    call get_ice_timer(timer_cplsend,  'i2o-wait', nblocks,distrb_info%nprocs)
-   call get_ice_timer(timer_sndrcv,   'Snd->Rcv', nblocks,distrb_info%nprocs)
+   call get_ice_timer(timer_sndrcv,   'i20-prep', nblocks,distrb_info%nprocs)
 #endif
-!   call get_ice_timer(timer_tmp,      '         ',nblocks,distrb_info%nprocs)
+   call get_ice_timer(timer_tmp,      'mct_init ',nblocks,distrb_info%nprocs)
 
 !-----------------------------------------------------------------------
 

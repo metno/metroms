@@ -96,6 +96,9 @@
       call init_grid1           ! domain distribution
       call init_ice_timers      ! initialize all timers
       call ice_timer_start(timer_total)   ! start timing entire run
+#ifdef ROMSCOUPLED
+      call init_mct
+#endif
       call init_grid2           ! grid variables
       call init_calendar        ! initialize some calendar stuff
       call init_hist (dt)       ! initialize output history file
@@ -159,7 +162,6 @@
       if (write_ic) call accum_hist(dt) ! write initial conditions 
 
 #ifdef ROMSCOUPLED
-      call init_mct
       call CICE_MCT_coupling
 #endif
 

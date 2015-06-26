@@ -14,8 +14,8 @@ module CICE_MCT
   use ice_accum_shared, only: idaice, idfresh, idfsalt, idfhocn, idfswthru, &
        idstrocnx, idstrocny, accum_time
   use ice_accum_fields, only: accum_i2o_fields, mean_i2o_fields, zero_i2o_fields
-  use ice_timers, only: ice_timer_start, ice_timer_stop,&
-       timer_cplrecv, timer_rcvsnd, timer_cplsend,timer_sndrcv
+  use ice_timers, only: ice_timer_start, ice_timer_stop,ice_timer_print,&
+       timer_cplrecv, timer_rcvsnd, timer_cplsend,timer_sndrcv,timer_tmp
 
 !  MCT framework for ROMS coupling
 !
@@ -113,6 +113,7 @@ contains
     !
     !  Initialize MCT coupled model registry.
     !
+    call ice_timer_start(timer_tmp)
     CALL MCTWorld_init (Nmodels, MPI_COMM_WORLD, MPI_COMM_ICE, CICEid)
     WRITE (ice_stdout,*) ' CICE: MCTWorld_init called'
 
@@ -179,8 +180,13 @@ contains
     
     deallocate(start,length)
     initial_call = .true.
+
+    call ice_timer_stop(timer_tmp)
+    call ice_timer_print(timer_tmp,.false.)
+
 !jd    call CICE_MCT_coupling
 !jd    initial_call = .false.
+
   end subroutine init_mct
 
 !***********************************************************************
@@ -204,6 +210,7 @@ contains
 !   update of accumulated time since last coupling (accum_time) and accumulation
 !   of flux fields are done from RunMod (calling functions in ice_accum_fields).
     IF (accum_time >= TimeInterval .or. initial_call) THEN
+       call ice_timer_start(timer_sndrcv)
        IF (my_task == master_task) THEN
           write(ice_stdout,*) '*********************************************'
           
@@ -222,7 +229,6 @@ contains
 !jd 
        call mean_i2o_fields()
 
-       call ice_timer_start(timer_cplsend)
 
 ! Exporting aice
        call ice2ocn_send_field(accum_i2o_fields(:,:,idaice,:),'AICE')
@@ -240,13 +246,22 @@ contains
        call ice2ocn_send_field(-accum_i2o_fields(:,:,idstrocnx,:),'strocnx')
        call ice2ocn_send_field(-accum_i2o_fields(:,:,idstrocny,:),'strocny')
 
+       call ice_timer_stop(timer_sndrcv)
+
 ! Transfere data to ocean
+       call ice_timer_start(timer_cplsend)
        CALL MCT_Send(cice2ocn_AV, CICEtoROMS)
        call ice_timer_stop(timer_cplsend)
+       if (initial_call) then
+          call ice_timer_print(timer_cplsend,.false.)
+       endif
 
        call ice_timer_start(timer_cplrecv)
 ! Recive data from ocean
        CALL MCT_Recv(ocn2cice_AV, CICEtoROMS)
+       call ice_timer_stop(timer_cplrecv)
+
+       call ice_timer_start(timer_rcvsnd)
        write(ice_stdout,*) 'CICE - Ocean: CICE Received data'
 
 !
@@ -398,8 +413,7 @@ contains
        call zero_i2o_fields ! also accum_time is zeroed
        
        deallocate(avdata)
-
-       call ice_timer_stop(timer_cplrecv)
+       call ice_timer_stop(timer_rcvsnd)
 
     END IF
     initial_call=.false.

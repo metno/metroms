@@ -133,11 +133,12 @@ if !(-e ice.restart_file) cp $SRCDIR/input_templates/$RES/ice.restart_file .
 
 cd $OBJDIR
 
-if ($NTASK == 1) then
-   setenv COMMDIR serial
-else
+# Always needs mpi for coupled runs
+#if ($NTASK == 1) then
+#   setenv COMMDIR serial
+#else
    setenv COMMDIR mpi 
-endif
+#endif
 
 setenv DRVDIR cice
 if ($IO_TYPE == 'netcdf') then

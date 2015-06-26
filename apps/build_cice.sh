@@ -10,6 +10,13 @@ elif [ "${METROMS_MYHOST}" == "vilje" ]; then
     NPY=2
 fi
 
+if [ $# -ge 2 ]; then
+    NPX=$1
+    NPY=$2
+fi
+
+echo "NPX = $NPX, NPY = $NPY"
+
 #if [ $# -ne 2 ]
 #then
 #    echo "Usage: $0 NPX NPY"
