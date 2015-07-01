@@ -1,7 +1,7 @@
 #!/bin/bash
 set -x
-CICEVERSION=cice5.0
-#CICEVERSION=cice5.1.2
+export CICEVERSION=cice5.0
+export CICEVERSION=cice5.1.2
 
 NPX=1; NPY=1
 if [ "${METROMS_MYHOST}" == "metlocal" ]; then
@@ -59,7 +59,7 @@ cp -auv $workingdir/common/cice_input_grids/a20 ${tup}/tmproms/cice/input_templa
 # Remove old binaries
 rm -f $CICE_DIR/rundir/cice
 
-rm -rf ${tup}/tmproms/cice/rundir/compile
+#rm -rf ${tup}/tmproms/cice/rundir/compile
 
 #
 # NB! Compile flags needed on Vilje

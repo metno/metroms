@@ -1,0 +1,83 @@
+#!/bin/bash
+
+set -x
+NTASK=0
+
+source cice/cice_conf.bash
+source cice/cice_pes.bash
+
+NTASK=$NTASK
+
+[ $NTASK -gt 0 ] || exit
+
+NPROCT=$NTASK
+#((NPROCI = $NX*$NY ))
+
+#nodes=0
+
+#until [ $(($nodes*16)) -ge $NPROCT ] 
+#    do
+#	(( nodes = $nodes + 1 ))
+#    done
+
+#(( task_pr_n = $NPROCT/$nodes ))
+#if [ $(($nodes*$task_pr_n)) -ne $NPROCT ] 
+#then
+#echo Problem with allocating corrects taskes and nodes 
+#echo Needs $NPROCT processors with max 16 tasks pr node
+#exit
+#fi
+
+
+#omplace=""
+#if [ $THRD == 'yes' ]; then
+#    omplace=" omplace -nt $OMP_NUM_THREADS "
+#else
+#    OMP_NUM_THREADS=1
+#fi
+
+jobscript=./jobscript.bash
+
+VERS=$(echo $vers  | sed -e s/'\.'/p/)
+
+
+cat > $jobscript <<EOF
+#!/bin/bash -f
+
+#===============================================================================
+#  This is a CICE runscript for Linux with openMPI
+#===============================================================================
+
+SRCDIR=$SRCDIR
+CASEHOME=$CASEHOME
+stamp=\$( date +%y%m%d-%H%M%S )
+ICE_LOG_FILE=ice.log.\$stamp
+
+
+SYSTEM_USERDIR=$SYSTEM_USERDIR
+EXEDIR=$EXEDIR
+
+
+cd \$EXEDIR
+
+tstart=\$(date +%s)
+
+
+# Load modules needed
+
+mpirun -np $NPROCT ./cice &> cice.out
+
+tstop=\$(date +%s)
+
+echo Model execution took \$((tstop-tstart)) seconds
+
+# Save model output 
+  mv cice.out \$ICE_LOG_FILE
+  cp -p \$ICE_LOG_FILE \$CASEHOME/.   || echo "Error in copy of logs " && exit -1
+
+EOF
+chmod u+x $jobscript
+nohup $jobscript > job.out 2>&1 &
+
+
+

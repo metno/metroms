@@ -125,7 +125,7 @@ cd $EXEDIR
 cp $SRCDIR/input_templates/$RES/cice.grid.nc .
 cp $SRCDIR/input_templates/$RES/cice.kmt.nc .
 
-sed "s#<cicedir>#$SYSTEM_USERDIR#;s#<ntask>#$NTASK#" $SRCDIR/input_templates/$RES/ice_in > $EXEDIR/ice_in
+sed "s#<cicedir>#$SYSTEM_USERDIR#;s#<ntask>#$NTASK#" $SRCDIR/input_templates/$RES/ice_in.$CICEVERSION > $EXEDIR/ice_in
 
 cd $RSTDIR
 cp $SRCDIR/input_templates/$RES/iced_$RES* .
