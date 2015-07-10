@@ -285,6 +285,24 @@ contains
             maxval(avdata), ' ', minval(avdata)
 
        call avec2field(avdata,sss)
+
+       if (minval(avdata) < c0) then
+          write(ice_stdout,*) 'CICE rank ',my_task,  &
+               ' correcting invalid sss ', minval(avdata)
+          
+          do iblk = 1, nblocks
+             this_block = get_block(blocks_ice(iblk),iblk)
+             ilo = this_block%ilo
+             ihi = this_block%ihi
+             jlo = this_block%jlo
+             jhi = this_block%jhi
+             do j = jlo, jhi
+                do i = ilo, ihi
+                   sss(i,j,iblk)=max(sss(i,j,iblk),c0)
+                end do
+             end do
+          end do
+       endif
        call ice_HaloUpdate (sss, halo_info, &
             field_loc_center, field_type_scalar)
 
