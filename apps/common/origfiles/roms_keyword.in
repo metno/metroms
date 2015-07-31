@@ -159,7 +159,7 @@
         NAVG == AVGSTEPP
      NDEFAVG == DEFAVGSTEP
       NTSDIA == 1
-        NDIA == 10
+        NDIA == DEFAVGSTEP        
      NDEFDIA == 0
 
 ! Output tangent linear and adjoint models parameters.
@@ -184,12 +184,12 @@
 ! Harmonic/biharmonic horizontal diffusion of tracer: [1:NAT+NPT,Ngrids].
 
         TNU2 == 0.0d0  0.0d0                    ! m2/s
-        TNU4 == 2*0.0d0                         ! m4/s
+        TNU4 == 2*0.5d5                         ! m4/s
 
 ! Harmononic/biharmonic, horizontal viscosity coefficient: [Ngrids].
 
        VISC2 == 0.0d0                           ! m2/s
-       VISC4 == 1.0d+12                         ! m4/s
+       VISC4 == 0.5d5                         ! m4/s
 
 ! Vertical mixing coefficients for active tracers: [1:NAT+NPT,Ngrids]
 
@@ -603,7 +603,7 @@ Dout(M3vvis) == F                          ! vertical viscosity
 ! active (temperature and salinity) and passive (inert) tracer diagnostic
 ! terms into DIAGNOSTIC output file: [1:NAT+NPT,Ngrids].
 
-Dout(iTrate) == F F                        ! time rate of change
+Dout(iTrate) == F T                        ! time rate of change
 Dout(iThadv) == F F                        ! horizontal total advection
 Dout(iTxadv) == F F                        ! horizontal XI-advection
 Dout(iTyadv) == F F                        ! horizontal ETA-advection
@@ -652,6 +652,7 @@ Dout(iTvdif) == F F                        ! vertical diffusion
      HISNAME == RUNDIR/forecast_his.nc
      AVGNAME == RUNDIR/forecast_avg.nc
      STANAME == RUNDIR/forecast_sta.nc
+     DIANAME == RUNDIR/forecast_dia.nc
 
 ! Input ASCII parameter filenames.
 
