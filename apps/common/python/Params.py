@@ -63,7 +63,7 @@ class Params(object):
             ['RUNDIR',self.RUNPATH],
             ['TIDEDIR',self.RUNPATH],
             ['ATMDIR',self.RUNPATH],
-            ['RIVERFILE',GlobalParams.COMMONPATH+"/rivers/A20_rivers_openBering35.nc"],
+            ['RIVERFILE',GlobalParams.COMMONPATH+"/rivers/newA20_rivers_mitya.nc"],
             ['FORCEFILES',"4"],
             ['ROMS/External/coupling.dat', GlobalParams.COMMONPATH + "/../../../tmproms/roms_src/ROMS/External/coupling.dat"],
             ['ROMSINFILE', self.ROMSINFILE ],
