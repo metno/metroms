@@ -151,7 +151,7 @@
       real(r8) :: cpw_hat
       real(r8) :: tsuper  ! jd Amount of supercooling
 
-      real(r8) :: t_fr
+      real(r8) :: t_fr, Sold
 
 # include "set_bounds.h"
 
@@ -172,11 +172,16 @@
 # ifdef WET_DRY
             IF (rmask_wet(i,j) .ne. 0.0_r8) THEN
 # endif
-              t_fr = t_freeze(t(i,j,k,nnew,isalt),z_r(i,j,k))
+
+!jd To ensure S > 0, S <0 might cause is unphysical and causes instabilities
+               Sold = max(0.0_r8,t(i,j,k,nnew,isalt))
+              t_fr = t_freeze(Sold,z_r(i,j,k))
               tsuper= max(t_fr - t(i,j,k,nnew,itemp),0.0_r8)
 
-              t(i,j,k,nnew,isalt) = t(i,j,k,nnew,isalt) *               &
-     &                                  (1.0_r8 + cpw_hat*tsuper)
+!jd              t(i,j,k,nnew,isalt) = t(i,j,k,nnew,isalt) *               &
+!jd     &                                  (1.0_r8 + cpw_hat*tsuper)
+
+              t(i,j,k,nnew,isalt) = Sold * (1.0_r8 + cpw_hat*tsuper)
 
               qfraz(i,j) = qfraz(i,j) + rhocp*tsuper*Hz(i,j,k)
 
