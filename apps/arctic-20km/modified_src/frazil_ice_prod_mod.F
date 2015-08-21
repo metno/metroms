@@ -173,7 +173,7 @@
             IF (rmask_wet(i,j) .ne. 0.0_r8) THEN
 # endif
 
-!jd To ensure S > 0, S <0 might cause is unphysical and causes instabilities
+!jd To ensure S >= 0, S<0 is unphysical and makes this routine unstable
                Sold = max(0.0_r8,t(i,j,k,nnew,isalt))
               t_fr = t_freeze(Sold,z_r(i,j,k))
               tsuper= max(t_fr - t(i,j,k,nnew,itemp),0.0_r8)
