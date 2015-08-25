@@ -12,6 +12,8 @@
 **  Options for ROMS
 */
 
+#define PROFILE
+
 #undef  RST_SINGLE         /* define if single precision restart fields */
 #undef  PERFECT_RESTART    /* use to include perfect restart variables */
 #define CURVGRID           /* define if using  curvilinear coordinate grid*/
