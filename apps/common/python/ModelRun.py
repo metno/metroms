@@ -57,13 +57,27 @@ class ModelRun(object):
         with open(self._params.ROMSINFILE, 'w') as f:
             f.write(newlines)    
 
-    def _execute_roms_mpi(self,ncpus,infile,debugoption=Constants.NODEBUG):
+    def _execute_roms_mpi(self,ncpus,infile,debugoption=Constants.NODEBUG,architecture=Constants.MET64):
         """
         Execute the ROMS model itself using MPI.
         """
-        executable="oceanM" if debugoption==Constants.NODEBUG else "oceanG"
-        os.system("mpirun -np "+str(ncpus)+" "+executable+" "+infile)
-        #call(["mpirun", "-np", str(ncpus), "oceanM", infile])
+        if debugoption==Constants.DEBUG:
+            executable="oceanG"
+        else:
+            executable="oceanM"
+
+        if architecture==Constants.VILJE:
+            if debugoption==Constants.PROFILE:
+#                os.system("make-profiler-libraries")
+#                os.system("perf-report --mpi=\"SGI MPT (batch)\" --processes="+str(ncpus)+" "+executable+" "+infile)
+                print "Profiling not working yet on "+architecture
+                exit(1)
+
+            else:
+                os.system("mpiexec_mpt -np "+str(ncpus)+" "+executable+" "+infile)
+        else:
+            os.system("mpirun -np "+str(ncpus)+" "+executable+" "+infile)
+
 
     def _execute_roms_openmp(self,ncpus,infile,debugoption=Constants.NODEBUG):
         """
@@ -138,11 +152,11 @@ class ModelRun(object):
         """
         """
         # Run the ROMS model:
-        if architecture==Constants.MET64:
+        if architecture==Constants.MET64 :
             if runoption==Constants.MPI:
                 self._execute_roms_mpi((int(self._params.XCPU)*int(self._params.YCPU))+
                                        int(self._params.CICECPU),
-                                       self._params.ROMSINFILE,debugoption)
+                                       self._params.ROMSINFILE,debugoption,architecture)
             elif runoption==Constants.OPENMP:
                 if self._params.CICECPU != 0:
                     print "MetROMS is currently not handling CICE coupling in OpenMP"
@@ -159,7 +173,19 @@ class ModelRun(object):
             else:
                 print "No valid runoption!"
                 exit(1)
-        elif architecture in (Constants.MET32,Constants.VILJE,Constants.BYVIND):
+
+        elif architecture==Constants.VILJE:
+            if runoption==Constants.MPI:
+                self._execute_roms_mpi((int(self._params.XCPU)*int(self._params.YCPU))+
+                                       int(self._params.CICECPU),
+                                       self._params.ROMSINFILE,debugoption,architecture)
+            elif runoption==Constants.DRY:
+                pass
+            else:
+                print "No valid runoption!"
+                exit(1)
+
+        elif architecture in (Constants.MET32,Constants.BYVIND):
             print "Currently unsupported architecture..."
             exit(1)
         else:
