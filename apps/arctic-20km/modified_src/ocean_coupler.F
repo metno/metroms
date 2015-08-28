@@ -1,6 +1,7 @@
 #include "cppdefs.h"
 
-#define REPORT_COUPLING_ALL
+!#define REPORT_COUPLING_ALL
+
       MODULE ocean_coupler_mod
 
 #if defined MODEL_COUPLING && defined MCT_LIB
@@ -183,7 +184,7 @@
 #ifdef REPORT_COUPLING_ALL
       WRITE(stdout,*) ' Done: ROMS Ocean Coupler: calling MCTWorld_init'
 #else
-      IF (Master) 
+      IF (Master)                                                       &
      &     WRITE(stdout,*)' ROMS Ocean Coupler: MCTWorld_init called'
 #endif
 !
@@ -902,8 +903,11 @@
 !  Send ocean fields
 !
       IF (Iexport.gt.0) THEN
+
+#ifdef REPORT_COUPLING_ALL
          if (master)                                                    &
      &        write(stdout,*)'ROMS sends', iexport,' fields to CICE'
+#endif
         CALL MCT_Send(ocn2cice_AV, ROMStoCICE)
       END IF
 
