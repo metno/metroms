@@ -65,7 +65,7 @@
 !                (33) Biharmonic stress tensor, geopotentials          !
 !                (34) Corrector time-step for 3D momentum              !
 !                (35) Corrector time-step for tracers                  !
-#ifdef CICE_COUPLING
+#ifdef CICE_OCEAN
 !                (36) Two-way CICE - ROMS coupling                     !
 #else
 !                (36) Two-way Atmosphere-Ocean models coupling         !
@@ -145,7 +145,7 @@
      &      'Biharmonic stress tensor, geopotentials ..........',       &
      &      'Corrector time-step for 3D momentum ..............',       &
      &      'Corrector time-step for tracers ..................',       &
-#ifdef CICE_COUPLING
+#ifdef CICE_OCEAN
      &      'Two-way CICE - ROMS coupling......................',       &
 #else
      &      'Two-way Atmosphere-Ocean models coupling .........',       &

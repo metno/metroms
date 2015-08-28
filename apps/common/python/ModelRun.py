@@ -74,6 +74,7 @@ class ModelRun(object):
                 exit(1)
 
             else:
+                os.environ["MPI_BUFS_PER_PROC"] = str(128)
                 os.system("mpiexec_mpt -np "+str(ncpus)+" "+executable+" "+infile)
         else:
             os.system("mpirun -np "+str(ncpus)+" "+executable+" "+infile)
