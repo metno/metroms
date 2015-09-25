@@ -117,7 +117,7 @@
          sss_data_type, & ! 'default', 'clim', 'ncar', 'oned'
          sst_data_type, & ! 'default', 'clim', 'ncar', 'oned',
                           ! 'hadgem_sst' or 'hadgem_sst_uvocn'
-         precip_units     ! 'mm_per_month', 'mm_per_sec', 'mks'
+         precip_units     ! 'mm_per_month', 'mm_per_sec', 'mks','m_per_12hr'
  
       character(char_len_long), public :: & 
          atm_data_dir , & ! top directory for atmospheric data
@@ -755,6 +755,8 @@
 
       ! local variables
 
+      logical ::debug
+
 #ifdef ncdf 
       integer (kind=int_kind) :: &
          nrec             , & ! record number to read
@@ -766,6 +768,11 @@
       call ice_timer_start(timer_readwrite)  ! reading/writing
 
       if (istep1 > check_step) dbug = .true.  !! debugging
+
+!jd      debug=.true.
+      debug=.false.
+      if (dbug) debug=.true.
+
 
 !METNO START
       if (flag) then
@@ -807,9 +814,14 @@
             arg = 1
             nrec = recd + n2
 
+!jd
+            if (my_task==master_task .and. (debug)) &
+                 write(nu_diag,*) ' ', trim(data_file), trim(fieldname) &
+                 ,' reading nrec ', nrec, ' into slot ', arg
+!jd
             call ice_read_nc & 
                  (fid, nrec, fieldname, field_data(:,:,arg,:), dbug, &
-                  field_loc, field_type)
+                 field_loc, field_type)
 !METNO START
             call ice_close_nc(fid)
 !METNO END
@@ -822,6 +834,11 @@
          arg = arg + 1
          nrec = recd + ixx
 
+!jd
+         if (my_task==master_task .and. (debug)) &
+              write(nu_diag,*) ' ', trim(data_file), trim(fieldname) &
+              ,' reading nrec ', nrec, ' into slot ', arg
+!jd
          call ice_read_nc & 
               (fid, nrec, fieldname, field_data(:,:,arg,:), dbug, &
                field_loc, field_type)
@@ -848,6 +865,12 @@
             arg = arg + 1
             nrec = recd + n4
 
+!jd
+            if (my_task==master_task .and. (debug)) &
+                 write(nu_diag,*) ' ', trim(data_file), trim(fieldname) &
+                 ,' reading nrec ', nrec, ' into slot ', arg
+!jd
+
             call ice_read_nc & 
                  (fid, nrec, fieldname, field_data(:,:,arg,:), dbug, &
                   field_loc, field_type)
@@ -858,7 +881,7 @@
       endif                     ! flag
 
       call ice_timer_stop(timer_readwrite)  ! reading/writing
-
+      dbug=.false.
 #else
       field_data = c0 ! to satisfy intent(out) attribute
 #endif
@@ -1111,8 +1134,12 @@
           t1, t2       , & ! seconds elapsed at data points
           rcnum            ! recnum => dbl_kind
 
-      secyr = dayyr * secday         ! seconds in a year
-      tt = mod(ftime,secyr)
+!jd Start
+!jd      secyr = dayyr * secday         ! seconds in a year
+!jd      tt = mod(ftime,secyr)
+
+        tt=secday*(yday - c1) + sec
+!jd Slutt
 
       ! Find neighboring times
       rcnum = real(recnum,kind=dbl_kind)
@@ -1369,6 +1396,9 @@
               trim(precip_units) == 'mks') then 
          precip_factor = c1    ! mm/sec = kg/m^2 s
       endif
+
+!jd      if (my_task == master_task) write(nu_diag,*) &
+!jd           ' precip_units, precip_factor ', trim(precip_units), precip_factor
 
       do j = jlo, jhi
       do i = ilo, ihi
@@ -2573,8 +2603,9 @@
 ! authors: Keguang Wang, Met.no
 ! Modified: Jens Boldingh Debernard, Met.no
 
+      use ice_diagnostics, only: check_step
       use ice_blocks, only: block, get_block
-      use ice_constants, only: p5, c2, c4, Lsub, secday, &
+      use ice_constants, only: p5, c1, c2, c4, Lsub, secday, &
           field_loc_center, field_type_scalar, field_type_vector, Tffresh
       use ice_domain, only: nblocks, blocks_ice
       use ice_flux, only: fsnow, frain, uatm, vatm, strax, stray, wind, &
@@ -2589,6 +2620,8 @@
           n           , & ! thickness category index
           ixm,ixx,ixp , & ! record numbers for neighboring months
           recnum      , & ! record number
+          baserec     , & ! account for files not starting 1/1: 00
+          fid         , & ! File unit
           dataloc     , & ! = 1 for data located in middle of time interval
                           ! = 2 for date located at end of time interval
           iblk        , & ! block index
@@ -2597,22 +2630,29 @@
           midmonth    , & ! middle day of month
           ilo,ihi,jlo,jhi ! beginning and end of physical domain
 
-      logical (kind=log_kind) :: readm, read6, read12
+      logical (kind=log_kind) :: readm, read6, read12,dbug
 
-      real (kind=dbl_kind), dimension(nx_block,ny_block,max_blocks) :: &
-            topmelt, & ! temporary fields
-            botmelt, &
-            sublim
+!jd      real (kind=dbl_kind), dimension(nx_block,ny_block,max_blocks) :: &
+!jd            topmelt, & ! temporary fields
+!jd            botmelt, &
+!jd            sublim
 
       real (kind=dbl_kind) :: &
           sec6hr,             &! number of seconds in 6 hours
           sec12hr             ! number of seconds in 12 hours
 
       character (char_len) :: & 
-            fieldname    ! field name in netcdf file
+           fieldname    ! field name in netcdf file
+
+      character (char_len_long) :: &
+           data_file               ! data file to be read
 
       type (block) :: &
          this_block           ! block information for current block
+
+      dbug=.false.
+      if (istep1 > check_step) dbug = .true.  !! debugging
+
 
 #define monthly
 #undef monthly
@@ -2650,7 +2690,7 @@
       if (istep==1 .or. (mday==midmonth .and. sec==0)) readm = .true.
 
       if (readm .and. my_task == master_task ) &
-           write (nu_diag,*) ' Reads monthly fields at', month, mday, sec
+           write (nu_diag,*) ' Reads monthly fields at', fyear, month, mday, sec
 
       ! -----------------------------------------------------------
       ! Rainfall 
@@ -2715,59 +2755,57 @@
     !-------------------------------------------------------------------
     ! 12-hourly data
     ! 
-    ! Assume that the 12-hourly value is located at the end of the
-    !  12-hour period.  This is the convention for ECMWF reanalysis data.
-    !  E.g. record 1 gives conditions at 12 am GMT on 1 January.
+    ! Assume that the 12-hourly value accumulated or averaged values over the 
+    ! last period. The actuall valid time for the value is therefore 
+    ! 12/2 = 6 hours earlier.
+    !  This is the convention for ECMWF reanalysis data.
+    !  E.g. record 1 is and average of the first 12 hours 1 January.
+    ! We do not time interpolate these data. 
     !-------------------------------------------------------------------
 
-!jd      dataloc = 2               ! data located at end of interval
-      dataloc = 1      ! Flux data are averaged over the accumulation peride
-                       ! and valid for the last 12 hours. 
+
+
       sec12hr = secday/c2       ! seconds in 12 hours
-!jd      maxrec = 730              ! 365*2
-      maxrec=2*days_per_year  ! Should take acount of leap-years
+      sec6hr = secday/c4        ! seconds in 6 hours
 
-      ! current record number
-      recnum = 2*int(yday) - 1 + int(real(sec,kind=dbl_kind)/sec12hr)
+      maxrec=2*dayyr             ! Takes acount of leap-years 
+                                 ! from 12UTC 1/1 to 24UTC 31/12
 
-      ! Compute record numbers for surrounding data (2 on each side)
-
-      ixm = mod(recnum+maxrec-2,maxrec) + 1
-      ixx = mod(recnum-1,       maxrec) + 1
-!     ixp = mod(recnum,         maxrec) + 1
-
-      ! Compute interpolation coefficients
-      ! If data is located at the end of the time interval, then the
-      !  data value for the current record goes in slot 2
-
-      recslot = 2
-      ixp = -99
-      call interp_coeff (recnum, recslot, sec12hr, dataloc)
+! current record number
+!jd First record in flux file is at 12 UTC 1/1, and valid for the preciding 12-hrs. 
+      recnum = 1 + 2*(int(yday)-1) + int(real(sec,kind=dbl_kind)/sec12hr)
 
       ! Read
       read12 = .false.
-      if (istep==1 .or. oldrecnum12 .ne. recnum) read12 = .true.
+      if (oldrecnum12 .ne. recnum) read12 = .true.
       ! Save record number for next time step
       oldrecnum12 = recnum
 
-
-      if (read12 .and. my_task == master_task ) &
-           write (nu_diag,*) 'istep1',istep1,' Reads 12 hourly fields at', month, mday, sec &
-                , 'recnum,oldrecnum12',recnum, oldrecnum12
+      if (read12) then
       
       ! -----------------------------------------------------------
       ! read atmospheric forcing 
       ! -----------------------------------------------------------
 
-      fieldname='rain'
-      call read_data_nc (read12, 0, fyear, ixm, ixx, ixp, &
-!jd  prepare_forcing routine assumes that preciptation comes in fsnow_data array
-!jd                      maxrec, rain_file, fieldname, frain_data, &
-                      maxrec, rain_file, fieldname, fsnow_data, &
-                      field_loc_center, field_type_scalar)
+         fieldname='rain'
+         data_file=rain_file
+         call file_year (data_file, fyear) ! Ensure correct year-file
 
-      ! Interpolate to current time step
-      call interpolate_data (fsnow_data, fsnow)
+!jd
+!         if ( my_task == master_task ) then
+!            write (nu_diag,'(a,i10,a,i02,a,2i7,a,i4)') &
+!                 ' Reads 12 hourly fields at', fyear*10000+month*100+mday &
+!                 ,':',sec/3600, ' recnum, maxrec ',recnum, maxrec &
+!                 , ' days_in-year', int(dayyr)
+!            write(nu_diag,*) trim(fieldname),' read from ', trim(data_file)
+!         end if
+!jd
+
+         call ice_open_nc(rain_file,fid)
+         call ice_read_nc (fid, recnum, fieldname, fsnow, dbug, &
+              field_loc_center, field_type_scalar)
+         call ice_close_nc(fid)
+      end if
 
     !-------------------------------------------------------------------
     ! 6-hourly data
@@ -2777,40 +2815,45 @@
     !  E.g. record 1 gives conditions at 0 am GMT on 1 January.
     !-------------------------------------------------------------------
 
-!jd      dataloc = 1               ! data located at end of interval
-      dataloc = 2    ! data located at end of interval (state variables)
+      dataloc = 1    ! data located at end of interval (state variables)
+      dataloc = 2    
       sec6hr = secday/c4        ! seconds in 6 hours
 
-!jd      maxrec = 1460             ! 365*4
-      maxrec=4*days_per_year  ! Should take acount of leap-years
+      maxrec=4*nint(dayyr)          !  Takes acount of leap-years
 
       ! current record number
-      recnum = 4*int(yday) - 3 + int(real(sec,kind=dbl_kind)/sec6hr)
+      recnum = 1 + 4*int(yday-1)  + int(real(sec,kind=dbl_kind)/sec6hr)
 
       ! Compute record numbers for surrounding data (2 on each side)
 
-      ixm = mod(recnum+maxrec-2,maxrec) + 1
+      ixm = -99
       ixx = mod(recnum-1,       maxrec) + 1
-!     ixp = mod(recnum,         maxrec) + 1
+      ixp = mod(recnum,         maxrec) + 1
 
       ! Compute interpolation coefficients
       ! If data is located at the end of the time interval, then the
       !  data value for the current record goes in slot 2
 
       recslot = 2
-      ixp = -99
+
       call interp_coeff (recnum, recslot, sec6hr, dataloc)
 
       ! Read
       read6 = .false.
-      if (istep==1 .or. oldrecnum6 .ne. recnum) read6 = .true.
+!jd      if (istep==1 .or. oldrecnum6 .ne. recnum) read6 = .true.
+      if (oldrecnum6 .ne. recnum) read6 = .true.
       ! Save record number for next time step
       oldrecnum6 = recnum
 
-      if (read6 .and. my_task == master_task ) &
-           write (nu_diag,*) ' Reads 6 hourly fields at', month, mday, sec &
-                , 'recnum,oldrecnum6',recnum, oldrecnum6
+!jd
+!      if (read6 .and. my_task == master_task ) &
+!           write (nu_diag,'(a,i10,a,i02,a,2i5,a,i4)') &
+!           ' Reads 6 hourly fields at',fyear*10000+month*100+mday,':',sec/3600 &
+!           , ' recnum, maxrec ',recnum, maxrec, ' days_in-year', int(dayyr) 
 
+!      if (my_task == master_task) &
+!           write(nu_diag,*) '6-hr interp_coeff ', c1intp, c2intp 
+!jd
       ! -----------------------------------------------------------
       ! read atmospheric forcing 
       ! -----------------------------------------------------------
@@ -2851,15 +2894,18 @@
       call interpolate_data (Qa_data,     Qa)
       call interpolate_data (cldf_data, cldf)
 
+
       !$OMP PARALLEL DO PRIVATE(iblk,i,j,ilo,ihi,jlo,jhi,this_block)
       do iblk = 1, nblocks
 
-        do j = 1, ny_block
-          do i = 1, nx_block
-             call longwave_parkinson_washington(Tair(i,j,iblk), &
-                                     cldf(i,j,iblk), flw(i,j,iblk))
-          enddo
-        enddo
+!jd This is done in prepare_forcing routine
+!jd
+!jd        do j = 1, ny_block
+!jd          do i = 1, nx_block
+!jd             call longwave_parkinson_washington(Tair(i,j,iblk), &
+!jd                                     cldf(i,j,iblk), flw(i,j,iblk))
+!jd          enddo
+!jd        enddo
 
       ! AOMIP
         this_block = get_block(blocks_ice(iblk),iblk)         
@@ -2879,8 +2925,6 @@
 
       enddo  ! iblk
       !$OMP END PARALLEL DO
-
-
 
       end subroutine ecmwf_data
 !METNO END
