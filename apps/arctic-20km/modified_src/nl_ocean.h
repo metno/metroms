@@ -176,9 +176,9 @@
         CALL initialize_ocn2wav_coupling (ng, MyRank)
 # endif
 # ifdef CICE_OCEAN
-	    WRITE (stdout,*) ' Initialize coupling streams for cice'
+!jd	    WRITE (stdout,*) ' Initialize coupling streams for cice'
         CALL initialize_ocn2cice_coupling (ng, MyRank)
-		WRITE (stdout,*) ' Done: Initialize coupling streams for cice'
+!jd		WRITE (stdout,*) ' Done: Initialize coupling streams for cice'
 # endif
       END DO
 #endif

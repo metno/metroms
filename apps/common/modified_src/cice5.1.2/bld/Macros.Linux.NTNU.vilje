@@ -17,7 +17,9 @@ endif
 FIXEDFLAGS := -132
 FREEFLAGS  := 
 # Should use this together with ROMS? 
-FFLAGS     :=  -w -O2 -ip -convert big_endian -assume byterecl -ftz
+FFLAGS     :=  -w -O2 -ip -convert big_endian -assume byterecl -ftz -g
+#FFLAGS     :=  -w -O2 -ip -convert big_endian -assume byterecl -ftz 
+
 #FFLAGS     :=  -w -O3 -ip -convert big_endian -assume byterecl -ftz -fp-model precise
 
 #FFLAGS     := -r8 -i4 -mcmodel=large  -O3 -ip -convert big_endian -assume byterecl 

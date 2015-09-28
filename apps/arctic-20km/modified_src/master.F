@@ -106,18 +106,18 @@
 !  Read in coupled model parameters from standard input.
 !
 !
-      WRITE (stdout,*) ' Calling couple_par'
+      if (master) WRITE (stdout,*) ' Calling couple_par'
       CALL read_CouplePar (iNLM)
 !
 !  Allocate several coupling variables.
 !
-      WRITE (stdout,*) ' Allocate coupler'
+      if (master) WRITE (stdout,*) ' Allocate coupler'
       CALL allocate_coupler (Nnodes)
 !
 !  Split the communicator into coupled models sub-groups based
 !  on color and key.
 !
-      WRITE (stdout,*) ' Assigning color'
+!jd      WRITE (stdout,*) ' Assigning color'
       MyKey=0
       IF ((pets(Iocean)%val(1).le.MyRank).and.                          &
      &    (MyRank.le.pets(Iocean)%val(Nthreads(Iocean)))) THEN
@@ -192,7 +192,7 @@
         WRITE (stdout,*) ' I am Ocean node: ', MyRank
         first=.TRUE.
         IF (exit_flag.eq.NoError) THEN
-        WRITE (stdout,*) ' Calling ROMS_INITIALIZE: ', MyRank
+!jd        WRITE (stdout,*) ' Calling ROMS_INITIALIZE: ', MyRank
           CALL ROMS_initialize (first, mpiCOMM=MyCOMM)
           run_time=0.0_r8
           DO ng=1,Ngrids
@@ -200,7 +200,7 @@
           END DO
         END IF
         IF (exit_flag.eq.NoError) THEN
-          WRITE (stdout,*) ' Calling ROMS_run: ', MyRank
+!jd          WRITE (stdout,*) ' Calling ROMS_run: ', MyRank
           CALL ROMS_run (run_time)
         END IF
         CALL ROMS_finalize

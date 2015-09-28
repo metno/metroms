@@ -1,4 +1,7 @@
 #include "cppdefs.h"
+
+!#define REPORT_COUPLING_ALL
+
       MODULE ocean_coupler_mod
 
 #if defined MODEL_COUPLING && defined MCT_LIB
@@ -134,7 +137,9 @@
       USE mod_forces
       USE mod_kinds
       USE mod_scalars
-!
+      USE mod_iounits, only: stdout
+
+! 
 !  Imported variable definitions.
 !
       integer, intent(in) :: ng, tile
@@ -148,6 +153,11 @@
 
       integer, allocatable :: length(:)
       integer, allocatable :: start(:)
+
+#ifdef PROFILE
+      CALL wclock_on (ng, iNLM, 36)
+#endif
+
 !
 !-----------------------------------------------------------------------
 !  Begin initialization phase.
@@ -155,17 +165,28 @@
 !
 !  Get communicator local rank and size.
 !
-      WRITE (6,*) ' ROMS Ocean Coupler: mpi_comm_rank'
+#ifdef REPORT_COUPLING_ALL
+      WRITE (stdout,*) ' ROMS Ocean Coupler: mpi_comm_rank'
+#endif
       CALL mpi_comm_rank (OCN_COMM_WORLD, MyRank, MyError)
-      WRITE (6,*) ' ROMS Ocean Coupler: mpi_comm_size'
+#ifdef REPORT_COUPLING_ALL
+      WRITE (stdout,*) ' ROMS Ocean Coupler: mpi_comm_size'
+#endif
       CALL mpi_comm_size (OCN_COMM_WORLD, nprocs, MyError)
 !
 !  Initialize MCT coupled model registry.
 !
-      WRITE (6,*) ' ROMS Ocean Coupler: calling MCTWorld_init'
+#ifdef REPORT_COUPLING_ALL
+      WRITE (stdout,*) ' ROMS Ocean Coupler: calling MCTWorld_init'
+#endif
       CALL MCTWorld_init (Nmodels, MPI_COMM_WORLD, OCN_COMM_WORLD,      &
      &                    OCNid)
-      WRITE (6,*) ' Done: ROMS Ocean Coupler: calling MCTWorld_init'
+#ifdef REPORT_COUPLING_ALL
+      WRITE(stdout,*) ' Done: ROMS Ocean Coupler: calling MCTWorld_init'
+#else
+      IF (Master)                                                       &
+     &     WRITE(stdout,*)' ROMS Ocean Coupler: MCTWorld_init called'
+#endif
 !
 !-----------------------------------------------------------------------
 !  Compute lower and upper bounds over a particular domain partition or
@@ -203,7 +224,9 @@
 !  Determine start and lengths for domain decomposition.
 !
       Jsize=JendR-JstrR+1
-      WRITE (6,*) ' ROMS Ocean Coupler: Jsize=', Jsize
+#ifdef REPORT_COUPLING_ALL
+      WRITE (stdout,*) ' ROMS Ocean Coupler: Jsize=', Jsize
+#endif
       IF (.not.allocated(start)) THEN
         allocate ( start(Jsize) )
       END IF
@@ -216,7 +239,12 @@
         start (jc)=j*(Lm(ng)+2)+IstrR+1
         length(jc)=(IendR-IstrR+1)
       END DO
-      WRITE (6,*) ' ROMS Ocean Coupler: calling GlobalSegMap_init'
+#ifdef REPORT_COUPLING_ALL
+      WRITE (stdout,*) ' ROMS Ocean Coupler: calling GlobalSegMap_init'
+#else
+      if (Master) WRITE (stdout,*)                                      &
+     & ' ROMS Ocean Coupler: calling GlobalSegMap_init'
+#endif
       CALL GlobalSegMap_init (GSMapROMS, start, length, 0,              &
      &     OCN_COMM_WORLD, OCNid)
 !
@@ -226,24 +254,37 @@
 !
       Asize=GlobalSegMap_lsize(GSMapROMS, OCN_COMM_WORLD)
 
-      WRITE (6,*) ' ROMS Ocean Coupler: calling AttrVect_init. Asize=', &
-     &     Asize
-      write(6,*) 'cice2ocn_AV, Exportlist ', trim(ExportList(Icice))
+#ifdef REPORT_COUPLING_ALL
+      WRITE (stdout,*) ' ROMS Ocean Coupler: calling AttrVect_init.',   & 
+     &     ' Asize=', Asize
+#endif
+
+      if (master) write(stdout,*)                                       &
+     &     'cice2ocn_AV, Exportlist ',trim(ExportList(Icice))
+
       CALL AttrVect_init (cice2ocn_AV, rList=TRIM(ExportList(Icice)),   &
      &     lsize=Asize)
 !
 !  Initialize attribute vector holding the export data code string of
 !  the ocean model.
 !
-
-      write(6,*) 'ocn2cice_AV, Exportlist ', trim(ExportList(Iocean))
+      if (master) write(stdout,*)                                       &
+     &     'ocn2cice_AV, Exportlist ',trim(ExportList(Iocean))
       CALL AttrVect_init (ocn2cice_AV, rList=TRIM(ExportList(Iocean)),  &
      &     lsize=Asize)
       CALL AttrVect_zero (ocn2cice_AV)
 
-      WRITE (6,*) ' ROMS Ocean Coupler: calling Router_init'
+#ifdef REPORT_COUPLING_ALL
+      WRITE (stdout,*) ' ROMS Ocean Coupler: calling Router_init'
+#endif
       CALL Router_init (CICEid, GSMapROMS, OCN_COMM_WORLD, ROMStoCICE)
-      WRITE (6,*) ' ROMS Ocean Coupler: calling Router_init. Done'
+
+#ifdef REPORT_COUPLING_ALL
+      WRITE (stdout,*) ' ROMS Ocean Coupler: calling Router_init. Done'
+#else
+      if (master) write(stdout,*)                                       &
+     &     ' ROMS Ocean Coupler: calling Router_init. Done'
+#endif
 !
 !  Deallocate working arrays.
 !
@@ -253,6 +294,10 @@
       IF (allocated(length)) THEN
         deallocate (length)
       END IF
+
+#ifdef PROFILE
+      CALL wclock_off (ng, iNLM, 36)
+#endif
 
       RETURN
       END SUBROUTINE initialize_ocn2cice_coupling
@@ -265,7 +310,7 @@
       USE mod_ocean
       USE mod_scalars
       USE mod_stepping
-      USE mod_iounits
+      USE mod_iounits, only: stdout
       USE mod_grid
 !      USE distribute_mod, ONLY : mp_reduce
       USE ROMS_import_mod, ONLY : ROMS_import2d
@@ -320,6 +365,11 @@
 
 #include "tile.h"
 
+#ifdef PROFILE
+      CALL wclock_on (ng, iNLM, 36)
+#endif
+
+
       allocate(nbot(IminS:ImaxS,JminS:JmaxS))
       allocate(uw(IminS:ImaxS,JminS:JmaxS))
       allocate(vw(IminS:ImaxS,JminS:JmaxS))
@@ -333,15 +383,15 @@
 
 
       IF (Master) THEN
-          write(6,*) ''
-          write(6,*) '   ***************************************** '
-          write(6,*) &
-          '    Ocean - CICE: coupling routine called from ROMS'
-          write(6,*) &
+          write(stdout,*) ''
+          write(stdout,*) '  ***************************************** '
+          write(stdout,*)                                               &
+     &     '    Ocean - CICE: coupling routine called from ROMS'
+          write(stdout,*) &
           '    Time : ', time_code, time
-          write(6,*) '   ****************************************  '
+          write(stdout,*) '  ****************************************  '
 
-          write(6,*) ''
+          write(stdout,*) ''
       END IF
 
 !
@@ -412,9 +462,11 @@
 
             CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code),A,Asize)
             Iimport=Iimport+1
-            write(6,*) 'ROMS rank ', MyRank,                            &
+#ifdef REPORT_COUPLING_ALL
+            write(stdout,*) 'ROMS rank ', MyRank,                       &
      &           ' received ',trim(code),' field (max/min): ',          &
      &           maxval(A),' ',minval(A)
+#endif
             scale=1.0_r8
             add_offset=0.0_r8
             CALL ROMS_import2d (ng, tile,                               &
@@ -430,9 +482,11 @@
 
             CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code), A, Asize)
             Iimport=Iimport+1
-            write(6,*) 'ROMS rank ', MyRank,                            &
+#ifdef REPORT_COUPLING_ALL
+            write(stdout,*) 'ROMS rank ', MyRank,                       &
      &           ' received ',trim(code),' field (max/min): ',          &
      &           maxval(A),' ',minval(A)
+#endif
             scale=1.0_r8
             add_offset=0.0_r8
             CALL ROMS_import2d (ng, tile,                               &
@@ -441,16 +495,18 @@
      &                          IstrR, IendR, JstrR, JendR,             &
      &                          LBi, UBi, LBj, UBj,                     &
      &                          Fields(id)%ImpMin, Fields(id)%ImpMax,   &
-     &                          ICE(ng)%freshAI,                           &
+     &                          ICE(ng)%freshAI,                        &
      &                          status)
 
           CASE ('fsaltAI')       ! Salt flux
 
             CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code), A, Asize)
             Iimport=Iimport+1
-            write(6,*) 'ROMS rank ', MyRank,                            &
+#ifdef REPORT_COUPLING_ALL
+            write(stdout,*) 'ROMS rank ', MyRank,                       &
      &           ' received ',trim(code),' field (max/min): ',          &
      &           maxval(A),' ',minval(A)
+#endif
             scale=1.0_r8
             add_offset=0.0_r8
             CALL ROMS_import2d (ng, tile,                               &
@@ -464,11 +520,13 @@
 
           CASE ('fhocnAI')         ! Nonradiative heat flux
 
-            CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code), A, Asize)
+            CALL AttrVect_exportRAttr(cice2ocn_AV, TRIM(code), A, Asize)
             Iimport=Iimport+1
-            write(6,*) 'ROMS rank ', MyRank,                            &
+#ifdef REPORT_COUPLING_ALL
+            write(stdout,*) 'ROMS rank ', MyRank,                       &
      &           ' received ',trim(code),' field (max/min): ',          &
      &           maxval(A),' ',minval(A)
+#endif
             scale=1.0_r8
             add_offset=0.0_r8
             CALL ROMS_import2d (ng, tile,                               &
@@ -484,9 +542,11 @@
 
             CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code), A, Asize)
             Iimport=Iimport+1
-            write(6,*) 'ROMS rank ', MyRank,                            &
+#ifdef REPORT_COUPLING_ALL
+            write(stdout,*) 'ROMS rank ', MyRank,                       &
      &           ' received ',trim(code),' field (max/min): ',          &
      &           maxval(A),' ',minval(A)
+#endif
             scale=1.0_r8
             add_offset=0.0_r8
             CALL ROMS_import2d (ng, tile,                               &
@@ -502,8 +562,10 @@
 
             CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code), A, Asize)
             Iimport=Iimport+1
-            write(6,*) 'ROMS rank ', MyRank,                            &
+#ifdef REPORT_COUPLING_ALL
+            write(stdout,*) 'ROMS rank ', MyRank,                       &
      & ' received strocnx field (max/min): ', maxval(A), ' ', minval(A)
+#endif
             scale=1.0_r8
             add_offset=0.0_r8
 ! Had Istr etc here first, and gtype as r2dvar -> visible processor map
@@ -558,8 +620,10 @@
 
             CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code), A, Asize)
             Iimport=Iimport+1
-            write(6,*) 'ROMS rank ', MyRank,                            &
+#ifdef REPORT_COUPLING_ALL
+            write(stdout,*) 'ROMS rank ', MyRank,                       &
      &  ' received strocny field (max/min): ', maxval(A), ' ', minval(A)
+#endif
             scale=1.0_r8
             add_offset=0.0_r8
             CALL ROMS_import2d (ng, tile,                               &
@@ -653,9 +717,11 @@
      &                          Fields(id)%ExpMin, Fields(id)%ExpMax,   &
      &                          Asize, A,                               &
      &                          status)
-            write(6,*)                                                  &
+#ifdef REPORT_COUPLING_ALL
+            write(stdout,*)                                             &
      &           'ROMS rank ', MyRank, ' sending sst field (max/min): ',&
      &           maxval(A), ' ', minval(A)
+#endif
             CALL AttrVect_importRAttr(ocn2cice_AV, TRIM(code), A, Asize)
             Iexport=Iexport+1
 
@@ -668,9 +734,11 @@
      &                          Fields(id)%ExpMin, Fields(id)%ExpMax,   &
      &                          Asize, A,                               &
      &                          status)
-            write(6,*) &
+#ifdef REPORT_COUPLING_ALL
+            write(stdout,*) &
      &           'ROMS rank ', MyRank, ' sending sss field (max/min): ',&
      &           maxval(A), ' ', minval(A)
+#endif
             CALL AttrVect_importRAttr(ocn2cice_AV, TRIM(code), A, Asize)
             Iexport=Iexport+1
 
@@ -679,12 +747,12 @@
            do j=JstrR,JendR
             do i=IstrR,IendR
              if (ICE(ng)%qfraz_accum(i,j).gt.0.0_r8) then
-              ICE(ng)%qfraz_accum(i,j)=                               &
+              ICE(ng)%qfraz_accum(i,j)=                                 &
      &               ICE(ng)%qfraz_accum(i,j)/ncouple
              else
 !jd Assume 5-meter thickness of layer. Here melt potential should be a proper 
 !jd weight over a typical mixed (?)/ near-ice layer. 
-             ICE(ng)%qfraz_accum(i,j) = rho0*Cp *                     &
+             ICE(ng)%qfraz_accum(i,j) = rho0*Cp *                       &
      &        min(t_freeze(OCEAN(ng)%t(i,j,N(ng),NOUT,isalt),0.0_r8)    &
      &        - OCEAN(ng)%t(i,j,N(ng),NOUT,itemp), 0.0_r8 ) * 5.0_r8
              end if
@@ -694,13 +762,15 @@
             CALL ROMS_export2d (ng, tile,                               &
      &                          id, gtype, scale, add_offset,           &
      &                          LBi, UBi, LBj, UBj,                     &
-     &                          ICE(ng)%qfraz_accum(:,:),             &
+     &                          ICE(ng)%qfraz_accum(:,:),               &
      &                          Fields(id)%ExpMin, Fields(id)%ExpMax,   &
      &                          Asize, A,                               &
      &                          status)
-            write(6,*) &
+#ifdef REPORT_COUPLING_ALL
+            write(stdout,*) &
      &         'ROMS rank ', MyRank, ' sending frzmlt field (max/min):',&
      &          maxval(A), ' ', minval(A)
+#endif
             CALL AttrVect_importRAttr(ocn2cice_AV, TRIM(code), A, Asize)
             Iexport=Iexport+1
 
@@ -717,7 +787,9 @@
                    uw(i,j) = 0._r8
                    totml = 0._r8
                    do k=N(ng),nbotu,-1
-                      dml = 0.5_r8*(GRID(ng)%z_w(i-1,j,k)-GRID(ng)%z_w(i-1,j,k-1) + GRID(ng)%z_w(i,j,k)-GRID(ng)%z_w(i,j,k-1))
+                      dml = 0.5_r8*(GRID(ng)%z_w(i-1,j,k)               &
+     &                     -GRID(ng)%z_w(i-1,j,k-1)                     &
+     &                     + GRID(ng)%z_w(i,j,k)-GRID(ng)%z_w(i,j,k-1))
                       uw(i,j) = uw(i,j) + OCEAN(ng)%u(i,j,k,NOUT)*dml
                       totml = totml + dml
                    enddo
@@ -740,7 +812,7 @@
      &            NghostPoints, EWperiodic(ng), NSperiodic(ng),         &
      &            uwater)
 #endif
-!            write(6,*) TRIM(code),id,gtype
+!            write(stdout,*) TRIM(code),id,gtype
             CALL ROMS_export2d (ng, tile,                               &
      &                          id, gtype, scale, add_offset,           &
      &                          LBi, UBi, LBj, UBj,                     &
@@ -750,9 +822,11 @@
      &                          Asize, A,                               &
      &                          status)
 
-            write(6,*)                                                  &
+#ifdef REPORT_COUPLING_ALL
+            write(stdout,*)                                             &
      &           'ROMS rank ',MyRank,' sending u field (max/min):',     &
      &            maxval(A), ' ', minval(A)
+#endif
             CALL AttrVect_importRAttr(ocn2cice_AV, TRIM(code), A, Asize)
             Iexport=Iexport+1
 
@@ -796,9 +870,11 @@
      &                          Fields(id)%ExpMin, Fields(id)%ExpMax,   &
      &                          Asize, A,                               &
      &                          status)
-            write(6,*)                                                  &
+#ifdef REPORT_COUPLING_ALL
+            write(stdout,*)                                             &
      &           'ROMS rank ',MyRank,' sending v field (max/min):',     &
      &            maxval(A), ' ', minval(A)
+#endif
             CALL AttrVect_importRAttr(ocn2cice_AV, TRIM(code), A, Asize)
             Iexport=Iexport+1
 
@@ -811,9 +887,11 @@
      &                          Fields(id)%ExpMin, Fields(id)%ExpMax,   &
      &                          Asize, A,                               &
      &                          status)
-            write(6,*)                                                  &
+#ifdef REPORT_COUPLING_ALL
+            write(stdout,*)                                             &
      &           'ROMS rank ',MyRank,' sending SSH field (max/min):',   &
      &            maxval(A), ' ', minval(A)
+#endif
             CALL AttrVect_importRAttr(ocn2cice_AV, TRIM(code), A, Asize)
             Iexport=Iexport+1
 
@@ -825,7 +903,11 @@
 !  Send ocean fields
 !
       IF (Iexport.gt.0) THEN
-         if (master) write(6,*)'ROMS sends', iexport,' fields to CICE'
+
+#ifdef REPORT_COUPLING_ALL
+         if (master)                                                    &
+     &        write(stdout,*)'ROMS sends', iexport,' fields to CICE'
+#endif
         CALL MCT_Send(ocn2cice_AV, ROMStoCICE)
       END IF
 
@@ -833,6 +915,10 @@
 !  Deallocate communication arrays.
 !
       deallocate (A,nbot,uw,vw,uwater,vwater)
+
+#ifdef PROFILE
+      CALL wclock_off (ng, iNLM, 36)
+#endif
 
       RETURN
       END SUBROUTINE ocn2cice_coupling
@@ -848,6 +934,7 @@
 !  Local variable declarations.
 !
       integer :: MyError
+
 !
 !-----------------------------------------------------------------------
 !  Deallocate MCT environment.

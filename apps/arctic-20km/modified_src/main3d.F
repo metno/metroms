@@ -78,7 +78,7 @@
 # ifdef WAVES_OCEAN
       USE ocean_coupler_mod, ONLY : ocn2wav_coupling
 # endif
-# ifdef CICE_COUPLING
+# ifdef CICE_OCEAN
       USE ocean_coupler_mod, ONLY : ocn2cice_coupling
       USE frazil_ice_prod_mod, only: frazil_ice_prod
 # endif
@@ -284,7 +284,7 @@
         END DO
 # endif
 
-# ifdef CICE_COUPLING
+# ifdef CICE_OCEAN
 !
 !-----------------------------------------------------------------------
 !  Couple to ocean to CICE model every "CoupleSteps(Icice)"
@@ -603,7 +603,7 @@
         DO ng=1,Ngrids
           DO tile=last_tile(ng),first_tile(ng),-1
             CALL step3d_t (ng, tile)
-# if defined CICE_COUPLING
+# if defined CICE_OCEAN
             CALL frazil_ice_prod (ng,tile)
 # endif
           END DO

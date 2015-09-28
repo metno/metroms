@@ -1,6 +1,6 @@
 #include "cppdefs.h"
       MODULE frazil_ice_prod_mod
-#if defined CICE_COUPLING
+#if defined CICE_OCEAN
       use mod_kinds, only: r8
 !
 !jd- MET.no                                                                     

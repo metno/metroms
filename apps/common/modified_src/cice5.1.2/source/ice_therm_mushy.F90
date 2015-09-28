@@ -314,6 +314,15 @@ contains
           istop = i
           jstop = j
           write(nu_diag,*) "ice_therm_mushy solver failure: istep1, my_task, i, j:", istep1, my_task, i, j
+!jd
+          write(nu_diag,*) "potT ", potT(i,j)
+          write(nu_diag,*) "Qa ",   Qa(i,j)
+          write(nu_diag,*) "flw ",  flw(i,j)
+          write(nu_diag,*) "tsf ",  tsf(ij)
+          write(nu_diag,*) "tbot ", tbot(i,j)
+          write(nu_diag,*) "fsensn", fsensn(i,j)
+          write(nu_diag,*) "flatn",  flatn(i,j)
+!jd          
           call abort_ice("ice_therm_mushy solver failure")
        endif
        

@@ -89,7 +89,8 @@ ifdef USE_DEBUG
            CFLAGS += -g
          CXXFLAGS += -g
 else
-           FFLAGS += -ip -O3
+#           FFLAGS += -ip -O3 
+           FFLAGS += -ip -O3 -g
            CFLAGS += -O3
          CXXFLAGS += -O3
 endif
@@ -115,6 +116,9 @@ ifdef USE_ESMF
            FFLAGS += $(ESMF_F90COMPILEPATHS)
              LIBS += $(ESMF_F90LINKPATHS) -lesmf -lC
 endif
+
+#         LIBS += -L$(MY_ROMS_SRC)/../run/arctic-20km -lmap-sampler-pmpi -lmap-sampler -Wl,--eh-frame-hdr 
+#         LIBS += -Wl,-rpath=$(MY_ROMS_SRC)/../run/arctic-20km
 
 ifdef USE_CXX
              LIBS += -lstdc++
