@@ -25,7 +25,7 @@
 #define UV_COR             /* turn ON or OFF Coriolis term */
 #undef  UV_VIS2            /* turn ON or OFF Laplacian horizontal mixing */
 #undef  UV_VIS4            /* turn ON or OFF biharmonic horizontal mixing */
-#undef  UV_SADVECTION      /* turn ON or OFF splines vertical advection */
+#define UV_SADVECTION      /* turn ON or OFF splines vertical advection */
 #define UV_QDRAG           /* turn ON or OFF quadratic bottom friction */
 #undef  UV_SMAGORINSKY
 
@@ -37,14 +37,14 @@
 
 #undef  TS_DIF2            /* turn ON or OFF Laplacian horizontal mixing */
 #undef  TS_DIF4            /* turn ON or OFF biharmonic horizontal mixing */
-#undef  TS_U3HADVECTION    /* define if 3rd-order upstream horiz. advection */
+#define TS_U3HADVECTION    /* define if 3rd-order upstream horiz. advection */
 #undef  TS_A4HADVECTION    /* define if 4th-order Akima horiz. advection */
 #undef  TS_C4HADVECTION    /* define if 4th-order centered horizontal advection */
 
-#define TS_MPDATA          /* define if recursive MPDATA 3D advection */
+#udnef  TS_MPDATA          /* define if recursive MPDATA 3D advection */
 
 #undef  TS_A4VADVECTION    /* define if 4th-order Akima vertical advection */
-#undef  TS_SVADVECTION     /* define if splines vertical advection */
+#define TS_SVADVECTION     /* define if splines vertical advection */
 #undef  TS_C4VADVECTION    /* define if 4th-order centered vertical advection */
 #undef  TS_SMAGORINSKY     /* define if Smagorinsky-like diffusion */
 
@@ -67,9 +67,9 @@
 #undef  STATIONS_CGRID     /* define if extracting data at native C-grid */
 
 #undef  BVF_MIXING         /* define if Brunt_Vaisala frequency mixing */
-#undef  LMD_MIXING         /* define if Large et al. (1994) interior closure */
+#define LMD_MIXING         /* define if Large et al. (1994) interior closure */
 #undef  MY25_MIXING        /* define if Mellor/Yamada level-2.5 mixing */
-#define GLS_MIXING         /* Activate Generic Length-Scale mixing */
+#undef  GLS_MIXING         /* Activate Generic Length-Scale mixing */
 
 #ifdef GLS_MIXING
 # define N2S2_HORAVG       /* Activate horizontal smoothing of buoyancy/shear */
