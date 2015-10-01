@@ -41,7 +41,7 @@
 #undef  TS_A4HADVECTION    /* define if 4th-order Akima horiz. advection */
 #undef  TS_C4HADVECTION    /* define if 4th-order centered horizontal advection */
 
-#udnef  TS_MPDATA          /* define if recursive MPDATA 3D advection */
+#undef  TS_MPDATA          /* define if recursive MPDATA 3D advection */
 
 #undef  TS_A4VADVECTION    /* define if 4th-order Akima vertical advection */
 #define TS_SVADVECTION     /* define if splines vertical advection */
