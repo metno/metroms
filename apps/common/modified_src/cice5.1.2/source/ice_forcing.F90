@@ -1400,6 +1400,10 @@
 !jd      if (my_task == master_task) write(nu_diag,*) &
 !jd           ' precip_units, precip_factor ', trim(precip_units), precip_factor
 
+!jd START  No time interpolation of precip fields in this version
+      if (trim(atm_data_type) ==  'ecmwf') precip_factor = c1
+!jd END
+
       do j = jlo, jhi
       do i = ilo, ihi
 
@@ -2605,7 +2609,7 @@
 
       use ice_diagnostics, only: check_step
       use ice_blocks, only: block, get_block
-      use ice_constants, only: p5, c1, c2, c4, Lsub, secday, &
+      use ice_constants, only: p5, c1, c2, c4, c12, Lsub, secday, &
           field_loc_center, field_type_scalar, field_type_vector, Tffresh
       use ice_domain, only: nblocks, blocks_ice
       use ice_flux, only: fsnow, frain, uatm, vatm, strax, stray, wind, &
@@ -2639,7 +2643,8 @@
 
       real (kind=dbl_kind) :: &
           sec6hr,             &! number of seconds in 6 hours
-          sec12hr             ! number of seconds in 12 hours
+          sec12hr,            &! number of seconds in 12 hours
+          precip_factor       ! Help
 
       character (char_len) :: & 
            fieldname    ! field name in netcdf file
@@ -2805,6 +2810,25 @@
          call ice_read_nc (fid, recnum, fieldname, fsnow, dbug, &
               field_loc_center, field_type_scalar)
          call ice_close_nc(fid)
+
+      ! convert precipitation units to kg/m^2 s
+         if (trim(precip_units) == 'mm_per_month') then
+            precip_factor = c12/(secday*days_per_year) 
+         elseif (trim(precip_units) == 'mm_per_day') then
+            precip_factor = c1/secday
+         elseif (trim(precip_units) == 'm_per_12hr') then
+            precip_factor = c1/43.2_dbl_kind
+         elseif (trim(precip_units) == 'mm_per_sec' .or. &
+              trim(precip_units) == 'mks') then 
+            precip_factor = c1    ! mm/sec = kg/m^2 s
+         endif
+!jd         if (my_task == master_task) write(nu_diag,*) 'ecmwf_data: precip_factor ', precip_factor
+
+         !$OMP PARALLEL DO PRIVATE(iblk)
+         do iblk = 1, nblocks
+            fsnow(:,:,iblk)=fsnow(:,:,iblk)*precip_factor
+         end do
+
       end if
 
     !-------------------------------------------------------------------
