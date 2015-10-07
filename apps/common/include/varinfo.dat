@@ -114,6 +114,25 @@
   'v2dvar'
   1.0d0
 
+ 
+'ubar_eastward'                                    ! Ouput
+  'eastward vertically integrated momentum component at RHO-points'
+  'meter second-1'                                 ! [m/s]
+  'ubar_eastward, scalar, series'
+  'ocean_time'
+  'idu2dE'
+  'r2dvar'
+  1.0d0
+
+'vbar_northward'                                   ! Output
+  'northward vertically integrated momentum component at RHO-points'
+  'meter second-1'                                 ! [m/s]
+  'vbar_northward, scalar, series'
+  'ocean_time'
+  'idv2dN'
+  'r2dvar'
+  1.0d0
+
 'u'                                                ! Input/Output
   'u-momentum component'
   'meter second-1'                                 ! [m/s]
@@ -130,6 +149,24 @@
   'ocean_time'
   'idVvel'
   'v3dvar'
+  1.0d0
+
+'u_eastward'                                       ! Output
+  'eastward momentum component at RHO-points'
+  'meter second-1'                                 ! [m/s]
+  'u_eastward, scalar, series'
+  'ocean_time'
+  'idu3dE'
+  'r3dvar'
+  1.0d0
+
+'v_northward'                                      ! Output
+  'northward momentum component at RHO-points'
+  'meter second-1'                                 ! [m/s]
+  'v_northward, scalar, series'
+  'ocean_time'
+  'idv3dN'
+  'r3dvar'
   1.0d0
 
 'w'                                                ! Output
@@ -674,6 +711,7 @@
   'r2dvar'
   1.0d0
 
+
 'hice'
   'average ice thickness in cell'
   'meter'
@@ -681,6 +719,51 @@
   'ocean_time'
   'idHice'
   'r2dvar'
+  1.0d0
+
+'tracer2'                                          ! Output
+  'time-averaged squared tracer'
+  'tracer2'                                        ! [tracer2]
+  'tracer2, scalar, series'
+  'ocean_time'
+  'idTTav(itrc)'
+  'r3dvar'
+  1.0d0
+
+'Huontracer'                                       ! Output
+  'time-averaged tracer u-volume flux'
+  'meter3 second-1 tracer'                         ! [m3/s tracer]
+  'Huontracer, scalar, series'
+  'ocean_time'
+  'iHUTav(itrc)'
+  'u3dvar'
+ 1.0d0
+
+'utracer'                                          ! Output
+  'time-averaged u-momentum times tracer'
+  'meter second-1 tracer'                          ! [m/s tracer]
+  'utracer, scalar, series'
+  'ocean_time'
+  'idUTav(itrc)'
+  'u3dvar'
+  1.0d0
+
+'Hvomtracer'                                       ! Output
+  'time-averaged tracer v-volume flux'
+  'meter3 second-1 tracer'                         ! [m3/s tracer]
+  'Hvomtracer, scalar, series'
+  'ocean_time'
+  'iHVTav(itrc)'
+  'v3dvar'
+ 1.0d0
+
+'vtracer'                                          ! Output
+  'time-averaged v-momentum times tracer'
+  'meter second-1 tracer'                          ! [m/s tracer]
+  'vtracer, scalar, series'
+  'ocean_time'
+  'idVTav(itrc)'
+  'v3dvar'
   1.0d0
 
 'snow_thick'
