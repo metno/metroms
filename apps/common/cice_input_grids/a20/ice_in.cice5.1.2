@@ -16,7 +16,7 @@
   , restart_dir    = '<cicedir>/rundir/restart/'
   , restart_file   = 'iced'
   , pointer_file   = '<cicedir>/rundir/restart/ice.restart_file'
-  , dumpfreq       = 'm'
+  , dumpfreq       = 'y'
   , dumpfreq_n     = 1
   , dump_last      = .true.
   , bfbflag        = .false.
@@ -30,9 +30,9 @@
   , latpnt(2)      =  80.
   , lonpnt(2)      = -10.
   , dbug           = .true.
-  , histfreq       = 'm','d','h','x','x'
+  , histfreq       = 'm','d','x','x','x'
   , histfreq_n     =  1 , 1 , 2 , 1 , 1
-  , hist_avg       = .false.
+  , hist_avg       = .true.
   , history_dir    = '<cicedir>/rundir/history/'
   , history_file   = 'iceh'
   , write_ic       = .true.
@@ -153,7 +153,7 @@
     formdrag        = .false.
   , atmbndy         = 'default'
   , fyear_init      = 1997
-  , ycycle          = 1
+  , ycycle          = 100
   , atm_data_format = 'nc'
   , atm_data_type   = 'ecmwf'
   , atm_data_dir    = './'
@@ -238,8 +238,8 @@
   , f_evap         = 'x' 
   , f_evap_ai      = 'mdh' 
   , f_Tair         = 'm' 
-  , f_Tref         = 'x' 
-  , f_Qref         = 'x'
+  , f_Tref         = 'm' 
+  , f_Qref         = 'm'
   , f_congel       = 'mdh' 
   , f_frazil       = 'mdh' 
   , f_snoice       = 'mdh' 

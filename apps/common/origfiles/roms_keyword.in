@@ -350,15 +350,15 @@ SO_sdev(isTsur) == 1.0d0 1.0d0             ! NT surface tracer flux
 ! Logical switches (TRUE/FALSE) to activate writing of fields into
 ! HISTORY output file.
 
-Hout(idUvel) == T                          ! 3D U-velocity
-Hout(idVvel) == T                          ! 3D V-velocity
+Hout(idUvel) == F                          ! 3D U-velocity
+Hout(idVvel) == F                          ! 3D V-velocity
 Hout(idWvel) == F                          ! 3D W-velocity
 Hout(idOvel) == F                          ! omega vertical velocity
 Hout(idUbar) == T                          ! 2D U-velocity
 Hout(idVbar) == T                          ! 2D V-velocity
 Hout(idFsur) == T                          ! free-surface
 
-Hout(idTvar) == T T                        ! temperature and salinity
+Hout(idTvar) == F F                        ! temperature and salinity
 
 Hout(idUsms) == F                          ! surface U-stress
 Hout(idVsms) == F                          ! surface V-stress
@@ -461,7 +461,7 @@ Hout(idBott) == F F F F F F F F F F F F F F F F
 
 Aout(idUvel) == T                          ! 3D U-velocity
 Aout(idVvel) == T                          ! 3D V-velocity
-Aout(idWvel) == F                          ! 3D W-velocity
+Aout(idWvel) == T                          ! 3D W-velocity
 Aout(idOvel) == F                          ! omega vertical velocity
 Aout(idUbar) == T                          ! 2D U-velocity
 Aout(idVbar) == T                          ! 2D V-velocity
@@ -493,9 +493,9 @@ Aout(idU3Sd) == F                          ! 3D U-Stokes velocity
 Aout(idV3Sd) == F                          ! 3D V-Stokes velocity
 
 Aout(idTsur) == T T                        ! surface net heat and salt flux
-Aout(idLhea) == F                          ! latent heat flux
-Aout(idShea) == F                          ! sensible heat flux
-Aout(idLrad) == F                          ! longwave radiation flux
+Aout(idLhea) == T                          ! latent heat flux
+Aout(idShea) == T                          ! sensible heat flux
+Aout(idLrad) == T                          ! longwave radiation flux
 Aout(idSrad) == T                          ! shortwave radiation flux
 Aout(idevap) == T                          ! evaporation rate
 Aout(idrain) == T                          ! precipitation rate
@@ -639,8 +639,16 @@ Dout(iTvdif) == F F                        ! vertical diffusion
     NFFILES == FORCEFILES                         ! number of forcing files
 
     FRCNAME ==  TIDEDIR/tide.nc  \
-                ATMDIR/AN_1997_unlim.nc  \
-                ATMDIR/FC_1997_unlim.nc  \
+                ATMDIR/AN_1997_unlim.nc | 
+                ATMDIR/AN_1998_unlim.nc |
+                ATMDIR/AN_1999_unlim.nc | 
+                ATMDIR/AN_2000_unlim.nc | 
+                ATMDIR/AN_2001_unlim.nc  \
+                ATMDIR/FC_1997_unlim.nc | 
+                ATMDIR/FC_1998_unlim.nc |
+                ATMDIR/FC_1999_unlim.nc | 
+                ATMDIR/FC_2000_unlim.nc | 
+                ATMDIR/FC_2001_unlim.nc \
                 RIVERFILE
 
 
