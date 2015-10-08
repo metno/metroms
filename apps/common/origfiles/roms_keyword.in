@@ -112,12 +112,12 @@
    LBC(isFsur) ==   Cha     Clo     Cha     Cha         ! free-surface
    LBC(isUbar) ==   Fla     Clo     Fla     Fla         ! 2D U-momentum
    LBC(isVbar) ==   Fla     Clo     Fla     Fla         ! 2D V-momentum
-   LBC(isUvel) ==   Rad     Clo     Rad     Rad         ! 3D U-momentum
-   LBC(isVvel) ==   Rad     Clo     Rad     Rad         ! 3D V-momentum
+   LBC(isUvel) ==   RadNud     Clo     RadNud     RadNud         ! 3D U-momentum
+   LBC(isVvel) ==   RadNud     Clo     RadNud     RadNud         ! 3D V-momentum
    LBC(isMtke) ==   Gra     Clo     Gra     Gra         ! mixing TKE
 
-   LBC(isTvar) ==   Rad     Clo     Rad     Rad \       ! temperature
-                    Rad     Clo     Rad     Rad         ! salinity
+   LBC(isTvar) ==   RadNud     Clo     RadNud     RadNud \       ! temperature
+                    RadNud     Clo     RadNud     RadNud         ! salinity
 
 
 ! Time-Stepping parameters.
