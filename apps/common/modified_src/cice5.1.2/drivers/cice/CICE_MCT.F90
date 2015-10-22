@@ -3,7 +3,8 @@ module CICE_MCT
 
   use ice_kinds_mod
   use ice_blocks, only : block, get_block, nx_block, ny_block
-  use ice_constants, only: field_loc_center, field_type_scalar, c0
+  use ice_constants, only: c0,field_loc_center, field_type_scalar,&
+       field_loc_NEcorner, field_type_vector
   use ice_domain, only : nblocks, blocks_ice, halo_info
   use ice_domain_size, only : nx_global, ny_global, max_blocks !, block_size_x, block_size_y
   use ice_flux, only: sst, uocn, vocn, zeta, ss_tltx, ss_tlty,&
@@ -164,8 +165,6 @@ contains
 
 !  Initialize import/export attribute vectors
 
-!jd   importList='SST:u:v:SSH'
-
     WRITE (ice_stdout,*) ' CICE: AttrVect_init, Asize=', Asize
     call AttrVect_init(ocn2cice_AV, rList=importList, lsize=Asize)
     call AttrVect_zero(ocn2cice_AV)
@@ -194,13 +193,17 @@ contains
 
 !jd  subroutine CICE_MCT_coupling(time,dt)
   subroutine CICE_MCT_coupling()
-    use ice_grid, only: HTN, HTE, dxu, dyu, dxt, dyt
+    use ice_grid, only: HTN, HTE, dxu, dyu, dxt, dyt, &
+         t2ugrid_vector
     use ice_calendar, only: dt, time, write_ic ,istep, istep1
 !jd    real(kind=dbl_kind), intent(in) :: time,dt
+
     real(kind=dbl_kind), pointer :: avdata(:)
     integer     :: ilo, ihi, jlo, jhi ! beginning and end of physical domain
     type(block) :: this_block         ! block information for current block
     integer     :: i,j,Asize,iblk,n
+
+
 
 !        ***********************************
 !             ROMS coupling
@@ -240,9 +243,10 @@ contains
        call ice2ocn_send_field(accum_i2o_fields(:,:,idfhocn,:),'fhocnAI')
 ! Exporting fswthru_ai
        call ice2ocn_send_field(accum_i2o_fields(:,:,idfswthru,:),'fswthruAI')
-! Export stress vector (These are on the velocity point (Ugrid)
+! Export stress vector. Allready converted to T-cell and scaled with aice
 ! Change of sign here as the stress on the ocean acts in opposite
 ! directon as the stress on the ice.
+
        call ice2ocn_send_field(-accum_i2o_fields(:,:,idstrocnx,:),'strocnx')
        call ice2ocn_send_field(-accum_i2o_fields(:,:,idstrocny,:),'strocny')
 
@@ -330,35 +334,11 @@ contains
             maxval(avdata), ' ', minval(avdata)
 
        call avec2field(avdata,uocn)
-      ! unfortunately need to cal ice_HaloUpdate twice for the
-      ! interpolations sake (ihi+1)
-       call ice_HaloUpdate (uocn, halo_info, &
-            field_loc_center, field_type_scalar)
-            
-! this should really be a function I think.
-! HTN - length of northern side of T-cell
-! dxu - width through the middle of U-cell (B-grid)
-! dxu(i,j) = 0.5*( HTN(i,j)+HTN(i+1,j), at least on the test grid.
-       do iblk = 1, nblocks
-          this_block = get_block(blocks_ice(iblk),iblk)
-          ilo = this_block%ilo
-          ihi = this_block%ihi
-          jlo = this_block%jlo
-          jhi = this_block%jhi
-          do j = jlo, jhi
-             do i = ilo, ihi
-! there is an annoying offset here stemming from ROMS vs CICE grid indexing.
-! CICE - u/v leads rho, CICE - rho leads u/v
-                uocn(i,j,iblk) =                            &     
-                     0.5*(uocn(i+1,j,iblk)*HTE(i,j,iblk)        &
-                     +uocn(i+1,j+1,iblk)*HTE(i,j+1,iblk)) &
-                     /dyu(i,j,iblk)
-             enddo
-          enddo
-       enddo
 
+       call t2ugrid_vector(uocn)
+            
        call ice_HaloUpdate (uocn, halo_info, &
-            field_loc_center, field_type_scalar)
+            field_loc_NEcorner, field_type_vector)
 
 ! Vocn
 
@@ -372,24 +352,11 @@ contains
        call ice_HaloUpdate (vocn, halo_info, &
             field_loc_center, field_type_scalar)
        
-       do iblk = 1, nblocks
-          this_block = get_block(blocks_ice(iblk),iblk)
-          ilo = this_block%ilo
-          ihi = this_block%ihi
-          jlo = this_block%jlo
-          jhi = this_block%jhi
-          do j = jlo, jhi
-             do i = ilo, ihi
-                vocn(i,j,iblk) =                                 &
-                     0.5*(vocn(i,j+1,iblk)*HTN(i,j,iblk)        &
-                     +vocn(i+1,j+1,iblk)*HTN(i+1,j,iblk))  &
-                     /dxu(i,j,iblk)
-             enddo
-          enddo
-       enddo
+       call t2ugrid_vector(vocn)
        
        call ice_HaloUpdate (vocn, halo_info, &
-            field_loc_center, field_type_scalar)
+            field_loc_NEcorner, field_type_vector)
+
        
        !
        ! SSH
@@ -403,6 +370,8 @@ contains
        call avec2field(avdata,zeta)
        call ice_HaloUpdate (zeta, halo_info, &
             field_loc_center, field_type_scalar)
+
+! Check this!
        
        do iblk = 1, nblocks
           this_block = get_block(blocks_ice(iblk),iblk)
