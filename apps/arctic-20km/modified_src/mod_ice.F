@@ -2,8 +2,8 @@
 !
 !   temporary storage for ice data
 !
-!   ice_strx - ice stress in i-direction on B-grid U-point
-!   ice_stry - ice stress in j-direction, B-grid U-point
+!   ice_strx - ice stress in i-direction on B-grid T-point
+!   ice_stry - ice stress in j-direction, B-grid T-point
 !   aice - ice fraction on rho-point
 
 !  CICE B-grid

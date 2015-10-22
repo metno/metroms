@@ -22,7 +22,7 @@
             dimension (nx_block,ny_block,nfields,max_blocks) ::       &
            accum_i2o_fields ! Time accumulation of fields sendt to ROMS
 
-
+       real(kind=dbl_kind), dimension(nx_block,ny_block,max_blocks) :: work
 !=======================================================================
 
       contains
@@ -69,17 +69,20 @@
       subroutine accumulate_i2o_fields(dt)
       use ice_state, only: aice
       use ice_flux, only: fresh_ai, fsalt_ai,&
-         fhocn_ai,fswthru_ai, strocnx, strocny
+         fhocn_ai,fswthru_ai, strocnxT, strocnyT
 
       real(kind=dbl_kind), intent(in) :: dt
+
 
       call accum_field(idaice, aice, dt)
       call accum_field(idfresh, fresh_ai, dt)
       call accum_field(idfsalt, fsalt_ai, dt)
       call accum_field(idfhocn, fhocn_ai, dt)
       call accum_field(idfswthru, fswthru_ai, dt)
-      call accum_field(idstrocnx, strocnx, dt)
-      call accum_field(idstrocny, strocny, dt)
+      work=strocnxT*aice
+      call accum_field(idstrocnx, work, dt)
+      work=strocnyT*aice
+      call accum_field(idstrocny, work, dt)
 
       contains 
 

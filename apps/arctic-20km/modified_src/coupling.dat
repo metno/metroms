@@ -358,7 +358,7 @@
   'strocnx'
   'Stress component in x-direction from ice model'
   'N/m^2'
-  'p2dvar'
+  'r2dvar'
   0.0d0
   1.0d0
 
@@ -366,7 +366,7 @@
   'strocny'
   'Stress component in y-direction from ice model'
   'N/m^2'
-  'p2dvar'
+  'r2dvar'
   0.0d0
   1.0d0
  

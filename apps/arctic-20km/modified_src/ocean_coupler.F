@@ -319,6 +319,7 @@
       USE mod_mixing
 #  endif
       USE bc_2d_mod
+      USE exchange_2d_mod
 # ifdef DISTRIBUTE
       USE mp_exchange_mod, ONLY : mp_exchange2d
 # endif
@@ -457,210 +458,237 @@
         add_offset=Fields(id)%AddOffset
 
         SELECT CASE (TRIM(code))
+         
 
-          CASE ('AICE')           ! Sea ice concentration
 
-            CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code),A,Asize)
-            Iimport=Iimport+1
+        CASE ('AICE')           ! Sea ice concentration
+
+           CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code),A,Asize)
+           Iimport=Iimport+1
 #ifdef REPORT_COUPLING_ALL
-            write(stdout,*) 'ROMS rank ', MyRank,                       &
-     &           ' received ',trim(code),' field (max/min): ',          &
-     &           maxval(A),' ',minval(A)
+           write(stdout,*) 'ROMS rank ', MyRank,                        &
+     &          ' received ',trim(code),' field (max/min): ',           &
+     &           maxval(A),' ',minval(A),' gtype : ', gtype
 #endif
-            scale=1.0_r8
-            add_offset=0.0_r8
-            CALL ROMS_import2d (ng, tile,                               &
-     &                          id, gtype, scale, add_offset,           &
-     &                          Asize, A,                               &
-     &                          IstrR, IendR, JstrR, JendR,             &
-     &                          LBi, UBi, LBj, UBj,                     &
-     &                          Fields(id)%ImpMin, Fields(id)%ImpMax,   &
-     &                          ICE(ng)%aice,                           &
-     &                          status)
+           scale=1.0_r8
+           add_offset=0.0_r8
+           CALL ROMS_import2d (ng, tile,                                &
+     &                         id, gtype, scale, add_offset,            &
+     &                         Asize, A,                                &
+     &                         IstrR, IendR, JstrR, JendR,              &
+     &                         LBi, UBi, LBj, UBj,                      &
+     &                         Fields(id)%ImpMin, Fields(id)%ImpMax,    &
+     &                         ICE(ng)%aice,                            &
+     &                         status)
        
-          CASE ('freshAI')         ! Fresh water flux
+!jd Transfere to u- and v- points for weigthing with stress
 
-            CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code), A, Asize)
-            Iimport=Iimport+1
-#ifdef REPORT_COUPLING_ALL
-            write(stdout,*) 'ROMS rank ', MyRank,                       &
-     &           ' received ',trim(code),' field (max/min): ',          &
-     &           maxval(A),' ',minval(A)
+           DO j=JstrR,JendR
+              DO i=Istr,IendR
+                 ICE(ng)%aice_u(i,j)=                                   &
+     &                0.5_r8*(ICE%aice(i-1,j)+ICE%aice(i,j))
+!# ifdef MASKING
+!                 ICE(ng)%aice_u(i,j)=ICE(ng)%aice_u(i,j)*umask(i,j)
+!# endif
+              END DO
+           END DO
+           DO j=Jstr,JendR
+              DO i=IstrR,IendR
+                 ICE(ng)%aice_v(i,j)=                                   &
+     &                0.5_r8*(ICE%aice(i,j-1)+ICE%aice(i,j))
+!# ifdef MASKING
+!                 ICE(ng)%aice_v(i,j)=ICE(ng)%aice_v(i,j)*vmask(i,j)
+!# endif
+              END DO
+           END DO
+
+           IF (EWperiodic(ng).or.NSperiodic(ng)) THEN
+              CALL exchange_u2d_tile (ng, tile,                         &
+     &             LBi, UBi, LBj, UBj,                                  &
+     &             ICE(ng)%aice_u)
+              CALL exchange_v2d_tile (ng, tile,                         &
+     &             LBi, UBi, LBj, UBj,                                  &
+     &             ICE(ng)%aice_v)
+           END IF
+
+#ifdef DISTRIBUTE
+           CALL mp_exchange2d (ng, tile, iNLM, 2,                       &
+     &          LBi, UBi, LBj, UBj,                                     &
+     &          NghostPoints,                                           &
+     &          EWperiodic(ng), NSperiodic(ng),                         &
+     &          ICE(ng)%aice_u,ICE(ng)%aice_v )
 #endif
-            scale=1.0_r8
-            add_offset=0.0_r8
-            CALL ROMS_import2d (ng, tile,                               &
-     &                          id, gtype, scale, add_offset,           &
-     &                          Asize, A,                               &
-     &                          IstrR, IendR, JstrR, JendR,             &
-     &                          LBi, UBi, LBj, UBj,                     &
-     &                          Fields(id)%ImpMin, Fields(id)%ImpMax,   &
-     &                          ICE(ng)%freshAI,                        &
-     &                          status)
 
-          CASE ('fsaltAI')       ! Salt flux
 
-            CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code), A, Asize)
-            Iimport=Iimport+1
+        CASE ('freshAI')        ! Fresh water flux
+
+           CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code), A, Asize)
+           Iimport=Iimport+1
 #ifdef REPORT_COUPLING_ALL
-            write(stdout,*) 'ROMS rank ', MyRank,                       &
-     &           ' received ',trim(code),' field (max/min): ',          &
-     &           maxval(A),' ',minval(A)
+           write(stdout,*) 'ROMS rank ', MyRank,                        &
+     &          ' received ',trim(code),' field (max/min): ',           &
+     &          maxval(A),' ',minval(A),' gtype : ', gtype
 #endif
-            scale=1.0_r8
-            add_offset=0.0_r8
-            CALL ROMS_import2d (ng, tile,                               &
-     &                          id, gtype, scale, add_offset,           &
-     &                          Asize, A,                               &
-     &                          IstrR, IendR, JstrR, JendR,             &
-     &                          LBi, UBi, LBj, UBj,                     &
-     &                          Fields(id)%ImpMin, Fields(id)%ImpMax,   &
-     &                          ICE(ng)%fsaltAI,                        &
-     &                          status)
+           scale=1.0_r8
+           add_offset=0.0_r8
+           CALL ROMS_import2d (ng, tile,                                &
+     &                         id, gtype, scale, add_offset,            &
+     &                         Asize, A,                                &
+     &                         IstrR, IendR, JstrR, JendR,              &
+     &                         LBi, UBi, LBj, UBj,                      &
+     &                         Fields(id)%ImpMin, Fields(id)%ImpMax,    &
+     &                         ICE(ng)%freshAI,                         &
+     &                         status)
 
-          CASE ('fhocnAI')         ! Nonradiative heat flux
+        CASE ('fsaltAI')        ! Salt flux
 
-            CALL AttrVect_exportRAttr(cice2ocn_AV, TRIM(code), A, Asize)
-            Iimport=Iimport+1
+           CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code), A, Asize)
+           Iimport=Iimport+1
 #ifdef REPORT_COUPLING_ALL
-            write(stdout,*) 'ROMS rank ', MyRank,                       &
-     &           ' received ',trim(code),' field (max/min): ',          &
-     &           maxval(A),' ',minval(A)
+           write(stdout,*) 'ROMS rank ', MyRank,                        &
+     &          ' received ',trim(code),' field (max/min): ',           &
+     &          maxval(A),' ',minval(A),' gtype : ', gtype
 #endif
-            scale=1.0_r8
-            add_offset=0.0_r8
-            CALL ROMS_import2d (ng, tile,                               &
-     &                          id, gtype, scale, add_offset,           &
-     &                          Asize, A,                               &
-     &                          IstrR, IendR, JstrR, JendR,             &
-     &                          LBi, UBi, LBj, UBj,                     &
-     &                          Fields(id)%ImpMin, Fields(id)%ImpMax,   &
-     &                          ICE(ng)%fhocnAI,                        &
-     &                          status)
+           scale=1.0_r8
+           add_offset=0.0_r8
+           CALL ROMS_import2d (ng, tile,                                &
+     &                         id, gtype, scale, add_offset,            &
+     &                         Asize, A,                                &
+     &                         IstrR, IendR, JstrR, JendR,              &
+     &                         LBi, UBi, LBj, UBj,                      &
+     &                         Fields(id)%ImpMin, Fields(id)%ImpMax,    &
+     &                         ICE(ng)%fsaltAI,                         &
+     &                         status)
 
-          CASE ('fswthruAI')         ! Radiative heat flux through ice
+        CASE ('fhocnAI')        ! Nonradiative heat flux
 
-            CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code), A, Asize)
-            Iimport=Iimport+1
+           CALL AttrVect_exportRAttr(cice2ocn_AV, TRIM(code), A, Asize)
+           Iimport=Iimport+1
 #ifdef REPORT_COUPLING_ALL
-            write(stdout,*) 'ROMS rank ', MyRank,                       &
-     &           ' received ',trim(code),' field (max/min): ',          &
-     &           maxval(A),' ',minval(A)
+           write(stdout,*) 'ROMS rank ', MyRank,                        &
+     &          ' received ',trim(code),' field (max/min): ',           &
+     &          maxval(A),' ',minval(A),' gtype : ', gtype
 #endif
-            scale=1.0_r8
-            add_offset=0.0_r8
-            CALL ROMS_import2d (ng, tile,                               &
-     &                          id, gtype, scale, add_offset,           &
-     &                          Asize, A,                               &
-     &                          IstrR, IendR, JstrR, JendR,             &
-     &                          LBi, UBi, LBj, UBj,                     &
-     &                          Fields(id)%ImpMin, Fields(id)%ImpMax,   &
-     &                          ICE(ng)%fswthruAI,                      &
-     &                          status)
+           scale=1.0_r8
+           add_offset=0.0_r8
+           CALL ROMS_import2d (ng, tile,                                &
+     &                         id, gtype, scale, add_offset,            &
+     &                         Asize, A,                                &
+     &                         IstrR, IendR, JstrR, JendR,              &
+     &                         LBi, UBi, LBj, UBj,                      &
+     &                         Fields(id)%ImpMin, Fields(id)%ImpMax,    &
+     &                         ICE(ng)%fhocnAI,                         &
+     &                         status)
 
-          CASE ('strocnx')         ! ice-ocean stress x-dir
+        CASE ('fswthruAI')      ! Radiative heat flux through ice
 
-            CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code), A, Asize)
-            Iimport=Iimport+1
+           CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code), A, Asize)
+           Iimport=Iimport+1
 #ifdef REPORT_COUPLING_ALL
-            write(stdout,*) 'ROMS rank ', MyRank,                       &
-     & ' received strocnx field (max/min): ', maxval(A), ' ', minval(A)
+           write(stdout,*) 'ROMS rank ', MyRank,                        &
+     &          ' received ',trim(code),' field (max/min): ',           &
+     &          maxval(A),' ',minval(A),' gtype : ', gtype
 #endif
-            scale=1.0_r8
-            add_offset=0.0_r8
-! Had Istr etc here first, and gtype as r2dvar -> visible processor map
-! IstrR and r2dvar worked better. Now trying p2dvar, i.e. psi-point.
-! But there's a one grid point offset between CICE and ROMS that bugs me
-! CICE U(i,j) = ROMS psi(i-1,j-1). )
-            CALL ROMS_import2d (ng, tile,                               &
-     &                          id, gtype, scale, add_offset,           &
-     &                          Asize, A,                               &
-     &                          IstrR, IendR, JstrR, JendR,             &
-     &                          LBi, UBi, LBj, UBj,                     &
-     &                          Fields(id)%ImpMin, Fields(id)%ImpMax,   &
-     &                          ICE(ng)%strx,                           &
-     &                          status)
+           scale=1.0_r8
+           add_offset=0.0_r8
+           CALL ROMS_import2d (ng, tile,                                &
+     &                         id, gtype, scale, add_offset,            &
+     &                         Asize, A,                                &
+     &                         IstrR, IendR, JstrR, JendR,              &
+     &                         LBi, UBi, LBj, UBj,                      &
+     &                         Fields(id)%ImpMin, Fields(id)%ImpMax,    &
+     &                         ICE(ng)%fswthruAI,                       &
+     &                         status)
+
+        CASE ('strocnx')        ! ice-ocean stress x-dir
+
+           CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code),A,Asize)
+           Iimport=Iimport+1
+#ifdef REPORT_COUPLING_ALL
+           write(stdout,*) 'ROMS rank ', MyRank,                        &
+     &          ' received strocnx field (max/min): ',                  &
+     &          maxval(A), ' ', minval(A),' gtype : ', gtype
+#endif
+           scale=1.0_r8
+           add_offset=0.0_r8
+
+           CALL ROMS_import2d (ng, tile,                                &
+     &                         id, gtype, scale, add_offset,            &
+     &                         Asize, A,                                &
+     &                         IstrR, IendR, JstrR, JendR,              &
+     &                         LBi, UBi, LBj, UBj,                      &
+     &                         Fields(id)%ImpMin, Fields(id)%ImpMax,    &
+     &                         ICE(ng)%strx,                            &
+     &                         status)
            
-            do j = LBj+1,UBj-1
-            do i = LBi+2,UBi
-!jd Start I think this should be simplified, and that the ice concentration
-!jd should used as weight in the interpolation of stress. strocnx is allready
-!jd the product of stress and ice concentration when recived from CICE.
 
-! seb - Yes you're right. Total brainfart from me there :(
+           DO j=JstrR,JendR
+              DO i=Istr,IendR
+                 ICE(ng)%stru(i,j) = 0.5_r8*                            &
+     &                (ICE(ng)%strx(i-1,j) + ICE(ng)%strx(i-1,j-1))
 
-!jd I also think we should remove the metric terms (omn) here. This is 
-!jd normally not taken into account in ROMS when interpolation from 
-!jd rho to u/v points, although it is included in ROMS. 
-!jd
-!jd new code
-             !ice fraction on u-point
-             ICE(ng)%aice_u(i,j) =                                      &
-     &              0.5_r8*( ICE(ng)%aice(i-1,j) + ICE(ng)%aice(i,j) )
+!# ifdef MASKING
+!                 ICE(ng)%stru(i,j)=ICE(ng)%stru(i,j)*umask(i,j)
+!# endif
+              END DO
+           END DO
 
-             ! Stress from B-vel (CICE)-> C-u points (ROMS) (northeast -> west) 
-             ICE(ng)%stru(i,j) =                                        &
-     &            0.5_r8*(ICE(ng)%strx(i-1,j) + ICE(ng)%strx(i-1,j-1))
-             
-!jd end
-           end do
-          end do
+           IF (EWperiodic(ng).or.NSperiodic(ng)) THEN
+              CALL exchange_u2d_tile (ng, tile,                         &
+     &             LBi, UBi, LBj, UBj,                                  &
+     &             ICE(ng)%stru)
+           END IF
 #ifdef DISTRIBUTE
-             CALL mp_exchange2d (ng, tile, iNLM, 1,                     &
-     &            LBi, UBi, LBj, UBj,                                   &
-     &            NghostPoints, EWperiodic(ng), NSperiodic(ng),         &
-     &            ICE(ng)%stru)
-             CALL mp_exchange2d (ng, tile, iNLM, 1,                     &
-     &            LBi, UBi, LBj, UBj,                                   &
-     &            NghostPoints, EWperiodic(ng), NSperiodic(ng),         &
-     &            ICE(ng)%aice_u)
+           CALL mp_exchange2d (ng, tile, iNLM, 1,                       &
+     &          LBi, UBi, LBj, UBj,                                     &
+     &          NghostPoints,                                           &
+     &          EWperiodic(ng), NSperiodic(ng),                         &
+     &          ICE(ng)%stru )
 #endif
 
-          CASE ('strocny')         ! ice-ocean stress y-dir 
 
-            CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code), A, Asize)
-            Iimport=Iimport+1
+        CASE ('strocny')        ! ice-ocean stress y-dir 
+
+           CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code), A, Asize)
+           Iimport=Iimport+1
 #ifdef REPORT_COUPLING_ALL
-            write(stdout,*) 'ROMS rank ', MyRank,                       &
-     &  ' received strocny field (max/min): ', maxval(A), ' ', minval(A)
+           write(stdout,*) 'ROMS rank ', MyRank,                        &
+     &          ' received strocny field (max/min): ',                  &
+     &          maxval(A), ' ', minval(A),' gtype : ', gtype
 #endif
-            scale=1.0_r8
-            add_offset=0.0_r8
-            CALL ROMS_import2d (ng, tile,                               &
-     &                          id, gtype, scale, add_offset,           &
-     &                          Asize, A,                               &
-     &                          IstrR, IendR, JstrR, JendR,             &
-     &                          LBi, UBi, LBj, UBj,                     &
-     &                          Fields(id)%ImpMin, Fields(id)%ImpMax,   &
-     &                          ICE(ng)%stry,                           &
-     &                          status)
+           scale=1.0_r8
+           add_offset=0.0_r8
+           CALL ROMS_import2d (ng, tile,                                &
+     &                         id, gtype, scale, add_offset,            &
+     &                         Asize, A,                                &
+     &                         IstrR, IendR, JstrR, JendR,              &
+     &                         LBi, UBi, LBj, UBj,                      &
+     &                         Fields(id)%ImpMin, Fields(id)%ImpMax,    &
+     &                         ICE(ng)%stry,                            &
+     &                         status)
 
-            do j = LBj+1,UBj
-            do i = LBi+1,UBi-1
-             !ice fraction on v-point (south)
-             ICE(ng)%aice_v(i,j) =                                      &
-     &              0.5_r8*( ICE(ng)%aice(i,j-1) + ICE(ng)%aice(i,j) )
-
-             ! Stress from B-vel (CICE)-> C grid v  (ROMS) (northeast -> south) 
-             ICE(ng)%strv(i,j) =                                        &
-     &            0.5_r8*(ICE(ng)%stry(i,j-1) + ICE(ng)%stry(i-1,j-1))
-             
-!jd end
-            
-
-           end do
-          end do
+           DO j=Jstr,JendR
+              DO i=IstrR,IendR
+                 ICE(ng)%strv(i,j)=0.5_r8*                              &
+     &                (ICE(ng)%stry(i,j-1)+ICE(ng)%stry(i,j))
+!# ifdef MASKING
+!                 ICE(ng)%strv(i,j)=ICE(ng)%strv(i,j)*vmask(i,j)
+!# endif
+              END DO
+           END DO
+           IF (EWperiodic(ng).or.NSperiodic(ng)) THEN
+              CALL exchange_v2d_tile (ng, tile,                         &
+     &             LBi, UBi, LBj, UBj,                                  &
+     &             ICE(ng)%strv)
+           END IF
 #ifdef DISTRIBUTE
-             CALL mp_exchange2d (ng, tile, iNLM, 1,                     &
-     &            LBi, UBi, LBj, UBj,                                   &
-     &            NghostPoints, EWperiodic(ng), NSperiodic(ng),         &
-     &            ICE(ng)%strv)
-             CALL mp_exchange2d (ng, tile, iNLM, 1,                     &
-     &            LBi, UBi, LBj, UBj,                                   &
-     &            NghostPoints, EWperiodic(ng), NSperiodic(ng),         &
-     &            ICE(ng)%aice_v)
+           CALL mp_exchange2d (ng, tile, iNLM, 1,                       &
+     &          LBi, UBi, LBj, UBj,                                     &
+     &          NghostPoints,                                           &
+     &          EWperiodic(ng), NSperiodic(ng),                         &
+     &          ICE(ng)%strv )
 #endif
-        
+           
         END SELECT
       END DO
 
@@ -700,15 +728,15 @@
 !
       Iexport=0
       DO ifield=1,Nexport(Iocean)
-        id=ExportID(Iocean)%val(ifield)
-        code=ADJUSTL(Fields(id)%code)
-        gtype=Fields(id)%GridType
-        scale=Fields(id)%scale
-        add_offset=Fields(id)%AddOffset
+         id=ExportID(Iocean)%val(ifield)
+         code=ADJUSTL(Fields(id)%code)
+         gtype=Fields(id)%GridType
+         scale=Fields(id)%scale
+         add_offset=Fields(id)%AddOffset
 
-        SELECT CASE (TRIM(code))
+         SELECT CASE (TRIM(code))
 
-          CASE ('SST')
+         CASE ('SST')
 
             CALL ROMS_export2d (ng, tile,                               &
      &                          id, gtype, scale, add_offset,           &
@@ -720,12 +748,12 @@
 #ifdef REPORT_COUPLING_ALL
             write(stdout,*)                                             &
      &           'ROMS rank ', MyRank, ' sending sst field (max/min): ',&
-     &           maxval(A), ' ', minval(A)
+     &           maxval(A), ' ', minval(A),' gtype : ', gtype
 #endif
             CALL AttrVect_importRAttr(ocn2cice_AV, TRIM(code), A, Asize)
             Iexport=Iexport+1
 
-          CASE ('SSS')
+         CASE ('SSS')
 
             CALL ROMS_export2d (ng, tile,                               &
      &                          id, gtype, scale, add_offset,           &
@@ -737,12 +765,12 @@
 #ifdef REPORT_COUPLING_ALL
             write(stdout,*) &
      &           'ROMS rank ', MyRank, ' sending sss field (max/min): ',&
-     &           maxval(A), ' ', minval(A)
+     &           maxval(A), ' ', minval(A),' gtype : ', gtype
 #endif
             CALL AttrVect_importRAttr(ocn2cice_AV, TRIM(code), A, Asize)
             Iexport=Iexport+1
 
-          CASE ('FRZMLT')
+         CASE ('FRZMLT')
             
            do j=JstrR,JendR
             do i=IstrR,IendR
@@ -759,98 +787,98 @@
             end do
            end do
 
-            CALL ROMS_export2d (ng, tile,                               &
-     &                          id, gtype, scale, add_offset,           &
-     &                          LBi, UBi, LBj, UBj,                     &
-     &                          ICE(ng)%qfraz_accum(:,:),               &
-     &                          Fields(id)%ExpMin, Fields(id)%ExpMax,   &
-     &                          Asize, A,                               &
-     &                          status)
+           CALL ROMS_export2d (ng, tile,                                &
+     &                         id, gtype, scale, add_offset,            &
+     &                         LBi, UBi, LBj, UBj,                      &
+     &                         ICE(ng)%qfraz_accum(:,:),                &
+     &                         Fields(id)%ExpMin, Fields(id)%ExpMax,    &
+     &                         Asize, A,                                &
+     &                         status)
 #ifdef REPORT_COUPLING_ALL
-            write(stdout,*) &
-     &         'ROMS rank ', MyRank, ' sending frzmlt field (max/min):',&
-     &          maxval(A), ' ', minval(A)
+           write(stdout,*) &
+     &          'ROMS rank ',MyRank,' sending frzmlt field (max/min):', &
+     &          maxval(A), ' ', minval(A),' gtype : ', gtype
 #endif
-            CALL AttrVect_importRAttr(ocn2cice_AV, TRIM(code), A, Asize)
-            Iexport=Iexport+1
+           CALL AttrVect_importRAttr(ocn2cice_AV, TRIM(code), A, Asize)
+           Iexport=Iexport+1
 
 !jd Reset accumulation array
-            ICE(ng)%qfraz_accum(:,:) = 0
+           ICE(ng)%qfraz_accum(:,:) = 0
 
 
-          CASE ('u')
+        CASE ('u')
 #  define I_RANGE MAX(Istr-1,1),Iend+1             
-             do j=Jstr,Jend
-                do i=I_RANGE
-                   nbotu = NINT(0.5_r8*(nbot(i-1,j)+nbot(i,j)))
-                   nbotu = max(min(nbotu,N(ng)),1)
-                   uw(i,j) = 0._r8
-                   totml = 0._r8
-                   do k=N(ng),nbotu,-1
-                      dml = 0.5_r8*(GRID(ng)%z_w(i-1,j,k)               &
-     &                     -GRID(ng)%z_w(i-1,j,k-1)                     &
-     &                     + GRID(ng)%z_w(i,j,k)-GRID(ng)%z_w(i,j,k-1))
-                      uw(i,j) = uw(i,j) + OCEAN(ng)%u(i,j,k,NOUT)*dml
-                      totml = totml + dml
-                   enddo
-                   uw(i,j) = uw(i,j)/totml
-                enddo
-             enddo
+           do j=Jstr,Jend
+              do i=I_RANGE
+                 nbotu = NINT(0.5_r8*(nbot(i-1,j)+nbot(i,j)))
+                 nbotu = max(min(nbotu,N(ng)),1)
+                 uw(i,j) = 0._r8
+                 totml = 0._r8
+                 do k=N(ng),nbotu,-1
+                    dml = 0.5_r8*(GRID(ng)%z_w(i-1,j,k)                 &
+     &                   -GRID(ng)%z_w(i-1,j,k-1)                       &
+     &                   + GRID(ng)%z_w(i,j,k)-GRID(ng)%z_w(i,j,k-1))
+                    uw(i,j) = uw(i,j) + OCEAN(ng)%u(i,j,k,NOUT)*dml
+                    totml = totml + dml
+                 enddo
+                 uw(i,j) = uw(i,j)/totml
+              enddo
+           enddo
 #  undef I_RANGE
-             do j=Jstr,Jend
-                do i=IstrU,Iend
-                   uwater(i,j) = uw(i,j)
-                enddo
-             enddo
+           do j=Jstr,Jend
+              do i=IstrU,Iend
+                 uwater(i,j) = uw(i,j)
+              enddo
+           enddo
 !  Apply boundary conditions.
-             CALL bc_u2d_tile (ng, tile,                                &
-     &            LBi, UBi, LBj, UBj,                                   &
-     &            uwater)
+           CALL bc_u2d_tile (ng, tile,                                  &
+     &          LBi, UBi, LBj, UBj,                                     &
+     &          uwater)
 #ifdef DISTRIBUTE
-             CALL mp_exchange2d (ng, tile, iNLM, 1,                     &
-     &            LBi, UBi, LBj, UBj,                                   &
-     &            NghostPoints, EWperiodic(ng), NSperiodic(ng),         &
-     &            uwater)
+           CALL mp_exchange2d (ng, tile, iNLM, 1,                       &
+     &          LBi, UBi, LBj, UBj,                                     &
+     &          NghostPoints, EWperiodic(ng), NSperiodic(ng),           &
+     &          uwater)
 #endif
 !            write(stdout,*) TRIM(code),id,gtype
-            CALL ROMS_export2d (ng, tile,                               &
-     &                          id, gtype, scale, add_offset,           &
-     &                          LBi, UBi, LBj, UBj,                     &
-     &                          uwater,                                 &
-!     &                          OCEAN(ng)%u(:,:,N(ng),NOUT),            &
-     &                          Fields(id)%ExpMin, Fields(id)%ExpMax,   &
-     &                          Asize, A,                               &
-     &                          status)
+           CALL ROMS_export2d (ng, tile,                                &
+     &                         id, gtype, scale, add_offset,            &
+     &                         LBi, UBi, LBj, UBj,                      &
+     &                         uwater,                                  &
+!     &                         OCEAN(ng)%u(:,:,N(ng),NOUT),            &
+     &                         Fields(id)%ExpMin, Fields(id)%ExpMax,    &
+     &                         Asize, A,                                &
+     &                         status)
 
 #ifdef REPORT_COUPLING_ALL
-            write(stdout,*)                                             &
-     &           'ROMS rank ',MyRank,' sending u field (max/min):',     &
-     &            maxval(A), ' ', minval(A)
+           write(stdout,*)                                              &
+     &          'ROMS rank ',MyRank,' sending u field (max/min):',      &
+     &          maxval(A), ' ', minval(A),' gtype : ', gtype
 #endif
-            CALL AttrVect_importRAttr(ocn2cice_AV, TRIM(code), A, Asize)
-            Iexport=Iexport+1
+           CALL AttrVect_importRAttr(ocn2cice_AV, TRIM(code), A, Asize)
+           Iexport=Iexport+1
 
-          CASE ('v')
+        CASE ('v')
 #  define J_RANGE MAX(Jstr-1,1),Jend+1 
-             do j=J_RANGE
-                do i=Istr,Iend
-                   nbotv = NINT(0.5_r8*(nbot(i,j-1)+nbot(i,j)))
-                   nbotv = max(min(nbotv,N(ng)),1)
-                   vw(i,j) = 0._r8
-                   totml = 0._r8
-                   do k=N(ng),nbotv,-1
-                      dml = 0.5_r8*(GRID(ng)%z_w(i,j-1,k)-GRID(ng)%z_w(i,j-1,k-1) + GRID(ng)%z_w(i,j,k)-GRID(ng)%z_w(i,j,k-1))
-                      vw(i,j) = vw(i,j) + OCEAN(ng)%v(i,j,k,NOUT)*dml
-                      totml = totml + dml
-                   enddo
-                   vw(i,j) = vw(i,j)/totml
-                enddo
-             enddo
+           do j=J_RANGE
+              do i=Istr,Iend
+                 nbotv = NINT(0.5_r8*(nbot(i,j-1)+nbot(i,j)))
+                 nbotv = max(min(nbotv,N(ng)),1)
+                 vw(i,j) = 0._r8
+                 totml = 0._r8
+                 do k=N(ng),nbotv,-1
+                    dml = 0.5_r8*(GRID(ng)%z_w(i,j-1,k)-GRID(ng)%z_w(i,j-1,k-1) + GRID(ng)%z_w(i,j,k)-GRID(ng)%z_w(i,j,k-1))
+                    vw(i,j) = vw(i,j) + OCEAN(ng)%v(i,j,k,NOUT)*dml
+                    totml = totml + dml
+                 enddo
+                 vw(i,j) = vw(i,j)/totml
+              enddo
+           enddo
 #  undef J_RANGE
-             do j=JstrV,Jend
-                do i=Istr,Iend
-                   vwater(i,j) = vw(i,j)
-                enddo
+           do j=JstrV,Jend
+              do i=Istr,Iend
+                 vwater(i,j) = vw(i,j)
+              enddo
              enddo
 !  Apply boundary conditions.
              CALL bc_v2d_tile (ng, tile,                                &
@@ -862,25 +890,25 @@
      &            NghostPoints, EWperiodic(ng), NSperiodic(ng),         &
      &            vwater)
 #endif
-            CALL ROMS_export2d (ng, tile,                               &
-     &                          id, gtype, scale, add_offset,           &
-     &                          LBi, UBi, LBj, UBj,                     &
-     &                          vwater,                                 &
+             CALL ROMS_export2d (ng, tile,                              &
+     &                           id, gtype, scale, add_offset,          &
+     &                           LBi, UBi, LBj, UBj,                    &
+     &                           vwater,                                &
 !     &                          OCEAN(ng)%v(:,:,N(ng),NOUT),            &
-     &                          Fields(id)%ExpMin, Fields(id)%ExpMax,   &
-     &                          Asize, A,                               &
-     &                          status)
+     &                           Fields(id)%ExpMin, Fields(id)%ExpMax,  &
+     &                           Asize, A,                              &
+     &                           status)
 #ifdef REPORT_COUPLING_ALL
-            write(stdout,*)                                             &
-     &           'ROMS rank ',MyRank,' sending v field (max/min):',     &
-     &            maxval(A), ' ', minval(A)
+             write(stdout,*)                                            &
+     &            'ROMS rank ',MyRank,' sending v field (max/min):',    &
+     &            maxval(A), ' ', minval(A),' gtype : ', gtype
 #endif
-            CALL AttrVect_importRAttr(ocn2cice_AV, TRIM(code), A, Asize)
-            Iexport=Iexport+1
+             CALL AttrVect_importRAttr(ocn2cice_AV, TRIM(code),A,Asize)
+             Iexport=Iexport+1
 
           CASE ('SSH')
 
-            CALL ROMS_export2d (ng, tile,                               &
+             CALL ROMS_export2d (ng, tile,                              &
      &                          id, gtype, scale, add_offset,           &
      &                          LBi, UBi, LBj, UBj,                     &
      &                          OCEAN(ng)%zeta(:,:,KOUT),               &
@@ -888,12 +916,12 @@
      &                          Asize, A,                               &
      &                          status)
 #ifdef REPORT_COUPLING_ALL
-            write(stdout,*)                                             &
+             write(stdout,*)                                            &
      &           'ROMS rank ',MyRank,' sending SSH field (max/min):',   &
-     &            maxval(A), ' ', minval(A)
+     &            maxval(A), ' ', minval(A),' gtype : ', gtype
 #endif
-            CALL AttrVect_importRAttr(ocn2cice_AV, TRIM(code), A, Asize)
-            Iexport=Iexport+1
+             CALL AttrVect_importRAttr(ocn2cice_AV,TRIM(code),A,Asize)
+             Iexport=Iexport+1
 
 
         END SELECT
@@ -908,7 +936,7 @@
          if (master)                                                    &
      &        write(stdout,*)'ROMS sends', iexport,' fields to CICE'
 #endif
-        CALL MCT_Send(ocn2cice_AV, ROMStoCICE)
+         CALL MCT_Send(ocn2cice_AV, ROMStoCICE)
       END IF
 
 !
