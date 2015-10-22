@@ -486,7 +486,7 @@
            DO j=JstrR,JendR
               DO i=Istr,IendR
                  ICE(ng)%aice_u(i,j)=                                   &
-     &                0.5_r8*(ICE%aice(i-1,j)+ICE%aice(i,j))
+     &                0.5_r8*(ICE(ng)%aice(i-1,j)+ICE(ng)%aice(i,j))
 !# ifdef MASKING
 !                 ICE(ng)%aice_u(i,j)=ICE(ng)%aice_u(i,j)*umask(i,j)
 !# endif
@@ -495,7 +495,7 @@
            DO j=Jstr,JendR
               DO i=IstrR,IendR
                  ICE(ng)%aice_v(i,j)=                                   &
-     &                0.5_r8*(ICE%aice(i,j-1)+ICE%aice(i,j))
+     &                0.5_r8*(ICE(ng)%aice(i,j-1)+ICE(ng)%aice(i,j))
 !# ifdef MASKING
 !                 ICE(ng)%aice_v(i,j)=ICE(ng)%aice_v(i,j)*vmask(i,j)
 !# endif
