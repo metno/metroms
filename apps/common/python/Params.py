@@ -29,13 +29,15 @@ class Params(object):
             self.RUNPATH=GlobalParams.RUNDIR+"/arctic-20km"
             self.ROMSINFILE=self.RUNPATH+"/roms.in"
             self.FELT_CLMFILE=self.RUNPATH+"/FOAM.felt"
-            self.DELTAT=300
+            self.DELTAT=1800 
+#            self.DELTAT=600 
+#            self.DELTAT=300 
             #self.ROMSINIFILE=self.RUNPATH+"/"+INIFILE
             ########################################################################
             # List of keywords:
             ########################################################################
             self.KEYWORDLIST=[
-            ['APPTITLE',"ROMS 3.5 - Arctic-20km - Operational Run"],
+            ['APPTITLE',"ROMS 3.6 - Arctic-20km - Coupled ROMS-CICE"],
             ['MYAPPCPPNAME',"ARCTIC20KM"],
             ['VARFILE',GlobalParams.COMMONPATH+"/include/varinfo.dat"],
             ['XPOINTS',"320"],  #Could read from grd-file?
@@ -45,7 +47,7 @@ class Params(object):
             ['YCPU',str(self.YCPU)],
             ['TSTEPS',str(self.FCLEN*3600/self.DELTAT)],
             ['DELTAT',str(self.DELTAT)],
-            ['RATIO',"30"],
+            ['RATIO',"30"], #['RATIO',"30"],
             ['IRESTART',str(self.IRESTART)],
             ['RSTSTEP',str(24*3600/int(self.DELTAT))],
             ['STASTEP',str(1*3600/int(self.DELTAT))],
