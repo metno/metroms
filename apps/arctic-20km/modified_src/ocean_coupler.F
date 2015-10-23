@@ -625,7 +625,7 @@
            DO j=JstrR,JendR
               DO i=Istr,IendR
                  ICE(ng)%stru(i,j) = 0.5_r8*                            &
-     &                (ICE(ng)%strx(i-1,j) + ICE(ng)%strx(i-1,j-1))
+     &                (ICE(ng)%strx(i-1,j) + ICE(ng)%strx(i,j))
 
 !# ifdef MASKING
 !                 ICE(ng)%stru(i,j)=ICE(ng)%stru(i,j)*umask(i,j)
