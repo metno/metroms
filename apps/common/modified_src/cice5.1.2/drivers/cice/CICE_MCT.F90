@@ -3,7 +3,7 @@ module CICE_MCT
 
   use ice_kinds_mod
   use ice_blocks, only : block, get_block, nx_block, ny_block
-  use ice_constants, only: c0,field_loc_center, field_type_scalar,&
+  use ice_constants, only: c0,p5, field_loc_center, field_type_scalar,&
        field_loc_NEcorner, field_type_vector
   use ice_domain, only : nblocks, blocks_ice, halo_info
   use ice_domain_size, only : nx_global, ny_global, max_blocks !, block_size_x, block_size_y
@@ -371,30 +371,28 @@ contains
        call ice_HaloUpdate (zeta, halo_info, &
             field_loc_center, field_type_scalar)
 
-! Check this!
-       
        do iblk = 1, nblocks
           this_block = get_block(blocks_ice(iblk),iblk)
           ilo = this_block%ilo
           ihi = this_block%ihi
           jlo = this_block%jlo
           jhi = this_block%jhi
-          do j = jlo, jhi-1
-             do i = ilo, ihi-1
-!jd zeta is on the T-point here, while ss_tltx is at the velocity point. 
-!jd Should also include zeta(i+1,j+1)-zeta(i,j+1) type of difference. 
-                ss_tltx(i,j,iblk) =                              &
-                     (zeta(i+1,j,iblk)-zeta(i,j,iblk))/dxt(i,j,iblk)
-                ss_tlty(i,j,iblk) =                              &
-                     (zeta(i,j+1,iblk)-zeta(i,j,iblk))/dyt(i,j,iblk)
+          do j = jlo, jhi
+             do i = ilo, ihi
+                ss_tltx(i,j,iblk) =                                  &
+                     p5*((zeta(i+1,j,iblk) + zeta(i+1,j+1,iblk)) -   &
+                     (zeta(i,j,iblk) + zeta(i,j+1,iblk))) /dxu(i,j,iblk)
+                ss_tlty(i,j,iblk) =                                  &
+                     p5*((zeta(i,j+1,iblk) + zeta(i+1,j+1,iblk)) -   &
+                     (zeta(i,j,iblk) + zeta(i+1,j,iblk))) /dyu(i,j,iblk)
              enddo
           enddo
        enddo
        
        call ice_HaloUpdate (ss_tltx, halo_info, &
-            field_loc_center, field_type_scalar)
+            field_loc_NEcorner, field_type_vector)
        call ice_HaloUpdate (ss_tlty, halo_info, &
-            field_loc_center, field_type_scalar)
+            field_loc_NEcorner, field_type_vector)
        
       
        call zero_i2o_fields ! also accum_time is zeroed
