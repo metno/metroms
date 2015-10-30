@@ -196,7 +196,7 @@ class ModelRun(object):
             print "Unsupported architecture..."
             exit(1)
 
-    def _cycle_rst_ini(backup=True):
+    def _cycle_rst_ini(self, backup=True):
         #Cycle ocean_rst.nc to ocean_ini.nc
         os.rename(self._params.RUNPATH+"/ocean_ini.nc", self._params.RUNPATH+datetime.now().strftime("/ocean_ini.nc_%Y%m%d-%H%M"))
         os.rename(self._params.RUNPATH+"/ocean_rst.nc", self._params.RUNPATH+"/ocean_ini.nc")
