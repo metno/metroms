@@ -1,6 +1,7 @@
 import os
 import Constants
 from GlobalParams import *
+from datetime import datetime
 
 class ModelRun(object):
     _params=None
