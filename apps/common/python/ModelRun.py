@@ -34,6 +34,8 @@ class ModelRun(object):
         self._make_OBC()
         self._tpxo2romstide(None,None,None)
         self._make_atm_force()
+        if (self._params.RESTART == True):
+            print "Model is restarting from previuos solution..."
 
     def postprocess(self):
         """
@@ -143,7 +145,7 @@ class ModelRun(object):
         if self._clmfileoption==Constants.FELT:
             self._fimex_felt2nc(self._params.FELT_CLMFILE,GlobalParams.IN_CLMFILE,GlobalParams.FELT2NC_CONFIG)
         elif self._clmfileoption==Constants.NC:
-            self._fimex_horinterp()
+            self._fimex_hor_interp(None, None)
         else:
             print "Illegal clmfileoption."
             exit(1)
