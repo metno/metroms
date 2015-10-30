@@ -36,6 +36,7 @@ class ModelRun(object):
         self._make_atm_force()
         if (self._params.RESTART == True):
             print "Model is restarting from previuos solution..."
+            self._cycle_rst_ini()
 
     def postprocess(self):
         """
@@ -137,11 +138,11 @@ class ModelRun(object):
         print "make_atm_force end"
 
     def _make_OBC(self):
-        self._verticalinterp(self.get_clmfile(),GlobalParams.CLMFILE)
+        self._verticalinterp(self._get_clmfile(),GlobalParams.CLMFILE)
         self._bry_from_clm(GlobalParams.CLMFILE,None)
         self._ini_from_clm(GlobalParams.CLMFILE,None)
 
-    def get_clmfile(self): 
+    def _get_clmfile(self): 
         if self._clmfileoption==Constants.FELT:
             self._fimex_felt2nc(self._params.FELT_CLMFILE,GlobalParams.IN_CLMFILE,GlobalParams.FELT2NC_CONFIG)
         elif self._clmfileoption==Constants.NC:
@@ -194,3 +195,8 @@ class ModelRun(object):
         else:
             print "Unsupported architecture..."
             exit(1)
+
+    def _cycle_rst_ini(backup=True):
+        #Cycle ocean_rst.nc to ocean_ini.nc
+        os.rename(self._params.RUNPATH+"/ocean_ini.nc", self._params.RUNPATH+datetime.now().strftime("/ocean_ini.nc_%Y%m%d-%H%M"))
+        os.rename(self._params.RUNPATH+"/ocean_rst.nc", self._params.RUNPATH+"/ocean_ini.nc")
