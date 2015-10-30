@@ -656,11 +656,11 @@ Dout(iTvdif) == F F                        ! vertical diffusion
 
 ! Output NetCDF file names, [1:Ngrids].
 
-     RSTNAME == RUNDIR/forecast_rst.nc
-     HISNAME == RUNDIR/forecast_his.nc
-     AVGNAME == RUNDIR/forecast_avg.nc
-     STANAME == RUNDIR/forecast_sta.nc
-     DIANAME == RUNDIR/forecast_dia.nc
+     RSTNAME == RUNDIR/ocean_rst.nc
+     HISNAME == RUNDIR/ocean_his.nc
+     AVGNAME == RUNDIR/ocean_avg.nc
+     STANAME == RUNDIR/ocean_sta.nc
+     DIANAME == RUNDIR/ocean_dia.nc
 
 ! Input ASCII parameter filenames.
 

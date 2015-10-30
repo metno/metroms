@@ -2,6 +2,7 @@ from GlobalParams import *
 from Constants import *
 from Utils import *
 import sys
+from datetime import datetime, timedelta
 
 class Params(object):
     RUNPATH=None
@@ -12,16 +13,18 @@ class Params(object):
     XCPU=None
     YCPU=None
     TSTEPS=None
-    IRESTART=None
+    NRREC=None
     
-    def __init__(self,app,xcpu,ycpu,fclen,irestart,cicecpu=0):
+    def __init__(self,app,xcpu,ycpu,start_date,end_date,nrrec=-1,cicecpu=0,restart=False):
         self.KEYWORDFILE=GlobalParams.COMMONORIGPATH+"/roms_keyword.in"
         #self.ROMSINFILE=GlobalParams.RUNDIR+"/roms.in"
         self.XCPU=xcpu
         self.YCPU=ycpu
         self.CICECPU=cicecpu
-        self.FCLEN=fclen
-        self.IRESTART=irestart
+        self.FCLEN=(end_date-start_date).total_seconds()
+        self.NRREC=nrrec
+        self.TIMEREF=datetime(1970,01,01,00)
+        self.RESTART=restart
         if app=='a20':
             ########################################################################
             # Name of roms.in keyword-file:
@@ -45,10 +48,10 @@ class Params(object):
             ['NLEVELS',"35"],  #Could read from grd-file?
             ['XCPU',str(self.XCPU)],
             ['YCPU',str(self.YCPU)],
-            ['TSTEPS',str(self.FCLEN*3600/self.DELTAT)],
+            ['TSTEPS',str(self.FCLEN)],
             ['DELTAT',str(self.DELTAT)],
             ['RATIO',"20"], #['RATIO',"30"],
-            ['IRESTART',str(self.IRESTART)],
+            ['IRESTART',str(self.NRREC)],
             ['RSTSTEP',str(24*3600/int(self.DELTAT))],
             ['STASTEP',str(1*3600/int(self.DELTAT))],
             ['INFOSTEP',str(1*3600/int(self.DELTAT))],
@@ -57,9 +60,9 @@ class Params(object):
             ['AVGSTEPP',str(24*3600/int(self.DELTAT))],
             ['STARTAVG',"0"],
             ['DEFAVGSTEP',str(720*3600/int(self.DELTAT))],  #if 0; all output in one avg-file
-            ['STARTTIME',"9877.5"],
-            ['TIDEREF',"9877.5"],
-            ['TIMEREF',"19700101.00"],
+            ['STARTTIME',str((start_date-self.TIMEREF).total_seconds()/86400)],
+            ['TIDEREF',str((start_date-self.TIMEREF).total_seconds()/86400)],
+            ['TIMEREF',self.TIMEREF.strftime("%Y%m%d.00")],
             ['OBCFAKTOR',"120.0"],
             ['GRDFILE',GlobalParams.COMMONPATH+"/grid/A20_grd_openBering.nc"],
             ['RUNDIR',self.RUNPATH],
@@ -96,7 +99,7 @@ class Params(object):
             ['NLEVELS',"35"],  #Could read from grd-file?
             ['XCPU',str(self.XCPU)],
             ['YCPU',str(self.YCPU)],
-            ['TSTEPS',str(self.FCLEN*3600/self.DELTAT)],
+            ['TSTEPS',str(self.FCLEN)],
             ['DELTAT',str(self.DELTAT)],
             ['RATIO',"1"],
             ['IRESTART',str(self.IRESTART)],
@@ -108,9 +111,9 @@ class Params(object):
             ['AVGSTEPP',str(24*3600/int(self.DELTAT))],
             ['STARTAVG',"0"],
             ['DEFAVGSTEP',"0"],     #if 0; all output in one avg-file
-            ['STARTTIME',"9877.5"], #Must be read from restartfile
-            ['TIDEREF',"9877.5"], #Hardcoded, but not really used in 2D stormsurge
-            ['TIMEREF',"19700101.00"],
+            ['STARTTIME',str((start_date-self.TIMEREF).total_seconds()/86400)], #Must be read from restartfile
+            ['TIDEREF',str((start_date-self.TIMEREF).total_seconds()/86400)], #Hardcoded, but not really used in 2D stormsurge
+            ['TIMEREF',self.TIMEREF.strftime("%Y%m%d.00")],
             ['OBCFAKTOR',"1"],
             ['GRDFILE',GlobalParams.COMMONPATH+"/grid/nordic-4km_grd.nc"],
             ['RUNDIR',self.RUNPATH],
