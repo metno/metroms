@@ -8,14 +8,13 @@ from GlobalParams import *
 from Params import *
 from ModelRun import *
 ########################################################################
-# Note: Variable 'fclen' is forecast length in hours
 ########################################################################
 # Set cpus for ROMS:
 xcpu=3
 ycpu=2
 # Set cpus for CICE:
 icecpu=2
-# Choose a predifned ROMS-application:
+# Choose a predefined ROMS-application:
 app='a20' # Arctic-20km
 
 start_date = datetime(1997,01,16,12)
