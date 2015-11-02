@@ -34,7 +34,7 @@ class Params(object):
             self.RUNPATH=GlobalParams.RUNDIR+"/arctic-20km"
             self.ROMSINFILE=self.RUNPATH+"/roms.in"
             self.CICEKEYWORDFILE=self.RUNPATH + "/ice_in_keyword"
-            self.CICEINFILE=GlobalParams.COMMONPATH + "/../../../tmproms/cice/rundir/ice_in"
+            self.CICEINFILE=GlobalParams.CICERUNDIR + "/ice_in"
             self.FELT_CLMFILE=self.RUNPATH+"/FOAM.felt"
             self.DELTAT=1200 
 #            self.DELTAT=600 
@@ -75,7 +75,7 @@ class Params(object):
             ['ATMDIR',self.RUNPATH],
             ['RIVERFILE',GlobalParams.COMMONPATH+"/rivers/newA20_rivers_mitya.nc"],
             ['FORCEFILES',"4"],
-            ['ROMS/External/coupling.dat', GlobalParams.COMMONPATH + "/../../../tmproms/roms_src/ROMS/External/coupling.dat"],
+            ['ROMS/External/coupling.dat', self.RUNPATH + "/coupling.dat"],
             ['ROMSINFILE', self.ROMSINFILE ],
             ['CICEINFILE', self.CICEINFILE ],
             ['NUMROMSCORES',str(int(self.XCPU)*int(self.YCPU))],
