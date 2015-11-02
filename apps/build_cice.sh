@@ -1,6 +1,6 @@
 #!/bin/bash
 set -x
-export CICEVERSION=cice5.0
+#export CICEVERSION=cice5.0
 export CICEVERSION=cice5.1.2
 
 NPX=1; NPY=1

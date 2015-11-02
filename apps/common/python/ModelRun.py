@@ -23,6 +23,7 @@ class ModelRun(object):
         os.chdir(self._params.RUNPATH)
         # Prepare roms input-file, replace keywords:
         self._replace_keywords_roms_in()
+        self._replace_keywords_cice_in()
         self._run(runoption,debugoption,architecture)
         # Output to std.out that model has finished:
         print "\nROMS run finished"
@@ -59,7 +60,19 @@ class ModelRun(object):
         for key,value in self._params.KEYWORDLIST:
             newlines = newlines.replace(key,value)
         with open(self._params.ROMSINFILE, 'w') as f:
-            f.write(newlines)    
+            f.write(newlines)
+
+    def _replace_keywords_cice_in(self):
+        """
+        This function will replace the keywords in the given 
+        cice-keyword.in-file.
+        """
+        with open(self._params.CICEKEYWORDFILE, 'r') as f:
+            newlines = f.read()
+        for key,value in self._params.CICEKEYWORDLIST:
+            newlines = newlines.replace(key,value)
+        with open(self._params.CICEINFILE, 'w') as f:
+            f.write(newlines)
 
     def _execute_roms_mpi(self,ncpus,infile,debugoption=Constants.NODEBUG,architecture=Constants.MET64):
         """
@@ -174,7 +187,7 @@ class ModelRun(object):
                     exit(1)
                 self._execute_roms_serial(self._params.ROMSINFILE,debugoption)
             elif runoption==Constants.DRY:
-                pass
+                print "Dry-run ok"
             else:
                 print "No valid runoption!"
                 exit(1)
@@ -199,5 +212,9 @@ class ModelRun(object):
 
     def _cycle_rst_ini(self, backup=True):
         #Cycle ocean_rst.nc to ocean_ini.nc
-        os.rename(self._params.RUNPATH+"/ocean_ini.nc", self._params.RUNPATH+datetime.now().strftime("/ocean_ini.nc_%Y%m%d-%H%M"))
-        os.rename(self._params.RUNPATH+"/ocean_rst.nc", self._params.RUNPATH+"/ocean_ini.nc")
+        if os.path.isfile(self._params.RUNPATH+"/ocean_rst.nc"):
+            os.rename(self._params.RUNPATH+"/ocean_ini.nc", self._params.RUNPATH+datetime.now().strftime("/ocean_ini.nc_%Y%m%d-%H%M"))
+            os.rename(self._params.RUNPATH+"/ocean_rst.nc", self._params.RUNPATH+"/ocean_ini.nc")
+        else:
+            print "Restartfile not found!! Will exit"
+            exit(1)
