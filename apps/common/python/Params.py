@@ -75,7 +75,7 @@ class Params(object):
             ['ATMDIR',self.RUNPATH],
             ['RIVERFILE',GlobalParams.COMMONPATH+"/rivers/newA20_rivers_mitya.nc"],
             ['FORCEFILES',"4"],
-            ['ROMS/External/coupling.dat', self.RUNPATH + "/coupling.dat"],
+            #['ROMS/External/coupling.dat', self.RUNPATH + "/coupling.dat"],
             ['ROMSINFILE', self.ROMSINFILE ],
             ['CICEINFILE', self.CICEINFILE ],
             ['NUMROMSCORES',str(int(self.XCPU)*int(self.YCPU))],

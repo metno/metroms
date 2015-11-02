@@ -73,6 +73,7 @@ class ModelRun(object):
             newlines = newlines.replace(key,value)
         with open(self._params.CICEINFILE, 'w') as f:
             f.write(newlines)
+        os.system('cp -a '+self._params.CICEINFILE+' '+self._params.RUNPATH+'/') #should not need to do this
 
     def _execute_roms_mpi(self,ncpus,infile,debugoption=Constants.NODEBUG,architecture=Constants.MET64):
         """
