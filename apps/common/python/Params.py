@@ -17,6 +17,8 @@ class Params(object):
     
     def __init__(self,app,xcpu,ycpu,start_date,end_date,nrrec=-1,cicecpu=0,restart=False):
         self.KEYWORDFILE=GlobalParams.COMMONORIGPATH+"/roms_keyword.in"
+        #self.CICEKEYWORDFILE=GlobalParams.COMMONPATH + "/../../../tmproms/cice/rundir/ice_in_keyword"
+        #self.CICEKEYWORDFILE=GlobalParams.COMMONPATH + "/cice_input_grids/a20/ice_in.cice5.1.2"
         #self.ROMSINFILE=GlobalParams.RUNDIR+"/roms.in"
         self.XCPU=xcpu
         self.YCPU=ycpu
@@ -31,10 +33,13 @@ class Params(object):
             ########################################################################
             self.RUNPATH=GlobalParams.RUNDIR+"/arctic-20km"
             self.ROMSINFILE=self.RUNPATH+"/roms.in"
+            self.CICEKEYWORDFILE=self.RUNPATH + "/ice_in_keyword"
+            self.CICEINFILE=GlobalParams.COMMONPATH + "/../../../tmproms/cice/rundir/ice_in"
             self.FELT_CLMFILE=self.RUNPATH+"/FOAM.felt"
             self.DELTAT=1200 
 #            self.DELTAT=600 
 #            self.DELTAT=300 
+            self.CICEDELTAT=3600
             #self.ROMSINIFILE=self.RUNPATH+"/"+INIFILE
             ########################################################################
             # List of keywords:
@@ -48,7 +53,7 @@ class Params(object):
             ['NLEVELS',"35"],  #Could read from grd-file?
             ['XCPU',str(self.XCPU)],
             ['YCPU',str(self.YCPU)],
-            ['TSTEPS',str(self.FCLEN)],
+            ['TSTEPS',str(self.FCLEN/self.DELTAT)],
             ['DELTAT',str(self.DELTAT)],
             ['RATIO',"20"], #['RATIO',"30"],
             ['IRESTART',str(self.NRREC)],
@@ -72,9 +77,23 @@ class Params(object):
             ['FORCEFILES',"4"],
             ['ROMS/External/coupling.dat', GlobalParams.COMMONPATH + "/../../../tmproms/roms_src/ROMS/External/coupling.dat"],
             ['ROMSINFILE', self.ROMSINFILE ],
-            ['CICEINFILE', GlobalParams.COMMONPATH + "/../../../tmproms/cice/rundir/ice_in" ],
+            ['CICEINFILE', self.CICEINFILE ],
             ['NUMROMSCORES',str(int(self.XCPU)*int(self.YCPU))],
             ['NUMCICECORES',str(int(self.CICECPU))]
+            ]
+            ########################################################################
+            # List of CICE keywords:
+            ########################################################################
+            self.CICEKEYWORDLIST=[
+            ['CICEYEARSTART',start_date.strftime("%Y")],
+            ['CICESTARTSTEP',str((start_date-datetime(start_date.year,01,01)).total_seconds()/self.CICEDELTAT)],  #number of hours after 00:00 Jan 1st
+            ['CICEDELTAT',str(self.CICEDELTAT)],
+            ['CICENPT',str(self.FCLEN/self.CICEDELTAT)],
+            ['CICERUNTYPE',"'continue'"],
+            ['CICEIC',"'default'"],
+            ['CICEREST',".true."],
+            ['CICERSTTIME',".false."]
+            #['<cicedir>',GlobalParams.COMMONPATH + "/../../../tmproms/cice"]
             ]
             ########################################################################
             ########################################################################
@@ -83,7 +102,6 @@ class Params(object):
             # Name of roms.in keyword-file:
             ########################################################################
             self.RUNPATH=GlobalParams.RUNDIR+"/nordic-4km2d-stormsurge"
-            self.ROMSINFILE=self.RUNPATH+"/roms.in"
             self.FELT_CLMFILE=None
             self.DELTAT=10
             #self.ROMSINIFILE=self.RUNPATH+"/"+INIFILE

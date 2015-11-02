@@ -317,7 +317,7 @@ fi
 
 if [ -n "${USE_CICE:+1}" ]; then
 	cp ${MODIFIED_SRC_FOLDER}/coupling.dat $BINDIR/
-	cp ${tup}/${tmpdir}/cice/rundir/ice_in $BINDIR/
+	cp ${tup}/${tmpdir}/cice/rundir/ice_in $BINDIR/ice_in_keyword
 fi
 
 # Clean up unpacked static code:
