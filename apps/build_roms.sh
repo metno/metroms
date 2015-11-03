@@ -75,7 +75,7 @@ export USE_NETCDF4=on
 
 export USE_CICE=on
 
-export USE_MY_LIBS=on
+#export USE_MY_LIBS=on
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 # ... and here.
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -288,6 +288,10 @@ trap 'rollback; exit 99' 0
 if [ -n "${USE_CICE:+1}" ]; then
 	export USE_MCT=on
 	export MY_CPP_FLAGS="${MY_CPP_FLAGS} -DNO_LBC_ATT -DMODEL_COUPLING -DUSE_MCT -DMCT_COUPLING -DMCT_LIB -DCICE_COUPLING -DCICE_OCEAN"
+  CICE_INCDIR := ${tup}/${tmpdir}/run/${ROMS_APPLICATION}/cice/rundir/compile
+  CICE_LIBDIR := ${tup}/${tmpdir}/run/${ROMS_APPLICATION}/cice/rundir/compile
+      FFLAGS += -I$(CICE_INCDIR)
+        LIBS += -L$(CICE_LIBDIR) -lcice
 fi
 
 if [ -n "${USE_NETCDF4:+1}" ]; then
