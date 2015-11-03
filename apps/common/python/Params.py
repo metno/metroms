@@ -27,14 +27,17 @@ class Params(object):
         self.NRREC=nrrec
         self.TIMEREF=datetime(1970,01,01,00)
         self.RESTART=restart
-        if app=='a20':
+        if app=='arctic-20km':
             ########################################################################
             # Name of roms.in keyword-file:
             ########################################################################
             self.RUNPATH=GlobalParams.RUNDIR+"/arctic-20km"
             self.ROMSINFILE=self.RUNPATH+"/roms.in"
-            self.CICEKEYWORDFILE=self.RUNPATH + "/ice_in_keyword"
-            self.CICEINFILE=GlobalParams.CICERUNDIR + "/ice_in"
+            #self.CICEKEYWORDFILE=self.RUNPATH + "/ice_in_keyword"
+            #self.CICEINFILE=GlobalParams.CICERUNDIR + "/ice_in"
+            self.CICERUNDIR=self.RUNPATH+'/cice/rundir'
+            self.CICEINFILE=self.RUNPATH + "/ice_in"
+            self.CICEKEYWORDFILE=self.CICERUNDIR + "/ice_in"
             self.FELT_CLMFILE=self.RUNPATH+"/FOAM.felt"
             self.DELTAT=1200 
 #            self.DELTAT=600 
