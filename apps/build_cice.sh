@@ -12,9 +12,17 @@ elif [ "${METROMS_MYHOST}" == "vilje" ]; then
     NPY=2
 fi
 
-if [ $# -ge 2 ]; then
-    NPX=$1
-    NPY=$2
+if [ $# -lt 1 ]
+  then
+  echo "Usage: $0 modelname <xcpu> <ycpu>"
+  echo "<xcpu> <ycpu> are optional arguments"
+  exit
+fi
+export ROMS_APPLICATION=$1
+
+if [ $# -ge 3 ]; then
+    NPX=$2
+    NPY=$3
 fi
 
 echo "NPX = $NPX, NPY = $NPY"
@@ -41,11 +49,12 @@ else
 fi
 
 # Build CICE
-mkdir -p ${tup}/tmproms
-cd ${tup}/tmproms
+export CICE_DIR=${tup}/tmproms/run/$ROMS_APPLICATION/cice
+mkdir -p $CICE_DIR/rundir
+cd ${tup}/tmproms/run/$ROMS_APPLICATION
 # Unpack standard source files
-tar -xf ${metroms_base}/static_libs/$CICEVERSION.tar.gz
-export CICE_DIR=${tup}/tmproms/cice
+echo $PWD
+tar -xvf ${metroms_base}/static_libs/$CICEVERSION.tar.gz
 cd $CICE_DIR
 
 export MCT_INCDIR=${tup}/tmproms/MCT/include
@@ -53,9 +62,9 @@ export MCT_LIBDIR=${tup}/tmproms/MCT/lib
 
 
 # Copy modified source files
-mkdir -p ${tup}/tmproms/cice
-cp -a $workingdir/common/modified_src/$CICEVERSION/* ${tup}/tmproms/cice/.
-cp -auv $workingdir/common/cice_input_grids/a20 ${tup}/tmproms/cice/input_templates
+#mkdir -p ${tup}/tmproms/cice
+cp -a $workingdir/common/modified_src/$CICEVERSION/* $CICE_DIR
+cp -auv $workingdir/common/cice_input_grids/$ROMS_APPLICATION $CICE_DIR/input_templates
 # Remove old binaries
 rm -f $CICE_DIR/rundir/cice
 
@@ -66,7 +75,8 @@ rm -f $CICE_DIR/rundir/cice
 # -O2 -w -convert big_endian -assume byterecl
 #
 
-./comp_ice $NPX $NPY
+echo $PWD
+./comp_ice $ROMS_APPLICATION $NPX $NPY
 
 # Test if compilation and linking was successfull
 

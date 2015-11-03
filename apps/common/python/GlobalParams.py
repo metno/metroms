@@ -10,9 +10,7 @@ class GlobalParams(object):
     if MYHOST=='metlocal':
         METROMSDIR=os.environ.get('METROMS_SRCDIR','/disk1/'+username+'/metroms')
         tmpdir=os.environ.get('METROMS_TMPDIR','/disk1/'+username)
-        CICERUNDIR=tmpdir+'/tmproms/cice/rundir'
         RUNDIR=tmpdir+'/tmproms/run'
-        
     elif MYHOST=='vilje':
         HOME=os.environ.get('HOME')
         if HOME=='None':
@@ -22,7 +20,6 @@ class GlobalParams(object):
         METROMSDIR=os.environ.get('METROMS_SRCDIR',HOME+'/metroms')
 
         tmpdir=os.environ.get('METROMS_TMPDIR','/work/'+username)
-        CICERUNDIR=tmpdir+'/tmproms/cice/rundir'
         RUNDIR=tmpdir+'/tmproms/run'
     else:
         print 'Environment variable MYHOST not defined (metlocal,vilje,)'
