@@ -90,8 +90,8 @@ ifdef USE_MCT
 endif
 
 ifdef USE_CICE
-       CICE_INCDIR := $(MY_ROMS_SRC)/../cice/rundir/compile
-       CICE_LIBDIR := $(MY_ROMS_SRC)/../cice/rundir/compile
+       CICE_INCDIR := $(MY_ROMS_SRC)/../run/${ROMS_APPLICATION}/cice/rundir/compile
+       CICE_LIBDIR := $(MY_ROMS_SRC)/../run/${ROMS_APPLICATION}/cice/rundir/compile
            FFLAGS += -I$(CICE_INCDIR)
              LIBS += -L$(CICE_LIBDIR) -lcice
 endif
