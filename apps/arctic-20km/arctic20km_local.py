@@ -1,9 +1,13 @@
-#!/usr/bin/python
+########################################################################
+# Python-modules:
+########################################################################
 import numpy as np
 import os
 import Constants
 from datetime import datetime, timedelta
-
+########################################################################
+# METROMS-modules:
+########################################################################
 from GlobalParams import *
 from Params import *
 from ModelRun import *
@@ -18,14 +22,10 @@ icecpu=2
 app='arctic-20km' # Arctic-20km
 
 start_date = datetime(1997,01,16,12)
-end_date   = datetime(1997,02,01,12)
+end_date   = datetime(1997,01,17,12)
 
 
-#NMK: If restart, set irestart=
-a20params=Params(app,xcpu,ycpu,start_date,end_date,nrrec=0,cicecpu=icecpu,restart=False)
-#a20params=Params(app,xcpu,ycpu,fclen=(744*12),irestart=0,cicecpu=icecpu)
-#a20params.RUNPATH="/disk1/tmp"
-#a20params.ROMSINFILE=a20params.RUNPATH+"/roms___.in"
+a20params=Params(app,xcpu,ycpu,start_date,end_date,nrrec=-1,cicecpu=icecpu,restart=False)
 
 modelrun=ModelRun(a20params)
 

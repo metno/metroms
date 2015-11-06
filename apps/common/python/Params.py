@@ -3,6 +3,7 @@ from Constants import *
 from Utils import *
 import sys
 from datetime import datetime, timedelta
+import netCDF4
 
 class Params(object):
     RUNPATH=None
@@ -44,6 +45,14 @@ class Params(object):
 #            self.DELTAT=300 
             self.CICEDELTAT=3600
             #self.ROMSINIFILE=self.RUNPATH+"/"+INIFILE
+            # Find restart-time of CICE:
+            cice_start_step = (start_date-datetime(start_date.year,01,01)).total_seconds()/self.CICEDELTAT
+            if restart == True:
+                f = open(self.CICERUNDIR+'/ice.restart_file', 'r')
+                cice_restartfile = f.readline().strip()
+                cice_rst_time = netCDF4(cice_restartfile).istep1
+            else:
+                cice_rst_time = cice_start_step
             ########################################################################
             # List of keywords:
             ########################################################################
@@ -89,9 +98,9 @@ class Params(object):
             ########################################################################
             self.CICEKEYWORDLIST=[
             ['CICEYEARSTART',start_date.strftime("%Y")],
-            ['CICESTARTSTEP',str((start_date-datetime(start_date.year,01,01)).total_seconds()/self.CICEDELTAT)],  #number of hours after 00:00 Jan 1st
+            ['CICESTARTSTEP',str(cice_start_step)],  #number of hours after 00:00 Jan 1st
             ['CICEDELTAT',str(self.CICEDELTAT)],
-            ['CICENPT',str(self.FCLEN/self.CICEDELTAT)],
+            ['CICENPT',str((self.FCLEN/self.CICEDELTAT)-(cice_rst_time - cice_start_step))],   # minus diff restart og start_date
             ['CICERUNTYPE',"'continue'"],
             ['CICEIC',"'default'"],
             ['CICEREST',".true."],
