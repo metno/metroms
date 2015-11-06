@@ -50,7 +50,7 @@ class Params(object):
             if restart == True:
                 f = open(self.CICERUNDIR+'/restart/ice.restart_file', 'r')
                 cice_restartfile = f.readline().strip()
-                cice_rst_time = netCDF4(cice_restartfile).istep1
+                cice_rst_time = netCDF4.Datasetq(cice_restartfile).istep1
             else:
                 cice_rst_time = cice_start_step
             ########################################################################
