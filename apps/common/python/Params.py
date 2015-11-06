@@ -48,7 +48,7 @@ class Params(object):
             # Find restart-time of CICE:
             cice_start_step = (start_date-datetime(start_date.year,01,01)).total_seconds()/self.CICEDELTAT
             if restart == True:
-                f = open(self.CICERUNDIR+'/ice.restart_file', 'r')
+                f = open(self.CICERUNDIR+'/restart/ice.restart_file', 'r')
                 cice_restartfile = f.readline().strip()
                 cice_rst_time = netCDF4(cice_restartfile).istep1
             else:
