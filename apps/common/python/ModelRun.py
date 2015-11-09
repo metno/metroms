@@ -1,4 +1,5 @@
 import os
+import netCDF4
 import Constants
 from GlobalParams import *
 from datetime import datetime
@@ -24,7 +25,10 @@ class ModelRun(object):
         # Prepare roms input-file, replace keywords:
         self._replace_keywords_roms_in()
         self._replace_keywords_cice_in()
+        # Check to see if roms ini- and cice ini-file have same timestamp:
+        self._check_starttime()
         self._run(runoption,debugoption,architecture)
+        # Should check output-files to verify a successful run?
         # Output to std.out that model has finished:
         print "\nROMS run finished"
 
@@ -214,8 +218,26 @@ class ModelRun(object):
     def _cycle_rst_ini(self, backup=True):
         #Cycle ocean_rst.nc to ocean_ini.nc
         if os.path.isfile(self._params.RUNPATH+"/ocean_rst.nc"):
-            os.rename(self._params.RUNPATH+"/ocean_ini.nc", self._params.RUNPATH+datetime.now().strftime("/ocean_ini.nc_%Y%m%d-%H%M"))
+            #os.rename(self._params.RUNPATH+"/ocean_ini.nc", self._params.RUNPATH+datetime.now().strftime("/ocean_ini.nc_%Y%m%d-%H%M"))
+            os.rename(self._params.RUNPATH+"/ocean_ini.nc", 
+                netCDF4.num2date(netCDF4.Dataset(self._params.RUNPATH+"/ocean_ini.nc").variables['ocean_time'][:],
+                netCDF4.Dataset(self._params.RUNPATH+"/ocean_ini.nc").variables['ocean_time'].units).strftime("/ocean_ini.nc_%Y%m%d-%H%M"))
             os.rename(self._params.RUNPATH+"/ocean_rst.nc", self._params.RUNPATH+"/ocean_ini.nc")
         else:
             print "Restartfile not found!! Will exit"
+            exit(1)
+
+    def _check_starttime(self):
+        roms_ini = netCDF4.num2date(netCDF4.Dataset(self._params.RUNPATH+"/ocean_ini.nc").variables['ocean_time'][:], 
+            netCDF4.Dataset(self._params.RUNPATH+"/ocean_ini.nc").variables['ocean_time'].units)
+        f = open(self._params.CICERUNDIR+'/restart/ice.restart_file', 'r')
+        cice_restartfile = f.readline().strip()
+        cice_rst_day = netCDF4.Dataset(cice_restartfile).mday
+        if (cice_rst_day == roms_ini[self._params.NRREC].day) :
+            # Dates seem ok
+            pass
+        else:
+            print "There seems to be a problem with matching dates in ROMS and CICE. Will exit..."
+            print "ROMS: "+str(roms_ini[self._params.NRREC].day)
+            print "CICE: "+str(cice_rst_day)
             exit(1)
