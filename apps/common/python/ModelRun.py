@@ -221,7 +221,7 @@ class ModelRun(object):
             nc_ini = netCDF4.Dataset(self._params.RUNPATH+"/ocean_ini.nc")
             #os.rename(self._params.RUNPATH+"/ocean_ini.nc", self._params.RUNPATH+datetime.now().strftime("/ocean_ini.nc_%Y%m%d-%H%M"))
             os.rename(self._params.RUNPATH+"/ocean_ini.nc", 
-                netCDF4.num2date(nc_ini.variables['ocean_time'][:],nc_ini.variables['ocean_time'].units)[self._params.NRREC].strftime("/ocean_ini.nc_%Y%m%d-%H%M"))
+                self._params.RUNPATH+netCDF4.num2date(nc_ini.variables['ocean_time'][:],nc_ini.variables['ocean_time'].units)[self._params.NRREC].strftime("/ocean_ini.nc_%Y%m%d-%H%M"))
             os.rename(self._params.RUNPATH+"/ocean_rst.nc", self._params.RUNPATH+"/ocean_ini.nc")
         else:
             print "Restartfile not found!! Will exit"
