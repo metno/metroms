@@ -11,4 +11,4 @@ source /etc/profile.d/modules.sh
 module load python
 #
 cd ~/metroms/apps/arctic-20km
-python arctic20km_local.py
+python arctic20km.py
