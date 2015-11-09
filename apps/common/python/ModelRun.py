@@ -218,10 +218,10 @@ class ModelRun(object):
     def _cycle_rst_ini(self, backup=True):
         #Cycle ocean_rst.nc to ocean_ini.nc
         if os.path.isfile(self._params.RUNPATH+"/ocean_rst.nc"):
+            nc_ini = netCDF4.Dataset(self._params.RUNPATH+"/ocean_ini.nc")
             #os.rename(self._params.RUNPATH+"/ocean_ini.nc", self._params.RUNPATH+datetime.now().strftime("/ocean_ini.nc_%Y%m%d-%H%M"))
             os.rename(self._params.RUNPATH+"/ocean_ini.nc", 
-                netCDF4.num2date(netCDF4.Dataset(self._params.RUNPATH+"/ocean_ini.nc").variables['ocean_time'][:],
-                netCDF4.Dataset(self._params.RUNPATH+"/ocean_ini.nc").variables['ocean_time'].units).strftime("/ocean_ini.nc_%Y%m%d-%H%M"))
+                netCDF4.num2date(nc_ini.variables['ocean_time'][:],nc_ini.variables['ocean_time'].units)[self._params.NRREC].strftime("/ocean_ini.nc_%Y%m%d-%H%M"))
             os.rename(self._params.RUNPATH+"/ocean_rst.nc", self._params.RUNPATH+"/ocean_ini.nc")
         else:
             print "Restartfile not found!! Will exit"
