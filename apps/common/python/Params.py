@@ -50,7 +50,7 @@ class Params(object):
             if restart == True:
                 f = open(self.CICERUNDIR+'/restart/ice.restart_file', 'r')
                 cice_restartfile = f.readline().strip()
-                cice_rst_time = netCDF4.Datasetq(cice_restartfile).istep1
+                cice_rst_time = netCDF4.Dataset(cice_restartfile).istep1
             else:
                 cice_rst_time = cice_start_step
             ########################################################################
@@ -86,7 +86,7 @@ class Params(object):
             ['TIDEDIR',self.RUNPATH],
             ['ATMDIR',self.RUNPATH],
             ['RIVERFILE',GlobalParams.COMMONPATH+"/rivers/newA20_rivers_mitya.nc"],
-            ['FORCEFILES',"4"],
+            ['FORCEFILES',"4"], # The files should be specified here as well
             #['ROMS/External/coupling.dat', self.RUNPATH + "/coupling.dat"],
             ['ROMSINFILE', self.ROMSINFILE ],
             ['CICEINFILE', self.CICEINFILE ],
