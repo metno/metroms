@@ -109,7 +109,8 @@ class Params(object):
             ['CICENPT',str((self.FCLEN/self.CICEDELTAT)-(cice_rst_time - cice_start_step))],   # minus diff restart og start_date
             ['CICERUNTYPE',"'continue'"],
             ['CICEIC',"'default'"],
-            ['CICEREST',cicerst_truefalse],
+            ['CICEREST',".true."],
+            ['CICERSTTIME',cicerst_truefalse],
             #['<cicedir>',GlobalParams.COMMONPATH + "/../../../tmproms/cice"]
             ]
             ########################################################################
