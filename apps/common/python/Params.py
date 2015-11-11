@@ -51,10 +51,12 @@ class Params(object):
                 f = open(self.CICERUNDIR+'/restart/ice.restart_file', 'r')
                 cice_restartfile = f.readline().strip()
                 cice_rst_time = netCDF4.Dataset(cice_restartfile).istep1
-                cice_rst_day = netCDF4.Dataset(cice_restartfile).mday
+                #cice_rst_day = netCDF4.Dataset(cice_restartfile).mday
+                cicerst_truefalse = ".true."
             else:
                 cice_rst_time = cice_start_step
-                cice_rst_day = start_date.day
+                #cice_rst_day = start_date.day
+                cicerst_truefalse = ".false."
             ########################################################################
             # List of keywords:
             ########################################################################
@@ -98,10 +100,11 @@ class Params(object):
             ########################################################################
             # List of CICE keywords:
             ########################################################################
-            if (cice_rst_day == start_date.day):
-                cicerst_truefalse = ".true."
-            else:
-                cicerst_truefalse = ".false."
+            #if (cice_rst_day == start_date.day):
+            # if (restart == True):
+            #     cicerst_truefalse = ".true."
+            # else:
+            #     cicerst_truefalse = ".false."
             self.CICEKEYWORDLIST=[
             ['CICEYEARSTART',start_date.strftime("%Y")],
             ['CICESTARTSTEP',str(cice_start_step)],  #number of hours after 00:00 Jan 1st
