@@ -237,7 +237,10 @@ class ModelRun(object):
             # Dates seem ok
             pass
         else:
-            print "There seems to be a problem with matching dates in ROMS and CICE. Will exit..."
-            print "ROMS: "+str(roms_ini[self._params.NRREC].day)
-            print "CICE: "+str(cice_rst_day)
-            exit(1)
+            if (self._params.RESTART == False):
+                print "There seems to be a problem with matching dates in ROMS and CICE, but will continue since this is not a restart"
+            else:
+                print "There seems to be a problem with matching dates in ROMS and CICE. Will exit..."
+                print "ROMS: "+str(roms_ini[self._params.NRREC].day)
+                print "CICE: "+str(cice_rst_day)
+                exit(1)
