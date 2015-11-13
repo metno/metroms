@@ -144,7 +144,7 @@
 ! Input/Output parameters.
 
        NRREC == IRESTART
-   LcycleRST == T
+   LcycleRST == F
         NRST == RSTSTEP
         NSTA == STASTEP
         NFLT == 299970
