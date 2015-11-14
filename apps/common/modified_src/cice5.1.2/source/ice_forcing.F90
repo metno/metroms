@@ -150,6 +150,57 @@
       logical (kind=log_kind), public :: &
          dbug             ! prints debugging output if true
 
+!  -
+!  Metroms
+!  "Calendar"/"dictionary" to keep track of foricng files and timesteps
+
+      real (kind=dbl_kind) :: metroms_offset
+
+      ! index pair (+ readflag)
+      integer (kind=int_kind), dimension(3) ::  &
+           metroms_ip_vwind = 0, &
+           metroms_ip_uwind = 0, &
+           metroms_ip_tair = 0, &
+           metroms_ip_rhoa = 0, &
+           metroms_ip_rain = 0, &
+           metroms_ip_humid = 0, &
+           metroms_ip_cldf = 0
+
+
+      integer (kind=int_kind), dimension(:), allocatable :: &
+           metroms_index_vwind, &
+           metroms_index_uwind, &
+           metroms_index_tair, &
+           metroms_index_rhoa, &
+           metroms_index_rain, &
+           metroms_index_humid, &
+           metroms_index_cldf
+      !     metroms_index_fsw, &
+      !     metroms_index_flw
+
+      character (char_len_long), dimension (:), allocatable :: &
+           metroms_fname_vwind, &
+           metroms_fname_uwind, &
+           metroms_fname_tair, &
+           metroms_fname_rhoa, &
+           metroms_fname_rain, &
+           metroms_fname_humid, &
+           metroms_fname_cldf
+      !     metroms_fname_fsw, &
+      !     metroms_fname_flw
+        
+      real (kind=dbl_kind), dimension(:), allocatable :: &
+           metroms_dates_vwind, &
+           metroms_dates_uwind, &
+           metroms_dates_tair, &
+           metroms_dates_rhoa, &
+           metroms_dates_rain, &
+           metroms_dates_humid, &
+           metroms_dates_cldf
+       !    metroms_dates_fsw, &
+       !    metroms_dates_flw
+
+
 !=======================================================================
 
       contains
@@ -189,6 +240,8 @@
          call monthly_files(fyear)
       elseif (trim(atm_data_type) == 'oned') then
          call oned_files(fyear)
+      elseif (trim(atm_data_type) == 'metroms') then
+         call metroms_init
       endif
 
       end subroutine init_forcing_atmo
@@ -469,10 +522,11 @@
          call monthly_data
       elseif (trim(atm_data_type) == 'oned') then
          call oned_data
+      elseif (trim(atm_data_type) == 'metroms') then
+         call metroms_data
       else    ! default values set in init_flux
          return
       endif
-
     !-------------------------------------------------------------------
     ! Convert forcing data to fields needed by ice model
     !-------------------------------------------------------------------
@@ -781,7 +835,6 @@
          write(nu_diag,*) ' ', trim(data_file), '  ', trim(fieldname)
       endif
 !METNO END
-
       !-----------------------------------------------------------------
       ! Initialize record counters
       ! (n2, n4 will change only at the very beginning or end of
@@ -1335,7 +1388,8 @@
          enddo
 
 !METNO START
-      elseif (trim(atm_data_type) == 'LYq' .or. trim(atm_data_type) ==  'ecmwf') then
+      elseif (trim(atm_data_type) == 'LYq' .or. trim(atm_data_type) ==  'ecmwf' &
+          .or.trim(atm_data_type) == 'metroms') then
 !METNO END
 
          ! precip is in mm/s
@@ -1401,7 +1455,10 @@
 !jd           ' precip_units, precip_factor ', trim(precip_units), precip_factor
 
 !jd START  No time interpolation of precip fields in this version
-      if (trim(atm_data_type) ==  'ecmwf') precip_factor = c1
+      if (trim(atm_data_type) ==  'ecmwf' .or. &
+          trim(atm_data_type) == 'metroms') then
+         precip_factor = c1
+      end if
 !jd END
 
       do j = jlo, jhi
@@ -1459,7 +1516,8 @@
            workx      = uatm(i,j) ! wind velocity, m/s
            worky      = vatm(i,j)
 !METNO START
-           if (atm_data_type /= 'ecmwf') then
+           if (trim(atm_data_type) /= 'ecmwf' .and. &
+               trim(atm_data_type) /= 'metroms') then
               uatm (i,j) = workx*cos(ANGLET(i,j)) & ! convert to POP grid
                          + worky*sin(ANGLET(i,j))   ! note uatm, vatm, wind
               vatm (i,j) = worky*cos(ANGLET(i,j)) & !  are on the T-grid here
@@ -2554,6 +2612,177 @@
 
       end subroutine hadgem_data
 
+!=======================================================================
+! METROMS 
+!=======================================================================
+
+      subroutine metroms_init()
+      character (char_len_long) :: info_file
+
+      info_file = &
+        trim(atm_data_dir)//'vwind.txt'
+      call metroms_init_forcing_cal(info_file, &
+         metroms_dates_vwind, &
+         metroms_index_vwind, &
+         metroms_fname_vwind)
+
+      info_file = &
+        trim(atm_data_dir)//'uwind.txt'
+      call metroms_init_forcing_cal(info_file, &
+         metroms_dates_uwind, &
+         metroms_index_uwind, &
+         metroms_fname_uwind)
+
+      info_file = &
+        trim(atm_data_dir)//'tair.txt'
+      call metroms_init_forcing_cal(info_file, &
+         metroms_dates_tair, &
+         metroms_index_tair, &
+         metroms_fname_tair)
+
+      info_file = &
+        trim(atm_data_dir)//'rhoa.txt'
+      call metroms_init_forcing_cal(info_file, &
+         metroms_dates_rhoa, &
+         metroms_index_rhoa, &
+         metroms_fname_rhoa)
+
+      info_file = &
+        trim(atm_data_dir)//'rain.txt'
+      call metroms_init_forcing_cal(info_file, &
+         metroms_dates_rain, &
+         metroms_index_rain, &
+         metroms_fname_rain)
+
+      info_file = &
+        trim(atm_data_dir)//'humid.txt'
+      call metroms_init_forcing_cal(info_file, &
+         metroms_dates_humid, &
+         metroms_index_humid, &
+         metroms_fname_humid)
+
+      info_file = &
+        trim(atm_data_dir)//'cldf.txt'
+      call metroms_init_forcing_cal(info_file, &
+         metroms_dates_cldf, &
+         metroms_index_cldf, &
+         metroms_fname_cldf)
+
+      end subroutine metroms_init
+!- - - - 
+
+      subroutine metroms_init_forcing_cal(info_file, &
+            metroms_dates, metroms_index, metroms_path)
+
+      character (char_len_long), intent(in) :: &
+         info_file  ! path to file containg dates, index and filepaths
+      real (kind=dbl_kind), dimension(:), allocatable, intent(out) :: &
+         metroms_dates
+      integer (kind=int_kind), dimension(:), allocatable, intent(out) :: &
+         metroms_index
+      character (char_len_long), dimension(:), allocatable, intent(out) :: &
+         metroms_path
+
+      character (char_len_long) :: &
+         path         ! forcing file path
+      real (dbl_kind)  :: &
+         date         ! forcing date
+
+      integer (kind=int_kind) :: &
+         u, & ! file unit
+         lines, & ! number of lines in info file
+         ind, &   ! index in a forcing file
+         refdate, &  ! forcing reference date
+         i
+      open(unit=u,file=info_file)
+      read(unit=u,fmt="(I7,A20)") lines, path ! path is just some bogus
+       ! keep it open for loop  below
+
+      refdate = 19700101
+      allocate(metroms_dates(lines), &
+               metroms_index(lines), &
+               metroms_path(lines))
+
+      metroms_offset = metroms_init_cal_offset(refdate)
+
+      do i=1,lines
+         read(unit=u,fmt="(F8.2,I5,A120)") date, ind, path ! FIXME cleanup fmt..
+         metroms_dates(i) = date
+         metroms_index(i) = ind
+         metroms_path(i) = trim(adjustl(path))
+      enddo
+ 
+      close(unit=u)
+
+      end subroutine metroms_init_forcing_cal
+!- - - - - - - -
+      function  metroms_init_cal_offset(refdate) result(days)
+
+      use ice_calendar, only: daymo360, daymo365, daymo366, idate0, &
+                               use_leap_years
+      integer (kind=int_kind) :: refdate, &
+         ERA_refY, ERA_refM, ERA_refD, &
+         cice_refY, cice_refM, cice_refD, &
+         y, y1, m1, d1, y2, m2, d2
+
+      real (kind=dbl_kind) :: days
+
+      ERA_refY = refdate/10000
+      ERA_refM = (refdate-ERA_refY*10000)/100
+      ERA_refD = (refdate-ERA_refY*10000-ERA_refM*100)
+
+      cice_refY = idate0/10000
+      cice_refM = (idate0-cice_refY*10000)/100
+      cice_refD = (idate0-cice_refY*10000-cice_refM*100)
+
+      ! count days between reference dates
+      if (refdate<idate0) then
+         y1 = ERA_refY
+         y2 = cice_refY
+         m1 = ERA_refM
+         m2 = cice_refM
+         d1 = ERA_refD
+         d2 = cice_refD
+      else
+         y1 = cice_refY
+         y2 = ERA_refY
+         m1 = cice_refM
+         m2 = ERA_refM
+         d1 = cice_refD
+         d2 = ERA_refD
+      end if
+
+      days = 0
+      do y=y1,y2
+        ! set daymo
+        if (use_leap_years) then
+           if (is_leap_year(y)) then
+              daymo = daymo366
+           else
+              daymo = daymo365
+           endif
+        else if (days_per_year == 365) then
+           daymo = daymo365
+        else
+           daymo = daymo360
+        endif
+        ! add days for year y
+        if (y==y1) then
+           days = days + daymo(m1)-d1+1 !include first day
+           if (m1<12) then
+              days = days + sum(daymo(m1+1:12))
+           endif
+        elseif (y==y2) then
+           days = days + d2 ! indlude last day
+           if (m2>1) then
+              days = days + sum(daymo(1:m2-1))
+           endif
+        else
+             days =  days + sum(daymo(:))
+        endif
+      end do
+      end function metroms_init_cal_offset
+
 !METNO START
 !=======================================================================
 ! ECMWF atmospheric forcing
@@ -2597,6 +2826,323 @@
       endif                     ! master_task
 
       end subroutine ecmwf_files
+
+!======================================================================
+
+! read atmospheric data using metroms scheme
+
+! author: Sebastian Mårtensson, graa-software.se
+
+      subroutine metroms_data
+
+      use ice_flux, only: fsnow, frain, uatm, vatm, strax, stray, wind, &
+          fsw, flw, Tair, rhoa, Qa, fcondtopn_f, fsurfn_f, flatn_f
+
+      use ice_constants, only: p5, c1, c2, c4, c12, secday, &
+        field_loc_center, field_type_vector, field_type_scalar, Tffresh
+
+      use ice_grid, only: hm, tlon, tlat
+      use ice_blocks, only: block, get_block
+      use ice_domain, only: nblocks, blocks_ice
+
+      integer (kind=int_kind), dimension(2) :: ip !index_pair
+      character (char_len) :: &
+        fieldname
+
+      integer (kind=int_kind) :: &
+          iblk        , & ! block index
+          ilo,ihi,jlo,jhi ! beginning and end of physical domain
+          
+      type (block) :: &
+         this_block           ! block information for current block
+
+      
+      logical (kind=log_kind) :: should_loop
+
+      real (kind=dbl_kind) :: &
+          precip_factor
+      
+! monthly data, rain, Uwind, Vwind, Tair, Qair
+!      midmonth = 15
+!      if (istep==1 .or. (mday==midmonth .and. sec==0)) readm = .true.
+
+! 12h data, rain
+!      recnum = 1 + 2*(int(yday)-1) + int(real(sec,kind=dbl_kind)/sec12hr)
+!      if (oldrecnum12 .ne. recnum) read12 = .true.
+!      oldrecnum12 = recnum
+
+! 6h data, Uwind, Vwind, Tair, Pair, Qair, cloud
+
+!      recnum = 1 + 4*int(yday-1)  + int(real(sec,kind=dbl_kind)/sec6hr)
+!      if (oldrecnum6 .ne. recnum) read6 = .true
+!      oldrecnum6 = recnum
+
+      fieldname = 'Uwind'
+      call metroms_read_and_interpolate(fieldname, &
+        metroms_dates_uwind, metroms_index_uwind, &
+        metroms_fname_uwind, uatm, uatm_data, &
+        field_loc_center, field_type_vector, &
+        should_loop, metroms_ip_uwind)
+
+      fieldname = 'Vwind'
+      call metroms_read_and_interpolate(fieldname, &
+        metroms_dates_vwind, metroms_index_vwind, &
+        metroms_fname_vwind, vatm, vatm_data, &
+        field_loc_center, field_type_vector, &
+        should_loop, metroms_ip_vwind)
+
+      call interpolate_data (uatm_data, uatm)
+      call interpolate_data (vatm_data, vatm)
+
+      fieldname = 'Tair'
+      call metroms_read_and_interpolate(fieldname, &
+        metroms_dates_tair,  metroms_index_tair, &
+        metroms_fname_tair, tair, tair_data,  &
+        field_loc_center, field_type_scalar, &
+        should_loop, metroms_ip_tair)
+
+      call interpolate_data (Tair_data, Tair)
+      Tair = Tair + Tffresh
+
+      fieldname = 'Pair'
+      call metroms_read_and_interpolate(fieldname, &
+        metroms_dates_rhoa,  metroms_index_rhoa, &
+        metroms_fname_rhoa, rhoa, rhoa_data,  &
+        field_loc_center, field_type_scalar, &
+        should_loop, metroms_ip_rhoa)
+
+      call interpolate_data (rhoa_data, rhoa)
+      rhoa = rhoa / (Tair * 287.058_dbl_kind)
+
+      fieldname = 'rain'
+      call metroms_read_and_interpolate(fieldname, &
+        metroms_dates_rain, metroms_index_rain, &
+        metroms_fname_rain, frain, frain_data, &
+        field_loc_center, field_type_scalar, &
+        should_loop, metroms_ip_rain)
+
+      call interpolate_data (frain_data, frain)
+
+      if (trim(precip_units) == 'mm_per_month') then
+         precip_factor = c12/(secday*days_per_year)
+      elseif (trim(precip_units) == 'mm_per_day') then
+         precip_factor = c1/secday
+      elseif (trim(precip_units) == 'm_per_12hr') then
+         precip_factor = c1/43.2_dbl_kind
+      elseif (trim(precip_units) == 'mm_per_sec' .or. &
+           trim(precip_units) == 'mks') then
+         precip_factor = c1    ! mm/sec = kg/m^2 s
+      endif
+         !$OMP PARALLEL DO PRIVATE(iblk)
+      do iblk = 1, nblocks ! FIXME frain, fsnow?!?!
+         fsnow(:,:,iblk)=frain(:,:,iblk)*precip_factor
+      end do
+
+      fieldname = 'Qair'
+      call metroms_read_and_interpolate(fieldname, &
+        metroms_dates_humid, metroms_index_humid, &
+        metroms_fname_humid, Qa, Qa_data,&
+        field_loc_center, field_type_scalar, &
+        should_loop, metroms_ip_humid)
+
+      call interpolate_data (Qa_data,   Qa)
+
+      fieldname = 'cloud'
+      call metroms_read_and_interpolate(fieldname, &
+        metroms_dates_cldf, metroms_index_cldf, &
+        metroms_fname_cldf, cldf, cldf_data, &
+        field_loc_center, field_type_scalar, &
+        should_loop, metroms_ip_cldf)
+
+      call interpolate_data (cldf_data, cldf)
+
+      !$OMP PARALLEL DO PRIVATE(iblk,i,j,ilo,ihi,jlo,jhi,this_block)
+      do iblk = 1, nblocks
+      ! AOMIP
+        this_block = get_block(blocks_ice(iblk),iblk)
+        ilo = this_block%ilo
+        ihi = this_block%ihi
+        jlo = this_block%jlo
+        jhi = this_block%jhi
+
+        call compute_shortwave(nx_block, ny_block, &
+                               ilo, ihi, jlo, jhi, &
+                               TLON (:,:,iblk), &
+                               TLAT (:,:,iblk), &
+                               hm   (:,:,iblk), &
+                               Qa   (:,:,iblk), &
+                               cldf (:,:,iblk), &
+                               fsw  (:,:,iblk))
+
+      enddo  ! iblk
+      !$OMP END PARALLEL DO
+
+      end subroutine metroms_data
+
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+! Helper routines and functions
+
+      subroutine metroms_read_and_interpolate(fieldname, &
+             dates, ind, paths, field,work, &
+             field_loc, field_type, should_loop, old_ip)
+       
+
+      use ice_calendar, only: tday, sec, yday
+      use ice_constants, only: secday, c1
+
+
+      integer (kind=int_kind), intent(in) :: &
+           field_loc, &      ! location of field on staggered grid
+           field_type        ! type of field (scalar, vector, angle)
+ 
+     logical (kind=log_kind), intent(in) :: &
+         should_loop
+
+        character (char_len), intent(in) :: &
+           fieldname
+        real (kind=dbl_kind), dimension(:), intent(in) :: &
+           dates
+        integer (kind=int_kind), dimension(:), intent(in) :: &
+           ind
+        character (char_len_long), dimension(:), intent(in) :: &
+           paths
+        real (kind=dbl_kind), dimension(nx_block,ny_block,max_blocks), &
+              intent(out) :: &
+           field
+        integer (kind=int_kind), dimension(3), intent(inout) :: &
+           old_ip
+        
+        ! local vars
+        real (kind=dbl_kind), dimension(nx_block,ny_block,2,max_blocks), &
+           intent(inout) :: &
+           work
+        integer (kind=int_kind), dimension(3) :: &
+           ip ! index_pair + read flag
+        logical (kind=log_kind) :: &
+           diag 
+        real (kind=dbl_kind) :: &
+           now, tt
+
+
+        now = metroms_offset + tday + mod(time,secday)/secday 
+        tt=secday*(yday - c1) + sec
+
+        diag = .true.
+        ip = metroms_get_index(dates, now,should_loop,old_ip) 
+        
+        if (ip(3) == 1) then ! ip(3) = read/don't read flag. Don't read if index hasn't been updated
+           old_ip = ip
+           call metroms_read(paths(ip(1)), ind(ip(1)), fieldname, &
+                 work(:,:,1,:), diag, &
+                 field_loc, field_type)
+           call metroms_read(paths(ip(2)), ind(ip(2)), fieldname, &
+                 work(:,:,2,:), diag, &
+                 field_loc, field_type)
+        endif
+        !interpolattion constants 
+        c1intp = (dates(ip(2)) - tt) / (dates(ip(2)) - dates(ip(1)))
+        c2intp =  c1 - c1intp
+        call interpolate_data(work, field)
+        
+      end subroutine metroms_read_and_interpolate
+
+!- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+      function metroms_get_index(dates,now,should_loop,old_ip) result(index_pair)
+
+      real (kind=dbl_kind), dimension(:) :: &
+         dates
+      real (kind=dbl_kind) ::  &
+         now ! current model time
+      logical (kind=log_kind) :: &
+         should_loop
+      integer (kind=int_kind), dimension(3) :: &
+         old_ip
+      integer (kind=int_kind), dimension(3) :: &
+         index_pair
+
+      integer (kind=int_kind) :: &
+         i
+      if (should_loop) then
+        index_pair(1) = size(dates)
+        index_pair(2) = 1
+      else ! if not loop, reuse last/first datapoint
+        index_pair(1) = 1
+        index_pair(2) = size(dates)
+      endif
+      do i=1,size(dates)
+         if (dates(i) < now) then
+            index_pair(1) = i !keep updating as long as 'now' is not reached
+         elseif (dates(i) > now) then
+            index_pair(2) = i
+            exit ! both are now set
+         endif
+      enddo
+      if (index_pair(1) == old_ip(1) .and. &
+          index_pair(2) == old_ip(2)) then
+         index_pair(3) = 0
+      else
+         index_pair(3) = 1
+      endif
+
+      end function metroms_get_index
+
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+      subroutine metroms_read(data_file, nrec, varname, work, &
+             diag, field_loc, field_type)
+
+      character (char_len_long), intent(in) :: &
+         data_file           ! data file to be read
+
+      character (char_len), intent(in) :: &
+         varname             ! field name in netCDF file
+
+      integer (kind=int_kind), intent(in):: &
+         nrec                ! record number to read
+
+      integer (kind=int_kind), intent(in) :: &
+           field_loc, &      ! location of field on staggered grid
+           field_type        ! type of field (scalar, vector, angle)
+
+      logical (kind=log_kind), intent(in) :: &
+           diag              ! if true, write diagnostic output
+
+     ! logical (kind=log_kind), optional, intent(in) :: &
+     !      restart_ext       ! if true, read extended grid
+
+      real (kind=dbl_kind), dimension(nx_block,ny_block,max_blocks), &
+         intent(out) :: work
+
+      ! locals
+      integer (kind=int_kind) :: &
+         fid                  ! file id for netCDF routines
+      call ice_open_nc(data_file, fid)
+      call ice_read_nc(fid, nrec, varname, work, diag, &
+                   field_loc, field_type)
+      if (my_task==master_task) then !whats the point?!
+        call ice_close_nc(fid)
+      endif
+      end subroutine metroms_read
+
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+      function is_leap_year(year) result(leapyear)
+      integer (kind=int_kind) :: year
+      logical (kind=log_kind) :: leapyear
+
+      if (mod(year,4)/=0) then
+        leapyear = .false.
+      elseif (mod(year,100)/=0) then
+        leapyear = .true.
+      elseif (mod(year,400)/=0) then
+        leapyear = .false.
+      else
+        leapyear = .true.
+      endif
+      end function is_leap_year
+
+! - - - - end helper functions metroms - - - - - - - - - - - - - - - -
 
 !=======================================================================
 
@@ -2697,12 +3243,12 @@
       if (readm .and. my_task == master_task ) &
            write (nu_diag,*) ' Reads monthly fields at', fyear, month, mday, sec
 
+
       ! -----------------------------------------------------------
       ! Rainfall 
       ! -----------------------------------------------------------
 
       fieldname='rain'
-
       call read_data_nc (readm, 0, fyear, ixm, month, ixp, &
                       maxrec, rain_file, fieldname, frain_data, &
                       field_loc_center, field_type_scalar)
@@ -2759,13 +3305,13 @@
 #endif
     !-------------------------------------------------------------------
     ! 12-hourly data
-    ! 
+    !
     ! Assume that the 12-hourly value accumulated or averaged values over the 
-    ! last period. The actuall valid time for the value is therefore 
+    ! last period. The actuall valid time for the value is therefore
     ! 12/2 = 6 hours earlier.
     !  This is the convention for ECMWF reanalysis data.
     !  E.g. record 1 is and average of the first 12 hours 1 January.
-    ! We do not time interpolate these data. 
+    ! We do not time interpolate these data.
     !-------------------------------------------------------------------
 
 
@@ -2787,7 +3333,7 @@
       oldrecnum12 = recnum
 
       if (read12) then
-      
+
       ! -----------------------------------------------------------
       ! read atmospheric forcing 
       ! -----------------------------------------------------------
@@ -2813,13 +3359,13 @@
 
       ! convert precipitation units to kg/m^2 s
          if (trim(precip_units) == 'mm_per_month') then
-            precip_factor = c12/(secday*days_per_year) 
+            precip_factor = c12/(secday*days_per_year)
          elseif (trim(precip_units) == 'mm_per_day') then
             precip_factor = c1/secday
          elseif (trim(precip_units) == 'm_per_12hr') then
             precip_factor = c1/43.2_dbl_kind
          elseif (trim(precip_units) == 'mm_per_sec' .or. &
-              trim(precip_units) == 'mks') then 
+              trim(precip_units) == 'mks') then
             precip_factor = c1    ! mm/sec = kg/m^2 s
          endif
 !jd         if (my_task == master_task) write(nu_diag,*) 'ecmwf_data: precip_factor ', precip_factor
@@ -2840,7 +3386,7 @@
     !-------------------------------------------------------------------
 
       dataloc = 1    ! data located at end of interval (state variables)
-      dataloc = 2    
+      dataloc = 2
       sec6hr = secday/c4        ! seconds in 6 hours
 
       maxrec=4*nint(dayyr)          !  Takes acount of leap-years
@@ -2932,7 +3478,7 @@
 !jd        enddo
 
       ! AOMIP
-        this_block = get_block(blocks_ice(iblk),iblk)         
+        this_block = get_block(blocks_ice(iblk),iblk)
         ilo = this_block%ilo
         ihi = this_block%ihi
         jlo = this_block%jlo
@@ -3858,7 +4404,6 @@
         endif
         enddo
         !$OMP END PARALLEL DO
-
         call interpolate_data (sst_data,work1)
         ! masking by hm is necessary due to NaNs in the data file
         do j = 1, ny_block 
