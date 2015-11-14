@@ -2,6 +2,8 @@ from GlobalParams import *
 from Constants import *
 from Utils import *
 import sys
+from datetime import datetime, timedelta
+import netCDF4
 
 class Params(object):
     RUNPATH=None
@@ -12,27 +14,49 @@ class Params(object):
     XCPU=None
     YCPU=None
     TSTEPS=None
-    IRESTART=None
+    NRREC=None
     
-    def __init__(self,app,xcpu,ycpu,fclen,irestart,cicecpu=0):
+    def __init__(self,app,xcpu,ycpu,start_date,end_date,nrrec=-1,cicecpu=0,restart=False):
         self.KEYWORDFILE=GlobalParams.COMMONORIGPATH+"/roms_keyword.in"
+        #self.CICEKEYWORDFILE=GlobalParams.COMMONPATH + "/../../../tmproms/cice/rundir/ice_in_keyword"
+        #self.CICEKEYWORDFILE=GlobalParams.COMMONPATH + "/cice_input_grids/a20/ice_in.cice5.1.2"
         #self.ROMSINFILE=GlobalParams.RUNDIR+"/roms.in"
         self.XCPU=xcpu
         self.YCPU=ycpu
         self.CICECPU=cicecpu
-        self.FCLEN=fclen
-        self.IRESTART=irestart
-        if app=='a20':
+        self.FCLEN=(end_date-start_date).total_seconds()
+        self.NRREC=nrrec
+        self.TIMEREF=datetime(1970,01,01,00)
+        self.RESTART=restart
+        if app=='arctic-20km':
             ########################################################################
             # Name of roms.in keyword-file:
             ########################################################################
             self.RUNPATH=GlobalParams.RUNDIR+"/arctic-20km"
             self.ROMSINFILE=self.RUNPATH+"/roms.in"
+            #self.CICEKEYWORDFILE=self.RUNPATH + "/ice_in_keyword"
+            #self.CICEINFILE=GlobalParams.CICERUNDIR + "/ice_in"
+            self.CICERUNDIR=self.RUNPATH+'/cice/rundir'
+            self.CICEINFILE=self.RUNPATH + "/ice_in"
+            self.CICEKEYWORDFILE=self.CICERUNDIR + "/ice_in"
             self.FELT_CLMFILE=self.RUNPATH+"/FOAM.felt"
             self.DELTAT=1200 
 #            self.DELTAT=600 
 #            self.DELTAT=300 
+            self.CICEDELTAT=3600
             #self.ROMSINIFILE=self.RUNPATH+"/"+INIFILE
+            # Find restart-time of CICE:
+            cice_start_step = (start_date-datetime(start_date.year,01,01)).total_seconds()/self.CICEDELTAT
+            if restart == True:
+                f = open(self.CICERUNDIR+'/restart/ice.restart_file', 'r')
+                cice_restartfile = f.readline().strip()
+                cice_rst_time = netCDF4.Dataset(cice_restartfile).istep1
+                #cice_rst_day = netCDF4.Dataset(cice_restartfile).mday
+                cicerst_truefalse = ".true."
+            else:
+                cice_rst_time = cice_start_step
+                #cice_rst_day = start_date.day
+                cicerst_truefalse = ".false."
             ########################################################################
             # List of keywords:
             ########################################################################
@@ -45,10 +69,10 @@ class Params(object):
             ['NLEVELS',"35"],  #Could read from grd-file?
             ['XCPU',str(self.XCPU)],
             ['YCPU',str(self.YCPU)],
-            ['TSTEPS',str(self.FCLEN*3600/self.DELTAT)],
+            ['TSTEPS',str(self.FCLEN/self.DELTAT)],
             ['DELTAT',str(self.DELTAT)],
             ['RATIO',"20"], #['RATIO',"30"],
-            ['IRESTART',str(self.IRESTART)],
+            ['IRESTART',str(self.NRREC)],
             ['RSTSTEP',str(24*3600/int(self.DELTAT))],
             ['STASTEP',str(1*3600/int(self.DELTAT))],
             ['INFOSTEP',str(1*3600/int(self.DELTAT))],
@@ -57,21 +81,40 @@ class Params(object):
             ['AVGSTEPP',str(24*3600/int(self.DELTAT))],
             ['STARTAVG',"0"],
             ['DEFAVGSTEP',str(720*3600/int(self.DELTAT))],  #if 0; all output in one avg-file
-            ['STARTTIME',"9877.5"],
-            ['TIDEREF',"9877.5"],
-            ['TIMEREF',"19700101.00"],
+            ['STARTTIME',str((start_date-self.TIMEREF).total_seconds()/86400)],
+            ['TIDEREF',str((start_date-self.TIMEREF).total_seconds()/86400)],
+            ['TIMEREF',self.TIMEREF.strftime("%Y%m%d.00")],
             ['OBCFAKTOR',"120.0"],
             ['GRDFILE',GlobalParams.COMMONPATH+"/grid/A20_grd_openBering.nc"],
             ['RUNDIR',self.RUNPATH],
             ['TIDEDIR',self.RUNPATH],
             ['ATMDIR',self.RUNPATH],
             ['RIVERFILE',GlobalParams.COMMONPATH+"/rivers/newA20_rivers_mitya.nc"],
-            ['FORCEFILES',"4"],
-            ['ROMS/External/coupling.dat', GlobalParams.COMMONPATH + "/../../../tmproms/roms_src/ROMS/External/coupling.dat"],
+            ['FORCEFILES',"4"], # The files should be specified here as well
+            #['ROMS/External/coupling.dat', self.RUNPATH + "/coupling.dat"],
             ['ROMSINFILE', self.ROMSINFILE ],
-            ['CICEINFILE', GlobalParams.COMMONPATH + "/../../../tmproms/cice/rundir/ice_in" ],
+            ['CICEINFILE', self.CICEINFILE ],
             ['NUMROMSCORES',str(int(self.XCPU)*int(self.YCPU))],
             ['NUMCICECORES',str(int(self.CICECPU))]
+            ]
+            ########################################################################
+            # List of CICE keywords:
+            ########################################################################
+            #if (cice_rst_day == start_date.day):
+            # if (restart == True):
+            #     cicerst_truefalse = ".true."
+            # else:
+            #     cicerst_truefalse = ".false."
+            self.CICEKEYWORDLIST=[
+            ['CICEYEARSTART',start_date.strftime("%Y")],
+            ['CICESTARTSTEP',str(cice_start_step)],  #number of hours after 00:00 Jan 1st
+            ['CICEDELTAT',str(self.CICEDELTAT)],
+            ['CICENPT',str((self.FCLEN/self.CICEDELTAT)-(cice_rst_time - cice_start_step))],   # minus diff restart og start_date
+            ['CICERUNTYPE',"'continue'"],
+            ['CICEIC',"'default'"],
+            ['CICEREST',".true."],
+            ['CICERSTTIME',cicerst_truefalse],
+            #['<cicedir>',GlobalParams.COMMONPATH + "/../../../tmproms/cice"]
             ]
             ########################################################################
             ########################################################################
@@ -80,7 +123,6 @@ class Params(object):
             # Name of roms.in keyword-file:
             ########################################################################
             self.RUNPATH=GlobalParams.RUNDIR+"/nordic-4km2d-stormsurge"
-            self.ROMSINFILE=self.RUNPATH+"/roms.in"
             self.FELT_CLMFILE=None
             self.DELTAT=10
             #self.ROMSINIFILE=self.RUNPATH+"/"+INIFILE
@@ -96,7 +138,7 @@ class Params(object):
             ['NLEVELS',"35"],  #Could read from grd-file?
             ['XCPU',str(self.XCPU)],
             ['YCPU',str(self.YCPU)],
-            ['TSTEPS',str(self.FCLEN*3600/self.DELTAT)],
+            ['TSTEPS',str(self.FCLEN)],
             ['DELTAT',str(self.DELTAT)],
             ['RATIO',"1"],
             ['IRESTART',str(self.IRESTART)],
@@ -108,9 +150,9 @@ class Params(object):
             ['AVGSTEPP',str(24*3600/int(self.DELTAT))],
             ['STARTAVG',"0"],
             ['DEFAVGSTEP',"0"],     #if 0; all output in one avg-file
-            ['STARTTIME',"9877.5"], #Must be read from restartfile
-            ['TIDEREF',"9877.5"], #Hardcoded, but not really used in 2D stormsurge
-            ['TIMEREF',"19700101.00"],
+            ['STARTTIME',str((start_date-self.TIMEREF).total_seconds()/86400)], #Must be read from restartfile
+            ['TIDEREF',str((start_date-self.TIMEREF).total_seconds()/86400)], #Hardcoded, but not really used in 2D stormsurge
+            ['TIMEREF',self.TIMEREF.strftime("%Y%m%d.00")],
             ['OBCFAKTOR',"1"],
             ['GRDFILE',GlobalParams.COMMONPATH+"/grid/nordic-4km_grd.nc"],
             ['RUNDIR',self.RUNPATH],

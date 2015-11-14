@@ -4,7 +4,7 @@ set -x
 vers=$CICEVERSION
 #CASEHOME=$(pwd)
 
-NRES=a20
+NRES=$1
 #casename=CASENAME
 
 #source $CASEHOME/cice_baseconf.sh
@@ -38,9 +38,9 @@ GRID=GRID
 GRID=$(echo $GRID | tr [:upper:] [:lower:])
 
 case $NRES in 
-    a20) GRID=322x242;;
-    col) GRID=5x5;;
-    gx3) GRID=100x116;;
+    'arctic-20km') GRID=322x242;;
+    'col') GRID=5x5;;
+    'gx3') GRID=100x116;;
 #    'gx1') GRID=320x384;;
 #    'tx1')  GRID=360x240;;
 esac
@@ -53,7 +53,7 @@ if [ $casename == 'CASE''NAME' ]; then
 fi
 
 restart='.true.'
-if [ $NRES == 'a20' ];  then restart='.false.'; fi
+#if [ $NRES == 'a20' ];  then restart='.false.'; fi
 
 comp=1
 
@@ -127,13 +127,13 @@ RES=$NRES
 # If BLCKX (BLCKY) does not divide NXGLOB (NYGLOB) evenly, padding 
 # will be used on the right (top) of the grid.
 
-if [ $# -ge 2 ]; then
-    NPX=$1   # number of processors in x direction
-    NPY=$2   # number of processors in y direction
+if [ $# -ge 3 ]; then
+    NPX=$2   # number of processors in x direction
+    NPY=$3   # number of processors in y direction
 fi
-if [ $# -ge 4 ]; then
-    BPX=$3   # number of blocks per processor in x direction
-    BPY=$4   # number of blocks per processor in y direction
+if [ $# -ge 5 ]; then
+    BPX=$4   # number of blocks per processor in x direction
+    BPY=$5   # number of blocks per processor in y direction
 fi
 ### Specialty code
 export CAM_ICE=no        # set to yes for CAM runs (single column) 
@@ -180,7 +180,7 @@ cd $SRCDIR/source
 
 cd $EXEDIR
 
-if [ $RES == 'a20' ]; then
+if [ $RES == 'arctic-20km' ]; then
 #    [ -e cice.grid.nc ] || cp $SRCDIR/input_templates/$RES/cice_$GRID.grid.nc cice.grid.nc
 #    [ -e cice.kmt.nc ] || cp $SRCDIR/input_templates/$RES/cice_$GRID.kmt.nc cice.kmt.nc
     [ -e cice.grid.nc ] || cp $SRCDIR/input_templates/$RES/cice.grid.nc cice.grid.nc
@@ -194,7 +194,7 @@ fi
 
 cd $RSTDIR
 
-if [ ! $RES == 'a20' ];   then
+if [ ! $RES == 'arctic-20km' ];   then
     cp $SRCDIR/input_templates/$RES/iced_$RES* .
     [ -e ice.restart_file ] || cp $SRCDIR/input_templates/$RES/ice.restart_file .
 fi

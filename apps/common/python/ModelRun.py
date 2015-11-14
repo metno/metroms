@@ -1,6 +1,8 @@
 import os
+import netCDF4
 import Constants
 from GlobalParams import *
+from datetime import datetime
 
 class ModelRun(object):
     _params=None
@@ -22,7 +24,11 @@ class ModelRun(object):
         os.chdir(self._params.RUNPATH)
         # Prepare roms input-file, replace keywords:
         self._replace_keywords_roms_in()
+        self._replace_keywords_cice_in()
+        # Check to see if roms ini- and cice ini-file have same timestamp:
+        self._check_starttime()
         self._run(runoption,debugoption,architecture)
+        # Should check output-files to verify a successful run?
         # Output to std.out that model has finished:
         print "\nROMS run finished"
 
@@ -34,6 +40,9 @@ class ModelRun(object):
         self._make_OBC()
         self._tpxo2romstide(None,None,None)
         self._make_atm_force()
+        if (self._params.RESTART == True):
+            print "Model is restarting from previuos solution..."
+            self._cycle_rst_ini()
 
     def postprocess(self):
         """
@@ -55,7 +64,20 @@ class ModelRun(object):
         for key,value in self._params.KEYWORDLIST:
             newlines = newlines.replace(key,value)
         with open(self._params.ROMSINFILE, 'w') as f:
-            f.write(newlines)    
+            f.write(newlines)
+
+    def _replace_keywords_cice_in(self):
+        """
+        This function will replace the keywords in the given 
+        cice-keyword.in-file.
+        """
+        with open(self._params.CICEKEYWORDFILE, 'r') as f:
+            newlines = f.read()
+        for key,value in self._params.CICEKEYWORDLIST:
+            newlines = newlines.replace(key,value)
+        with open(self._params.CICEINFILE, 'w') as f:
+            f.write(newlines)
+        #os.system('cp -a '+self._params.CICEINFILE+' '+self._params.RUNPATH+'/') #should not need to do this
 
     def _execute_roms_mpi(self,ncpus,infile,debugoption=Constants.NODEBUG,architecture=Constants.MET64):
         """
@@ -135,15 +157,15 @@ class ModelRun(object):
         print "make_atm_force end"
 
     def _make_OBC(self):
-        self._verticalinterp(self.get_clmfile(),GlobalParams.CLMFILE)
+        self._verticalinterp(self._get_clmfile(),GlobalParams.CLMFILE)
         self._bry_from_clm(GlobalParams.CLMFILE,None)
         self._ini_from_clm(GlobalParams.CLMFILE,None)
 
-    def get_clmfile(self): 
+    def _get_clmfile(self): 
         if self._clmfileoption==Constants.FELT:
             self._fimex_felt2nc(self._params.FELT_CLMFILE,GlobalParams.IN_CLMFILE,GlobalParams.FELT2NC_CONFIG)
         elif self._clmfileoption==Constants.NC:
-            self._fimex_horinterp()
+            self._fimex_hor_interp(None, None)
         else:
             print "Illegal clmfileoption."
             exit(1)
@@ -170,7 +192,7 @@ class ModelRun(object):
                     exit(1)
                 self._execute_roms_serial(self._params.ROMSINFILE,debugoption)
             elif runoption==Constants.DRY:
-                pass
+                print "Dry-run ok"
             else:
                 print "No valid runoption!"
                 exit(1)
@@ -192,3 +214,33 @@ class ModelRun(object):
         else:
             print "Unsupported architecture..."
             exit(1)
+
+    def _cycle_rst_ini(self, backup=True):
+        #Cycle ocean_rst.nc to ocean_ini.nc
+        if os.path.isfile(self._params.RUNPATH+"/ocean_rst.nc"):
+            nc_ini = netCDF4.Dataset(self._params.RUNPATH+"/ocean_ini.nc")
+            #os.rename(self._params.RUNPATH+"/ocean_ini.nc", self._params.RUNPATH+datetime.now().strftime("/ocean_ini.nc_%Y%m%d-%H%M"))
+            os.rename(self._params.RUNPATH+"/ocean_ini.nc", 
+                self._params.RUNPATH+netCDF4.num2date(nc_ini.variables['ocean_time'][:],nc_ini.variables['ocean_time'].units)[self._params.NRREC].strftime("/ocean_ini.nc_%Y%m%d-%H%M"))
+            os.rename(self._params.RUNPATH+"/ocean_rst.nc", self._params.RUNPATH+"/ocean_ini.nc")
+        else:
+            print "Restartfile not found!! Will exit"
+            exit(1)
+
+    def _check_starttime(self):
+        roms_ini = netCDF4.num2date(netCDF4.Dataset(self._params.RUNPATH+"/ocean_ini.nc").variables['ocean_time'][:], 
+            netCDF4.Dataset(self._params.RUNPATH+"/ocean_ini.nc").variables['ocean_time'].units)
+        f = open(self._params.CICERUNDIR+'/restart/ice.restart_file', 'r')
+        cice_restartfile = f.readline().strip()
+        cice_rst_day = netCDF4.Dataset(cice_restartfile).mday
+        if (cice_rst_day == roms_ini[self._params.NRREC].day) :
+            # Dates seem ok
+            pass
+        else:
+            if (self._params.RESTART == False):
+                print "There seems to be a problem with matching dates in ROMS and CICE, but will continue since this is not a restart"
+            else:
+                print "There seems to be a problem with matching dates in ROMS and CICE. Will exit..."
+                print "ROMS: "+str(roms_ini[self._params.NRREC].day)
+                print "CICE: "+str(cice_rst_day)
+                exit(1)

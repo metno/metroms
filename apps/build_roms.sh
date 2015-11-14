@@ -40,8 +40,8 @@
 # 08/01/2014: Big rewrite by nilsmk@met.no to make build-script more general
 set -x
 
-if [ $# -le 1 ]
-then
+if [ $# -lt 1 ]
+  then
   echo "Usage: $0 modelname -j 4"
   echo "Or specify more kernels than 4 for compilation if you have them available"
   exit
@@ -53,17 +53,18 @@ fi
 #
 # Setting up things, like compilers etc:
 export ROMS_APPLICATION=$1
+export roms_ver="roms-3.6"
 
 export USE_MPI=on
 export USE_MPIF90=on
 
 if [ "${METROMS_MYHOST}" == "metlocal" ]; then
-    export FORT=gfortran
+  export FORT=gfortran
 elif [ "${METROMS_MYHOST}" == "vilje" ]; then
-    export FORT=ifort
+  export FORT=ifort
 else
-    echo " Computer not defined set environment variable METROMS_MYHOST= metlocal, vilje .."
-    exit
+  echo " Computer not defined set environment variable METROMS_MYHOST= metlocal, vilje .."
+  exit
 fi
 
 export USE_OpenMP=
@@ -74,7 +75,7 @@ export USE_NETCDF4=on
 
 export USE_CICE=on
 
-export USE_MY_LIBS=on
+#export USE_MY_LIBS=on
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 # ... and here.
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -84,14 +85,14 @@ cd ../
 metroms_base=${PWD} 
 cd ../
 if [ "$METROMS_TMPDIR" == "" ]; then
-    tup=${PWD}
+  tup=${PWD}
 else
-    tup=${METROMS_TMPDIR}
-    if [ ! -d $tup ] ; then
-	echo "$tup not defined, set environment variable METROMS_TMPDIR to "
-	echo "override default behaviour"
-	exit 
-    fi
+  tup=${METROMS_TMPDIR}
+  if [ ! -d $tup ] ; then
+   echo "$tup not defined, set environment variable METROMS_TMPDIR to "
+   echo "override default behaviour"
+   exit 
+ fi
 fi
 
 tmpdir=tmproms
@@ -99,7 +100,7 @@ tmpdir=tmproms
 export MY_ROMS_SRC=${tup}/${tmpdir}/roms_src
 mkdir -p ${MY_ROMS_SRC}
 cd ${MY_ROMS_SRC}
-tar -xf ${metroms_base}/static_libs/roms-3.6.tar.gz
+tar -xf ${metroms_base}/static_libs/${roms_ver}.tar.gz
 
 # JD : Added temporary to have place for a new file
 touch $MY_ROMS_SRC/ROMS/Nonlinear/frazil_ice_prod_mod.F
@@ -125,17 +126,17 @@ while [ $# -gt 1 ]
 do
   case "$2" in
     -j )
-      shift
-      parallel=1
-      test=`echo $2 | grep -P '^\d+$'`
-      if [ "$test" != "" ]; then
-        NCPUS="-j $2"
-        shift
-      else
-        NCPUS="-j"
-      fi
-      ;;
-  esac
+shift
+parallel=1
+test=`echo $2 | grep -P '^\d+$'`
+if [ "$test" != "" ]; then
+  NCPUS="-j $2"
+  shift
+else
+  NCPUS="-j"
+fi
+;;
+esac
 done
 
 cd ${ROMS_APPLICATION}
@@ -151,23 +152,33 @@ export SCRATCH_DIR=${tup}/${tmpdir}/build
 
 cd ${MY_PROJECT_DIR}
 
+# # NMK - 20151030
+# # Check if we have any common modified source files
+export MODIFIED_SRC_FOLDER=${workingdir}/common/modified_src/${roms_ver}
+if [ -s $MODIFIED_SRC_FOLDER ]; then
+  cd $MODIFIED_SRC_FOLDER
+  gotModifiedSourceCOMMON=`ls *.F *.h *.mk *.in`
+  cd ${MY_PROJECT_DIR}
+fi
+
 # # KHC - 20110209
 # # Check if we have any modified source files
-
 if [ -s modified_src ]; then
-    cd modified_src
-    gotModifiedSource=`ls *.F *.h *.mk *.in`
-    cd ..
+  cd modified_src
+  gotModifiedSourceAPP=`ls *.F *.h *.mk *.in`
+  cd ..
 fi
 
 # Replace the original files with the modifications
-if [ "$gotModifiedSource" != "" ]; then
+if [ "$gotModifiedSourceAPP" != "" ] || [ "$gotModifiedSourceCOMMON" != "" ]; then
 
-    # Copy locally modified source to main ROMS directory
-    for ModSrc in $gotModifiedSource; do
+  echo "!!!!!!!!!!!!Found modified src...!!!!!!!!!!!!!!!!!!!!!"
+
+    # Copy common modified source to ROMS app-directory
+    for ModSrc in $gotModifiedSourceCOMMON; do
 
         # Check where original resides
-        origFile=`find $MY_ROMS_SRC -name $ModSrc`
+        origFile=`find ${MY_ROMS_SRC} -name $ModSrc`
 
         if [ -f "$origFile" ]; then
 
@@ -175,66 +186,101 @@ if [ "$gotModifiedSource" != "" ]; then
             # first checking if the original already exists with
             # the .orig extension
             if [ ! -f "$origFile.orig" ]; then
-                mv $origFile $origFile.orig
-                echo "Moving $origFile to $origFile.orig"
+              mv $origFile $origFile.orig
+              echo "Moving $origFile to $origFile.orig"
+            fi
+
+            # Copying from local source directory to repository
+            cp $MODIFIED_SRC_FOLDER/$ModSrc $origFile
+            echo "Copying modified_src/$ModSrc to $origFile"
+
+            if [ ! -f USER_MODIFIED_CODE ]; then
+
+                # Touch file to notify that user modified code has been
+                # placed in the repository
+                touch USER_MODIFIED_CODE
+
+              fi
+            else
+
+            # No such file in repository, quit script
+            echo "No source code file $ModSrc in repository, exiting."
+            exit 3
+
+          fi
+        done
+    # Copy locally modified source to main ROMS directory
+    for ModSrc in $gotModifiedSourceAPP; do
+
+        # Check where original resides
+        origFile=`find ${MY_ROMS_SRC} -name $ModSrc`
+
+        if [ -f "$origFile" ]; then
+
+            # Moving original and copying user-modifed source code
+            # first checking if the original already exists with
+            # the .orig extension
+            if [ ! -f "$origFile.orig" ]; then
+              mv $origFile $origFile.orig
+              echo "Moving $origFile to $origFile.orig"
             fi
 
             # Copying from local source directory to repository
             cp modified_src/$ModSrc $origFile
             echo "Copying modified_src/$ModSrc to $origFile"
 
-            if [ ! -f USER_MODIFIED_CODE_IN_REPO ]; then
+            if [ ! -f USER_MODIFIED_CODE ]; then
 
                 # Touch file to notify that user modified code has been
                 # placed in the repository
-                touch USER_MODIFIED_CODE_IN_REPO
+                touch USER_MODIFIED_CODE
 
-            fi
-        else
+              fi
+            else
 
             # No such file in repository, quit script
             echo "No source code file $ModSrc in repository, exiting."
             exit 3
 
-        fi
-    done
-fi
+          fi
+        done
+      fi
 
 # Removing user modified source code in repository
 # KHC - 20110209
 # NMK - 2013
 rollback() {
-    cd $MY_ROOT_DIR
-    
-    if [ -f USER_MODIFIED_CODE_IN_REPO ]; then
-	
+ cd $MY_ROOT_DIR
+
+    if [ -f USER_MODIFIED_CODE ]; then
+
     # Find source code files with ".orig"-ending and
     # remove ending
-	filelist=`find "$MY_ROMS_SRC" -name *.orig`
-	
-	if [ "$filelist" != "" ]; then
-	    
-	    for oldFileName in $filelist; do
-		
-	    # extract basename
-		newFileName=`basename $oldFileName .orig`
-		fileDirectory=`dirname $oldFileName`
-		mv $oldFileName  $fileDirectory/$newFileName
-		
-		echo "Moved $oldFileName  to $fileDirectory/$newFileName"
-		
-	    done
-	    
-	else # Empty filelist, no such files in repository
-	    
-	    echo "Did not find any .orig-files in the repository, empty file deleted"
-	    
-	fi
-	
+    filelist=`find "$MY_ROMS_SRC" -name *.orig`
+
+    if [ "$filelist" != "" ]; then
+
+      for oldFileName in $filelist; do
+
+      # extract basename
+      newFileName=`basename $oldFileName .orig`
+      fileDirectory=`dirname $oldFileName`
+      mv $oldFileName  $fileDirectory/$newFileName
+
+      echo "Moved $oldFileName  to $fileDirectory/$newFileName"
+
+    done
+
+  else # Empty filelist, no such files in repository
+
+    echo "Did not find any .orig-files in the repository, empty file deleted"
+
+  fi
+  
     # Remove empty file
-	rm -f USER_MODIFIED_CODE_IN_REPO
-	
-    fi
+    rm -f USER_MODIFIED_CODE
+
+  fi
 }
 trap 'rollback; exit 99' 0
 
@@ -242,6 +288,10 @@ trap 'rollback; exit 99' 0
 if [ -n "${USE_CICE:+1}" ]; then
 	export USE_MCT=on
 	export MY_CPP_FLAGS="${MY_CPP_FLAGS} -DNO_LBC_ATT -DMODEL_COUPLING -DUSE_MCT -DMCT_COUPLING -DMCT_LIB -DCICE_COUPLING -DCICE_OCEAN"
+  CICE_INCDIR := ${tup}/${tmpdir}/run/${ROMS_APPLICATION}/cice/rundir/compile
+  CICE_LIBDIR := ${tup}/${tmpdir}/run/${ROMS_APPLICATION}/cice/rundir/compile
+      FFLAGS += -I$(CICE_INCDIR)
+        LIBS += -L$(CICE_LIBDIR) -lcice
 fi
 
 if [ -n "${USE_NETCDF4:+1}" ]; then
@@ -270,8 +320,8 @@ else
 fi
 
 if [ -n "${USE_CICE:+1}" ]; then
-	cp ${MY_PROJECT_DIR}/modified_src/coupling.dat $BINDIR/
-	cp ${tup}/${tmpdir}/cice/rundir/ice_in $BINDIR/
+	cp ${MODIFIED_SRC_FOLDER}/coupling.dat $BINDIR/
+	#cp ${tup}/${tmpdir}/cice/rundir/ice_in $BINDIR/ice_in_keyword
 fi
 
 # Clean up unpacked static code:

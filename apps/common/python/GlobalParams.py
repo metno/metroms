@@ -11,7 +11,6 @@ class GlobalParams(object):
         METROMSDIR=os.environ.get('METROMS_SRCDIR','/disk1/'+username+'/metroms')
         tmpdir=os.environ.get('METROMS_TMPDIR','/disk1/'+username)
         RUNDIR=tmpdir+'/tmproms/run'
-        
     elif MYHOST=='vilje':
         HOME=os.environ.get('HOME')
         if HOME=='None':
