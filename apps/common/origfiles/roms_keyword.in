@@ -183,13 +183,13 @@
 
 ! Harmonic/biharmonic horizontal diffusion of tracer: [1:NAT+NPT,Ngrids].
 
-        TNU2 == 0.0d0  0.0d0                    ! m2/s
-        TNU4 == 2*0.5d5                         ! m4/s
+        TNU2 == 2*3.5d2                         ! m2/s
+        TNU4 == 2*10.0d10                         ! m4/s
 
 ! Harmononic/biharmonic, horizontal viscosity coefficient: [Ngrids].
 
-       VISC2 == 0.0d0                           ! m2/s
-       VISC4 == 0.5d5                         ! m4/s
+       VISC2 == 0.5d1                           ! m2/s
+       VISC4 == 4.0d10                         ! m4/s
 
 ! Vertical mixing coefficients for active tracers: [1:NAT+NPT,Ngrids]
 
@@ -197,7 +197,7 @@
 
 ! Vertical mixing coefficient for momentum: [Ngrids].
 
-     AKV_BAK == 1.0d-5                          ! m2/s
+     AKV_BAK == 5.0d-6                          ! m2/s
 
 ! Turbulent closure parameters.
 
@@ -270,7 +270,7 @@
 
        TNUDG == 5.0d0 5.0d0                ! days
        ZNUDG == 0.0d0                      ! days
-      M2NUDG == 0.0d0                      ! days
+      M2NUDG == 5.0d0                      ! days
       M3NUDG == 5.0d0                      ! days
 
 ! Factor between passive (outflow) and active (inflow) open boundary
@@ -656,11 +656,11 @@ Dout(iTvdif) == F F                        ! vertical diffusion
 
 ! Output NetCDF file names, [1:Ngrids].
 
-     RSTNAME == RUNDIR/forecast_rst.nc
-     HISNAME == RUNDIR/forecast_his.nc
-     AVGNAME == RUNDIR/forecast_avg.nc
-     STANAME == RUNDIR/forecast_sta.nc
-     DIANAME == RUNDIR/forecast_dia.nc
+     RSTNAME == RUNDIR/ocean_rst.nc
+     HISNAME == RUNDIR/ocean_his.nc
+     AVGNAME == RUNDIR/ocean_avg.nc
+     STANAME == RUNDIR/ocean_sta.nc
+     DIANAME == RUNDIR/ocean_dia.nc
 
 ! Input ASCII parameter filenames.
 
