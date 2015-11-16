@@ -2877,6 +2877,8 @@
 !      if (oldrecnum6 .ne. recnum) read6 = .true
 !      oldrecnum6 = recnum
 
+      should_loop = .false.
+
       fieldname = 'Uwind'
       call metroms_read_and_interpolate(fieldname, &
         metroms_dates_uwind, metroms_index_uwind, &
@@ -2891,8 +2893,8 @@
         field_loc_center, field_type_vector, &
         should_loop, metroms_ip_vwind)
 
-      call interpolate_data (uatm_data, uatm)
-      call interpolate_data (vatm_data, vatm)
+     ! call interpolate_data (uatm_data, uatm)
+     ! call interpolate_data (vatm_data, vatm)
 
       fieldname = 'Tair'
       call metroms_read_and_interpolate(fieldname, &
@@ -2901,7 +2903,7 @@
         field_loc_center, field_type_scalar, &
         should_loop, metroms_ip_tair)
 
-      call interpolate_data (Tair_data, Tair)
+     ! call interpolate_data (Tair_data, Tair)
       Tair = Tair + Tffresh
 
       fieldname = 'Pair'
@@ -2911,7 +2913,7 @@
         field_loc_center, field_type_scalar, &
         should_loop, metroms_ip_rhoa)
 
-      call interpolate_data (rhoa_data, rhoa)
+     ! call interpolate_data (rhoa_data, rhoa)
       rhoa = rhoa / (Tair * 287.058_dbl_kind)
 
       fieldname = 'rain'
@@ -2921,7 +2923,7 @@
         field_loc_center, field_type_scalar, &
         should_loop, metroms_ip_rain)
 
-      call interpolate_data (frain_data, frain)
+     ! call interpolate_data (frain_data, frain)
 
       if (trim(precip_units) == 'mm_per_month') then
          precip_factor = c12/(secday*days_per_year)
@@ -2945,7 +2947,7 @@
         field_loc_center, field_type_scalar, &
         should_loop, metroms_ip_humid)
 
-      call interpolate_data (Qa_data,   Qa)
+     ! call interpolate_data (Qa_data,   Qa)
 
       fieldname = 'cloud'
       call metroms_read_and_interpolate(fieldname, &
@@ -2954,7 +2956,7 @@
         field_loc_center, field_type_scalar, &
         should_loop, metroms_ip_cldf)
 
-      call interpolate_data (cldf_data, cldf)
+     ! call interpolate_data (cldf_data, cldf)
 
       !$OMP PARALLEL DO PRIVATE(iblk,i,j,ilo,ihi,jlo,jhi,this_block)
       do iblk = 1, nblocks
@@ -2987,8 +2989,8 @@
              field_loc, field_type, should_loop, old_ip)
        
 
-      use ice_calendar, only: tday, sec, yday
-      use ice_constants, only: secday, c1
+      use ice_calendar, only: tday
+      use ice_constants, only: secday
 
 
       integer (kind=int_kind), intent(in) :: &
@@ -3021,11 +3023,10 @@
         logical (kind=log_kind) :: &
            diag 
         real (kind=dbl_kind) :: &
-           now, tt
+           now
 
 
         now = metroms_offset + tday + mod(time,secday)/secday 
-        tt=secday*(yday - c1) + sec
 
         diag = .true.
         ip = metroms_get_index(dates, now,should_loop,old_ip) 
@@ -3039,9 +3040,6 @@
                  work(:,:,2,:), diag, &
                  field_loc, field_type)
         endif
-        !interpolattion constants 
-        c1intp = (dates(ip(2)) - tt) / (dates(ip(2)) - dates(ip(1)))
-        c2intp =  c1 - c1intp
         call interpolate_data(work, field)
         
       end subroutine metroms_read_and_interpolate
@@ -3049,6 +3047,9 @@
 !- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
       function metroms_get_index(dates,now,should_loop,old_ip) result(index_pair)
+
+      use ice_calendar, only: sec, yday
+      use ice_constants, only: c1, secday
 
       real (kind=dbl_kind), dimension(:) :: &
          dates
@@ -3063,6 +3064,9 @@
 
       integer (kind=int_kind) :: &
          i
+      real (kind=dbl_kind) :: &
+         dt, tt
+
       if (should_loop) then
         index_pair(1) = size(dates)
         index_pair(2) = 1
@@ -3083,6 +3087,25 @@
          index_pair(3) = 0
       else
          index_pair(3) = 1
+      endif
+
+
+      tt=secday*(yday - c1) + sec
+
+      !interpolattion constants
+      if (dates(index_pair(1)) == dates(index_pair(2))) then
+         c1intp = 0.5
+         c2intp = 0.5
+      elseif (dates(index_pair(1)) < dates(index_pair(2))) then
+         c1intp = (dates(index_pair(2)) - tt) / &
+                     (dates(index_pair(2)) - dates(index_pair(1)))
+         c2intp =  c1 - c1intp
+      else
+         !assume timesteps are constant so we can use the previous one.
+         ! ip(2) == first record and ip(1) == last record -> a mess :)
+         dt = dates(old_ip(2)) - dates(old_ip(1))
+         c1intp = (dates(index_pair(1))+dt - tt) / dt 
+         c2intp =  c1 - c1intp
       endif
 
       end function metroms_get_index
