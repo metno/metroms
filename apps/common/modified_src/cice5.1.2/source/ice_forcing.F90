@@ -175,8 +175,6 @@
            metroms_index_rain, &
            metroms_index_humid, &
            metroms_index_cldf
-      !     metroms_index_fsw, &
-      !     metroms_index_flw
 
       character (char_len_long), dimension (:), allocatable :: &
            metroms_fname_vwind, &
@@ -186,8 +184,6 @@
            metroms_fname_rain, &
            metroms_fname_humid, &
            metroms_fname_cldf
-      !     metroms_fname_fsw, &
-      !     metroms_fname_flw
         
       real (kind=dbl_kind), dimension(:), allocatable :: &
            metroms_dates_vwind, &
@@ -197,8 +193,6 @@
            metroms_dates_rain, &
            metroms_dates_humid, &
            metroms_dates_cldf
-       !    metroms_dates_fsw, &
-       !    metroms_dates_flw
 
 
 !=======================================================================
@@ -2767,13 +2761,19 @@
            daymo = daymo360
         endif
         ! add days for year y
-        if (y==y1) then
-           days = days + daymo(m1)-d1+1 !include first day
+        if (y==y1 .and. y==y2) then
+           if (m2-m1 > 0) then
+              days = sum(daymo(m1:m2-1)) - d1 + d2 !
+           else
+              days = d2-d1
+           endif
+        elseif (y==y1) then
+           days = daymo(m1)-d1+1 !include first day
            if (m1<12) then
               days = days + sum(daymo(m1+1:12))
            endif
         elseif (y==y2) then
-           days = days + d2 ! indlude last day
+           days = days + d2-1 ! exclude last day
            if (m2>1) then
               days = days + sum(daymo(1:m2-1))
            endif
@@ -2841,11 +2841,12 @@
       use ice_constants, only: p5, c1, c2, c4, c12, secday, &
         field_loc_center, field_type_vector, field_type_scalar, Tffresh
 
+      use ice_calendar, only: tday, yday
       use ice_grid, only: hm, tlon, tlat
       use ice_blocks, only: block, get_block
       use ice_domain, only: nblocks, blocks_ice
 
-      integer (kind=int_kind), dimension(2) :: ip !index_pair
+      integer (kind=int_kind), dimension(3) :: ip !index_pair
       character (char_len) :: &
         fieldname
 
@@ -2859,25 +2860,49 @@
       
       logical (kind=log_kind) :: should_loop
 
+
       real (kind=dbl_kind) :: &
-          precip_factor
-      
-! monthly data, rain, Uwind, Vwind, Tair, Qair
-!      midmonth = 15
-!      if (istep==1 .or. (mday==midmonth .and. sec==0)) readm = .true.
+          precip_factor, now, sec6hr
 
-! 12h data, rain
-!      recnum = 1 + 2*(int(yday)-1) + int(real(sec,kind=dbl_kind)/sec12hr)
-!      if (oldrecnum12 .ne. recnum) read12 = .true.
-!      oldrecnum12 = recnum
-
-! 6h data, Uwind, Vwind, Tair, Pair, Qair, cloud
-
-!      recnum = 1 + 4*int(yday-1)  + int(real(sec,kind=dbl_kind)/sec6hr)
-!      if (oldrecnum6 .ne. recnum) read6 = .true
-!      oldrecnum6 = recnum
-
+      sec6hr = secday/c4
       should_loop = .false.
+
+      fieldname = 'rain'
+
+     ! now = metroms_offset + tday + mod(time,secday)/secday
+      now = metroms_offset + time/secday
+      ip = metroms_get_index(metroms_dates_rain, now,should_loop,metroms_ip_rain)
+      if (my_task==master_task) then
+        print *, metroms_offset
+        print *, now
+        print *, 'year_init: ', year_init
+        print *, 'month: ', month
+        print *, 'mday: ', mday, mod(time,secday)/secday
+        print *, 1 + 4*int(yday-1)  + int(real(sec,kind=dbl_kind)/sec6hr)
+        print *, metroms_dates_rain(ip(1)), ip(1),ip(2),ip(3)
+      endif
+      if (ip(3) == 1) then ! ip(3) = read/don't read flag. Don't read if index hasn't been updated
+         metroms_ip_rain = ip
+         call metroms_read( &
+            metroms_fname_rain(ip(1)), metroms_index_rain(ip(1)), &
+            fieldname, fsnow, .false., &
+            field_loc_center, field_type_scalar)    
+      endif
+
+      if (trim(precip_units) == 'mm_per_month') then
+         precip_factor = c12/(secday*days_per_year)
+      elseif (trim(precip_units) == 'mm_per_day') then
+         precip_factor = c1/secday
+      elseif (trim(precip_units) == 'm_per_12hr') then
+         precip_factor = c1/43.2_dbl_kind
+      elseif (trim(precip_units) == 'mm_per_sec' .or. &
+           trim(precip_units) == 'mks') then
+         precip_factor = c1    ! mm/sec = kg/m^2 s
+      endif
+         !$OMP PARALLEL DO PRIVATE(iblk)
+      do iblk = 1, nblocks !
+         fsnow(:,:,iblk)=fsnow(:,:,iblk)*precip_factor
+      end do
 
       fieldname = 'Uwind'
       call metroms_read_and_interpolate(fieldname, &
@@ -2893,9 +2918,6 @@
         field_loc_center, field_type_vector, &
         should_loop, metroms_ip_vwind)
 
-     ! call interpolate_data (uatm_data, uatm)
-     ! call interpolate_data (vatm_data, vatm)
-
       fieldname = 'Tair'
       call metroms_read_and_interpolate(fieldname, &
         metroms_dates_tair,  metroms_index_tair, &
@@ -2903,7 +2925,6 @@
         field_loc_center, field_type_scalar, &
         should_loop, metroms_ip_tair)
 
-     ! call interpolate_data (Tair_data, Tair)
       Tair = Tair + Tffresh
 
       fieldname = 'Pair'
@@ -2913,32 +2934,7 @@
         field_loc_center, field_type_scalar, &
         should_loop, metroms_ip_rhoa)
 
-     ! call interpolate_data (rhoa_data, rhoa)
       rhoa = rhoa / (Tair * 287.058_dbl_kind)
-
-      fieldname = 'rain'
-      call metroms_read_and_interpolate(fieldname, &
-        metroms_dates_rain, metroms_index_rain, &
-        metroms_fname_rain, frain, frain_data, &
-        field_loc_center, field_type_scalar, &
-        should_loop, metroms_ip_rain)
-
-     ! call interpolate_data (frain_data, frain)
-
-      if (trim(precip_units) == 'mm_per_month') then
-         precip_factor = c12/(secday*days_per_year)
-      elseif (trim(precip_units) == 'mm_per_day') then
-         precip_factor = c1/secday
-      elseif (trim(precip_units) == 'm_per_12hr') then
-         precip_factor = c1/43.2_dbl_kind
-      elseif (trim(precip_units) == 'mm_per_sec' .or. &
-           trim(precip_units) == 'mks') then
-         precip_factor = c1    ! mm/sec = kg/m^2 s
-      endif
-         !$OMP PARALLEL DO PRIVATE(iblk)
-      do iblk = 1, nblocks ! FIXME frain, fsnow?!?!
-         fsnow(:,:,iblk)=frain(:,:,iblk)*precip_factor
-      end do
 
       fieldname = 'Qair'
       call metroms_read_and_interpolate(fieldname, &
@@ -2947,8 +2943,6 @@
         field_loc_center, field_type_scalar, &
         should_loop, metroms_ip_humid)
 
-     ! call interpolate_data (Qa_data,   Qa)
-
       fieldname = 'cloud'
       call metroms_read_and_interpolate(fieldname, &
         metroms_dates_cldf, metroms_index_cldf, &
@@ -2956,7 +2950,6 @@
         field_loc_center, field_type_scalar, &
         should_loop, metroms_ip_cldf)
 
-     ! call interpolate_data (cldf_data, cldf)
 
       !$OMP PARALLEL DO PRIVATE(iblk,i,j,ilo,ihi,jlo,jhi,this_block)
       do iblk = 1, nblocks
@@ -2990,7 +2983,7 @@
        
 
       use ice_calendar, only: tday
-      use ice_constants, only: secday
+      use ice_constants, only: secday,c1
 
 
       integer (kind=int_kind), intent(in) :: &
@@ -3026,11 +3019,13 @@
            now
 
 
-        now = metroms_offset + tday + mod(time,secday)/secday 
-
+      !tt=secday*(yday - c1) + sec
+        !now = metroms_offset + tday-c1 + mod(time,secday)/secday 
+        now = metroms_offset + time/secday
         diag = .true.
         ip = metroms_get_index(dates, now,should_loop,old_ip) 
-        
+       
+ 
         if (ip(3) == 1) then ! ip(3) = read/don't read flag. Don't read if index hasn't been updated
            old_ip = ip
            call metroms_read(paths(ip(1)), ind(ip(1)), fieldname, &
@@ -3075,7 +3070,7 @@
         index_pair(2) = size(dates)
       endif
       do i=1,size(dates)
-         if (dates(i) < now) then
+         if (dates(i) <= now) then
             index_pair(1) = i !keep updating as long as 'now' is not reached
          elseif (dates(i) > now) then
             index_pair(2) = i
@@ -3090,21 +3085,23 @@
       endif
 
 
-      tt=secday*(yday - c1) + sec
+      !tt=secday*(yday - c1) + sec
 
       !interpolattion constants
       if (dates(index_pair(1)) == dates(index_pair(2))) then
          c1intp = 0.5
          c2intp = 0.5
       elseif (dates(index_pair(1)) < dates(index_pair(2))) then
-         c1intp = (dates(index_pair(2)) - tt) / &
+         c1intp = (dates(index_pair(2)) - now) / &
                      (dates(index_pair(2)) - dates(index_pair(1)))
          c2intp =  c1 - c1intp
       else
+         print *, 'Looping forcing data is not correctly implemented'
+         ! FIXME this is not correct at the beginning of a time series
          !assume timesteps are constant so we can use the previous one.
          ! ip(2) == first record and ip(1) == last record -> a mess :)
          dt = dates(old_ip(2)) - dates(old_ip(1))
-         c1intp = (dates(index_pair(1))+dt - tt) / dt 
+         c1intp = (dates(index_pair(1))+dt - now) / dt 
          c2intp =  c1 - c1intp
       endif
 
