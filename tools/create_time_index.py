@@ -71,13 +71,11 @@ if __name__ == "__main__":
 	timeslots = nc.variables['time'][:]
         for v in vars:
 	    timeslots_,inds,ff = lists[v]
-            print type(timeslots)
-            timeslots.shape
             timeslots_ = np.hstack((timeslots_,timeslots))
             inds = inds + range(1,len(timeslots)+1)
             fs = [path+f]*len(timeslots) # list with repeated elements
             ff = ff+fs
-            lists[v] = (timeslots,inds,ff)
+            lists[v] = (timeslots_,inds,ff)
         nc.close()
     print("Writing files")
     write_files(lists)
