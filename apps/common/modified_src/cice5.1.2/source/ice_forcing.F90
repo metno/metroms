@@ -2852,57 +2852,75 @@
 
       integer (kind=int_kind) :: &
           iblk        , & ! block index
-          ilo,ihi,jlo,jhi ! beginning and end of physical domain
+          ilo,ihi,jlo,jhi, & ! beginning and end of physical domain
+          recnum, maxrec
           
       type (block) :: &
          this_block           ! block information for current block
 
-      
-      logical (kind=log_kind) :: should_loop
-
+      logical (kind=log_kind) :: should_loop, read12
 
       real (kind=dbl_kind) :: &
-          precip_factor, now, sec6hr
+          precip_factor, now, sec6hr, &
+          sec12hr
+
 
       sec6hr = secday/c4
       should_loop = .false.
+
+
+      sec12hr = secday/c2       ! seconds in 12 hours
+      maxrec=2*dayyr             ! Takes acount of leap-years 
+      recnum = 1 + 2*(int(yday)-1) + int(real(sec,kind=dbl_kind)/sec12hr)
+      read12 = .false.
+      if (oldrecnum12 .ne. recnum) read12 = .true.
+      oldrecnum12 = recnum
 
       fieldname = 'rain'
 
      ! now = metroms_offset + tday + mod(time,secday)/secday
       now = metroms_offset + time/secday
       ip = metroms_get_index(metroms_dates_rain, now,should_loop,metroms_ip_rain)
-      if (my_task==master_task) then
-        print *, metroms_offset
-        print *, now
-        print *, 'year_init: ', year_init
-        print *, 'month: ', month
-        print *, 'mday: ', mday, mod(time,secday)/secday
-        print *, 1 + 4*int(yday-1)  + int(real(sec,kind=dbl_kind)/sec6hr)
-        print *, metroms_dates_rain(ip(1)), ip(1),ip(2),ip(3)
-      endif
+!      if (my_task==master_task) then
+!        print *, metroms_offset
+!        print *, now
+!        print *, 'year_init: ', year_init
+!        print *, 'month: ', month
+!        print *, 'mday: ', mday, mod(time,secday)/secday
+!        print *, 1 + 4*int(yday-1)  + int(real(sec,kind=dbl_kind)/sec6hr)
+!        print *, metroms_dates_rain(ip(1)), ip(1),ip(2),ip(3)
+!        print *, 'interp constants', c1intp,c2intp
+!      endif
+!      if (ip(3) == 1 .NEQV. read12) then
+!         print*, "TIMEKEEPING MISMATCH!!"
+!      endif
       if (ip(3) == 1) then ! ip(3) = read/don't read flag. Don't read if index hasn't been updated
          metroms_ip_rain = ip
          call metroms_read( &
-            metroms_fname_rain(ip(1)), metroms_index_rain(ip(1)), &
+            metroms_fname_rain(ip(2)), metroms_index_rain(ip(2)), &
             fieldname, fsnow, .false., &
             field_loc_center, field_type_scalar)    
+
+         if (trim(precip_units) == 'mm_per_month') then
+            precip_factor = c12/(secday*days_per_year)
+         elseif (trim(precip_units) == 'mm_per_day') then
+            precip_factor = c1/secday
+         elseif (trim(precip_units) == 'm_per_12hr') then
+            precip_factor = c1/43.2_dbl_kind
+         elseif (trim(precip_units) == 'mm_per_sec' .or. &
+              trim(precip_units) == 'mks') then
+            precip_factor = c1    ! mm/sec = kg/m^2 s
+         endif
+         do iblk = 1, nblocks !
+            fsnow(:,:,iblk)=fsnow(:,:,iblk)*precip_factor
+         end do
+
+      if (my_task == master_task) then
+        write(507,*) 'Max,min fsnow: ', maxval(fsnow),minval(fsnow)
+        write(507,*) 'ip(1): ', metroms_index_rain(ip(1))
       endif
 
-      if (trim(precip_units) == 'mm_per_month') then
-         precip_factor = c12/(secday*days_per_year)
-      elseif (trim(precip_units) == 'mm_per_day') then
-         precip_factor = c1/secday
-      elseif (trim(precip_units) == 'm_per_12hr') then
-         precip_factor = c1/43.2_dbl_kind
-      elseif (trim(precip_units) == 'mm_per_sec' .or. &
-           trim(precip_units) == 'mks') then
-         precip_factor = c1    ! mm/sec = kg/m^2 s
       endif
-         !$OMP PARALLEL DO PRIVATE(iblk)
-      do iblk = 1, nblocks !
-         fsnow(:,:,iblk)=fsnow(:,:,iblk)*precip_factor
-      end do
 
       fieldname = 'Uwind'
       call metroms_read_and_interpolate(fieldname, &
@@ -3088,21 +3106,29 @@
       !tt=secday*(yday - c1) + sec
 
       !interpolattion constants
+      ! this version has reduced accuracy by a factor 10 because we use seconds since
+      ! some year, not seconds in this year. Don't think it matters
+      ! though... (i.e., numbers are 10x bigger, difference is still the
+      ! same -> less precision) (unless 'sec' already has lost some
+      ! precision)
       if (dates(index_pair(1)) == dates(index_pair(2))) then
          c1intp = 0.5
          c2intp = 0.5
       elseif (dates(index_pair(1)) < dates(index_pair(2))) then
          c1intp = (dates(index_pair(2)) - now) / &
                      (dates(index_pair(2)) - dates(index_pair(1)))
-         c2intp =  c1 - c1intp
+         c2intp = c1 - c1intp
       else
          print *, 'Looping forcing data is not correctly implemented'
-         ! FIXME this is not correct at the beginning of a time series
-         !assume timesteps are constant so we can use the previous one.
-         ! ip(2) == first record and ip(1) == last record -> a mess :)
-         dt = dates(old_ip(2)) - dates(old_ip(1))
-         c1intp = (dates(index_pair(1))+dt - now) / dt 
-         c2intp =  c1 - c1intp
+         !assume timesteps are constant so we can use any pair.
+         dt = dates(2) - dates(1) ! assume constant dt
+         if (now>dates(index_pair(1)) then ! at beginning, ip(1) = last record
+            ! this code path is never taken, right?
+            c1intp = (dates(index_pair(2))-dt - now) / dt 
+            c2intp = c1 - c1intp
+         else
+            c1int = (dates(index_pair(1))+dt - now) / dt
+            c2int = c1 - c1intp
       endif
 
       end function metroms_get_index
@@ -3137,12 +3163,17 @@
       ! locals
       integer (kind=int_kind) :: &
          fid                  ! file id for netCDF routines
+
+!      real (kind=dbl_kind), dimension(nx_block,ny_block,2,max_blocks) :: &
+!          wrk
+
       call ice_open_nc(data_file, fid)
       call ice_read_nc(fid, nrec, varname, work, diag, &
                    field_loc, field_type)
-      if (my_task==master_task) then !whats the point?!
+!      if (my_task==master_task) then !whats the point?!
         call ice_close_nc(fid)
-      endif
+!      endif
+
       end subroutine metroms_read
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -3395,6 +3426,10 @@
             fsnow(:,:,iblk)=fsnow(:,:,iblk)*precip_factor
          end do
 
+      if (my_task == master_task) then
+        write(507,*) 'Max,min fsnow: ', maxval(fsnow),minval(fsnow)
+        write(507,*) 'recnum: ', recnum
+      endif
       end if
 
     !-------------------------------------------------------------------
