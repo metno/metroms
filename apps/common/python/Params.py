@@ -85,6 +85,7 @@ class Params(object):
             ['TIDEREF',str((start_date-self.TIMEREF).total_seconds()/86400)],
             ['TIMEREF',self.TIMEREF.strftime("%Y%m%d.00")],
             ['OBCFAKTOR',"120.0"],
+            ['NUDGZONEWIDTH',"15"],
             ['GRDFILE',GlobalParams.COMMONPATH+"/grid/A20_grd_openBering.nc"],
             ['RUNDIR',self.RUNPATH],
             ['TIDEDIR',self.RUNPATH],
@@ -154,6 +155,7 @@ class Params(object):
             ['TIDEREF',str((start_date-self.TIMEREF).total_seconds()/86400)], #Hardcoded, but not really used in 2D stormsurge
             ['TIMEREF',self.TIMEREF.strftime("%Y%m%d.00")],
             ['OBCFAKTOR',"1"],
+            ['NUDGZONEWIDTH',"15"],
             ['GRDFILE',GlobalParams.COMMONPATH+"/grid/nordic-4km_grd.nc"],
             ['RUNDIR',self.RUNPATH],
             ['TIDEDIR',self.RUNPATH],

@@ -270,7 +270,7 @@
 
        TNUDG == 5.0d0 5.0d0                ! days
        ZNUDG == 0.0d0                      ! days
-      M2NUDG == 0.0d0                      ! days
+      M2NUDG == 5.0d0                      ! days
       M3NUDG == 5.0d0                      ! days
 
 ! Factor between passive (outflow) and active (inflow) open boundary
@@ -278,6 +278,10 @@
 ! than on outflow (recommended).
 
       OBCFAC == OBCFAKTORd0                    ! nondimensional
+
+! Width of nudgingzone.
+      
+      IWRK == NUDGZONEWIDTH                         ! no. of gridpoints
 
 ! Linear equation of State parameters:
 
