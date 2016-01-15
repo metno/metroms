@@ -1077,7 +1077,7 @@
         integer, parameter :: inorth = 4
 
         real(r8), allocatable :: obcfac(:)
-        real(r8), allocatable :: iwrknudg(:)
+        real(r8), allocatable :: iwrknudg
         real(r8), allocatable :: FSobc_in(:,:)
         real(r8), allocatable :: FSobc_out(:,:)
         real(r8), allocatable :: M2obc_in(:,:)
@@ -1892,7 +1892,7 @@
 #endif
 
       allocate ( obcfac(Ngrids) )
-      allocate ( iwrknudg(Ngrids) )
+      allocate ( iwrknudg )
       allocate ( FSobc_in(Ngrids,4) )
       allocate ( FSobc_out(Ngrids,4) )
       allocate ( M2obc_in(Ngrids,4) )

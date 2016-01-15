@@ -3296,7 +3296,7 @@
           WRITE (out,210) obcfac(ng), 'obcfac',                         &
      &          'Factor between passive and active',                    &
      &          'open boundary conditions.'
-          WRITE (out,210) iwrknudg(ng), 'iwrknudg',                     &
+          WRITE (out,210) iwrknudg, 'iwrknudg',                     &
      &          'Width of the nudgingzone around the domain.'
           WRITE (out,170) VolCons(1,ng), 'VolCons(1)',                  &
      &          'NLM western  edge boundary volume conservation.'
