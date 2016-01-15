@@ -1,0 +1,11 @@
+Documentation on updated rivers from Mitya:
+
+Vilje:
+/work/mitya/Forcing/Arctic-4km/a4_rivers_mod.nc
+
+Web:
+https://source.uit.no/mitya/results_sharing/wikis/a20_rivers.nc
+https://source.uit.no/mitya/results_sharing/wikis/a4_rivers.nc
+https://source.uit.no/mitya/results_sharing/wikis/a20
+
+In may-june (2015) I run a4 with updated rivers, seems the file is correct.

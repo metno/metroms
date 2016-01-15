@@ -183,13 +183,13 @@
 
 ! Harmonic/biharmonic horizontal diffusion of tracer: [1:NAT+NPT,Ngrids].
 
-        TNU2 == 0.0d0  0.0d0                    ! m2/s
-        TNU4 == 2*0.5d5                         ! m4/s
+        TNU2 == 2*3.5d2                         ! m2/s
+        TNU4 == 2*10.0d10                         ! m4/s
 
 ! Harmononic/biharmonic, horizontal viscosity coefficient: [Ngrids].
 
-       VISC2 == 0.0d0                           ! m2/s
-       VISC4 == 0.5d5                         ! m4/s
+       VISC2 == 0.5d1                           ! m2/s
+       VISC4 == 4.0d10                         ! m4/s
 
 ! Vertical mixing coefficients for active tracers: [1:NAT+NPT,Ngrids]
 
@@ -197,7 +197,7 @@
 
 ! Vertical mixing coefficient for momentum: [Ngrids].
 
-     AKV_BAK == 1.0d-5                          ! m2/s
+     AKV_BAK == 5.0d-6                          ! m2/s
 
 ! Turbulent closure parameters.
 
