@@ -1,8 +1,15 @@
 #!/bin/bash
 
+# if [ $# -le 1 ]
+# then
+#   echo "Usage: $0 [vilje|metlocal]"
+#   echo "Choose architecture..."
+#   exit
+# fi
 
-#export METROMS_MYHOST=metlocal
-export METROMS_MYHOST=vilje
+export METROMS_MYHOST=metlocal
+#export METROMS_MYHOST=vilje
+#export METROMS_MYHOST=$1
 
 #export METROMS_MYARCH=Linux
 
