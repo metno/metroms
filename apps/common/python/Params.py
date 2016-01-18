@@ -41,8 +41,6 @@ class Params(object):
             self.CICEKEYWORDFILE=self.CICERUNDIR + "/ice_in"
             self.FELT_CLMFILE=self.RUNPATH+"/FOAM.felt"
             self.DELTAT=1200 
-#            self.DELTAT=600 
-#            self.DELTAT=300 
             self.CICEDELTAT=3600
             #self.ROMSINIFILE=self.RUNPATH+"/"+INIFILE
             # Find restart-time of CICE:
@@ -116,6 +114,83 @@ class Params(object):
             ['CICEREST',".true."],
             ['CICERSTTIME',cicerst_truefalse],
             #['<cicedir>',GlobalParams.COMMONPATH + "/../../../tmproms/cice"]
+            ]
+            ########################################################################
+            ########################################################################
+        elif app=='arctic-4km':
+            ########################################################################
+            # Name of roms.in keyword-file:
+            ########################################################################
+            self.RUNPATH=GlobalParams.RUNDIR+"/arctic-4km"
+            self.ROMSINFILE=self.RUNPATH+"/roms.in"
+            self.CICERUNDIR=self.RUNPATH+'/cice/rundir'
+            self.CICEINFILE=self.RUNPATH + "/ice_in"
+            self.CICEKEYWORDFILE=self.CICERUNDIR + "/ice_in"
+            self.FELT_CLMFILE=self.RUNPATH+"/FOAM.felt"
+            self.DELTAT=300 
+            self.CICEDELTAT=3600
+            # Find restart-time of CICE:
+            cice_start_step = (start_date-datetime(start_date.year,01,01)).total_seconds()/self.CICEDELTAT
+            if restart == True:
+                f = open(self.CICERUNDIR+'/restart/ice.restart_file', 'r')
+                cice_restartfile = f.readline().strip()
+                cice_rst_time = netCDF4.Dataset(cice_restartfile).istep1
+                cicerst_truefalse = ".true."
+            else:
+                cice_rst_time = cice_start_step
+                cicerst_truefalse = ".false."
+            ########################################################################
+            # List of keywords:
+            ########################################################################
+            self.KEYWORDLIST=[
+            ['APPTITLE',"ROMS 3.6 - Arctic-4km - Coupled ROMS-CICE"],
+            ['MYAPPCPPNAME',"ARCTIC4KM"],
+            ['VARFILE',GlobalParams.COMMONPATH+"/include/varinfo.dat"],
+            ['XPOINTS',"1600"],  #Could read from grd-file?
+            ['YPOINTS',"1200"],  #Could read from grd-file?
+            ['NLEVELS',"42"],  #Could read from grd-file?
+            ['XCPU',str(self.XCPU)],
+            ['YCPU',str(self.YCPU)],
+            ['TSTEPS',str(self.FCLEN/self.DELTAT)],
+            ['DELTAT',str(self.DELTAT)],
+            ['RATIO',"20"], #['RATIO',"30"],
+            ['IRESTART',str(self.NRREC)],
+            ['RSTSTEP',str(24*3600/int(self.DELTAT))],
+            ['STASTEP',str(1*3600/int(self.DELTAT))],
+            ['INFOSTEP',str(1*3600/int(self.DELTAT))],
+            ['HISSTEPP',str(1*3600/int(self.DELTAT))],
+            ['DEFHISSTEP',str(720*3600/int(self.DELTAT))],  #if 0; all output in one his-file
+            ['AVGSTEPP',str(24*3600/int(self.DELTAT))],
+            ['STARTAVG',"0"],
+            ['DEFAVGSTEP',str(720*3600/int(self.DELTAT))],  #if 0; all output in one avg-file
+            ['STARTTIME',str((start_date-self.TIMEREF).total_seconds()/86400)],
+            ['TIDEREF',str((start_date-self.TIMEREF).total_seconds()/86400)],
+            ['TIMEREF',self.TIMEREF.strftime("%Y%m%d.00")],
+            ['OBCFAKTOR',"1.0"],
+            ['NUDGZONEWIDTH',"15"],
+            ['GRDFILE',GlobalParams.COMMONPATH+"/grid/arctic4km_grd.nc"],
+            ['RUNDIR',self.RUNPATH],
+            ['TIDEDIR',self.RUNPATH],
+            ['ATMDIR',self.RUNPATH],
+            ['RIVERFILE',GlobalParams.COMMONPATH+"/rivers/newA4_rivers_mitya.nc"],
+            ['FORCEFILES',"4"], # The files should be specified here as well
+            ['ROMSINFILE', self.ROMSINFILE ],
+            ['CICEINFILE', self.CICEINFILE ],
+            ['NUMROMSCORES',str(int(self.XCPU)*int(self.YCPU))],
+            ['NUMCICECORES',str(int(self.CICECPU))]
+            ]
+            ########################################################################
+            # List of CICE keywords:
+            ########################################################################
+            self.CICEKEYWORDLIST=[
+            ['CICEYEARSTART',start_date.strftime("%Y")],
+            ['CICESTARTSTEP',str(cice_start_step)],  #number of hours after 00:00 Jan 1st
+            ['CICEDELTAT',str(self.CICEDELTAT)],
+            ['CICENPT',str((self.FCLEN/self.CICEDELTAT)-(cice_rst_time - cice_start_step))],   # minus diff restart og start_date
+            ['CICERUNTYPE',"'continue'"],
+            ['CICEIC',"'default'"],
+            ['CICEREST',".true."],
+            ['CICERSTTIME',cicerst_truefalse],
             ]
             ########################################################################
             ########################################################################
