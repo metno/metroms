@@ -39,6 +39,7 @@ GRID=$(echo $GRID | tr [:upper:] [:lower:])
 
 case $NRES in 
     'arctic-20km') GRID=322x242;;
+    'arctic-4km') GRID=1602x1202;;
     'col') GRID=5x5;;
     'gx3') GRID=100x116;;
 #    'gx1') GRID=320x384;;
@@ -180,7 +181,7 @@ cd $SRCDIR/source
 
 cd $EXEDIR
 
-if [ $RES == 'arctic-20km' ]; then
+if [ $RES == 'arctic-20km' ] || [ $RES == 'arctic-4km' ]; then
 #    [ -e cice.grid.nc ] || cp $SRCDIR/input_templates/$RES/cice_$GRID.grid.nc cice.grid.nc
 #    [ -e cice.kmt.nc ] || cp $SRCDIR/input_templates/$RES/cice_$GRID.kmt.nc cice.kmt.nc
     [ -e cice.grid.nc ] || cp $SRCDIR/input_templates/$RES/cice.grid.nc cice.grid.nc
@@ -194,7 +195,7 @@ fi
 
 cd $RSTDIR
 
-if [ ! $RES == 'arctic-20km' ];   then
+if [ ! $RES == 'arctic-20km' ] || [ $RES == 'arctic-4km' ];   then
     cp $SRCDIR/input_templates/$RES/iced_$RES* .
     [ -e ice.restart_file ] || cp $SRCDIR/input_templates/$RES/ice.restart_file .
 fi
