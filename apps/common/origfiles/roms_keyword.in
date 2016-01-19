@@ -283,6 +283,11 @@
       
       IWRK == NUDGZONEWIDTH                         ! no. of gridpoints
 
+! Logical switches (TRUE/FALSE) to specify which variables to process for
+! tracers climatology: [1:NAT+NPT,Ngrids]. See glossary below for details.
+
+  LtracerCLM == T T                        ! temperature, salinity, inert
+
 ! Linear equation of State parameters:
 
           R0 == 1027.0d0                   ! kg/m3
