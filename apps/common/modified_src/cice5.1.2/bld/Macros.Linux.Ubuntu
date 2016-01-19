@@ -21,7 +21,7 @@ FREEFLAGS  :=
 # flushed to zero: -march=pentium4 -msse2 -mfpmath=sse
 #FFLAGS     := -O2 -w -march=pentium4 -msse2 -mfpmath=sse -fconvert=big-endian
 #FFLAGS     := -O2 -w -msse2 -mfpmath=sse -fconvert=big-endian
-FFLAGS     := -O2 -w -fconvert=big-endian
+FFLAGS     := -O2 -w -fconvert=big-endian -mcmodel=medium
 MOD_SUFFIX := mod
 LD         := $(FC)
 LDFLAGS    := $(FFLAGS) -v

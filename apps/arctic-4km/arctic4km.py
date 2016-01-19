@@ -33,7 +33,7 @@ print GlobalParams.RUNDIR
 print GlobalParams.COMMONPATH
 
 modelrun.preprocess()
-modelrun.run_roms(Constants.MPI,Constants.NODEBUG,Constants.MET64) #24h hindcast
-#modelrun.run_roms(Constants.DRY,Constants.NODEBUG,Constants.MET64) #24h hindcast
+#modelrun.run_roms(Constants.MPI,Constants.NODEBUG,Constants.MET64) #24h hindcast
+modelrun.run_roms(Constants.DRY,Constants.NODEBUG,Constants.MET64) #24h hindcast
 modelrun.postprocess()
 
