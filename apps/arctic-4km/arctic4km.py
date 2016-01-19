@@ -14,10 +14,10 @@ from ModelRun import *
 ########################################################################
 ########################################################################
 # Set cpus for ROMS:
-xcpu=3
-ycpu=2
+xcpu=16
+ycpu=12
 # Set cpus for CICE:
-icecpu=2
+icecpu=16
 # Choose a predefined ROMS-application:
 app='arctic-4km' # Arctic-4km
 
