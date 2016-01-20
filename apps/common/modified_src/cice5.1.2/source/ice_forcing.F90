@@ -3137,7 +3137,7 @@
          print *, 'Looping forcing data is not correctly implemented'
          !assume timesteps are constant so we can use any pair.
          dt = dates(2) - dates(1) ! assume constant dt
-         if (now>dates(index_pair(1))) then ! at beginning, ip(1) = last record
+         if (now > dates(index_pair(1))) then ! at beginning, ip(1) = last record
             ! this code path is never taken, right?
             c1intp = (dates(index_pair(2))-dt - now) / dt 
             c2intp = c1 - c1intp
