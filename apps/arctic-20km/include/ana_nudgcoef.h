@@ -183,9 +183,9 @@
 
 #elif defined OBC_NUDGING
 !
-      cff1=1.0_r8/(5.0_r8*86400.0_r8)
+      cff1=1.0_r8
       cff2=0.0_r8
-      Iwrk=15
+      Iwrk=iwrknudg
       DO j=JstrR,JendR
         DO i=IstrR,IendR
           wrk(i,j)=cff2
@@ -223,15 +223,15 @@
 #  ifdef TCLM_NUDGING
       DO j=JstrR,JendR
         DO i=IstrR,IendR
-          CLIMA(ng)%Tnudgcof(i,j,itemp)=wrk(i,j)
-          CLIMA(ng)%Tnudgcof(i,j,isalt)=wrk(i,j)
+          CLIMA(ng)%Tnudgcof(i,j,itemp)=wrk(i,j)*Tnudg(itemp,ng)
+          CLIMA(ng)%Tnudgcof(i,j,isalt)=wrk(i,j)*Tnudg(isalt,ng)
         END DO
       END DO
 #  endif
 #  ifdef M3CLM_NUDGING
       DO j=JstrR,JendR
         DO i=IstrR,IendR
-	CLIMA(ng)%M3nudgcof(i,j)=wrk(i,j)
+	        CLIMA(ng)%M3nudgcof(i,j)=wrk(i,j)*M3nudg(ng)
         END DO
       END DO
 #  endif

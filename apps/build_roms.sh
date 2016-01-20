@@ -63,7 +63,8 @@ if [ "${METROMS_MYHOST}" == "metlocal" ]; then
 elif [ "${METROMS_MYHOST}" == "vilje" ]; then
   export FORT=ifort
 else
-  echo " Computer not defined set environment variable METROMS_MYHOST= metlocal, vilje .."
+  echo " Computer not defined set environment variable METROMS_MYHOST= metlocal, vilje ... "
+  echo " Did you perhaps forgot 'source ./myenv.bash' ? "
   exit
 fi
 
