@@ -2915,11 +2915,6 @@
             fsnow(:,:,iblk)=fsnow(:,:,iblk)*precip_factor
          end do
 
-      if (my_task == master_task) then
-        write(507,*) 'Max,min fsnow: ', maxval(fsnow),minval(fsnow)
-        write(507,*) 'ip(1): ', metroms_index_rain(ip(1))
-      endif
-
       endif
 
       fieldname = 'Uwind'
@@ -2939,7 +2934,7 @@
       fieldname = 'Tair'
       call metroms_read_and_interpolate(fieldname, &
         metroms_dates_tair,  metroms_index_tair, &
-        metroms_fname_tair, tair, tair_data,  &
+        metroms_fname_tair, Tair, Tair_data,  &
         field_loc_center, field_type_scalar, &
         should_loop, metroms_ip_tair)
 
@@ -3024,11 +3019,11 @@
            field
         integer (kind=int_kind), dimension(3), intent(inout) :: &
            old_ip
-        
-        ! local vars
         real (kind=dbl_kind), dimension(nx_block,ny_block,2,max_blocks), &
            intent(inout) :: &
            work
+
+        ! local vars
         integer (kind=int_kind), dimension(3) :: &
            ip ! index_pair + read flag
         logical (kind=log_kind) :: &
@@ -3061,8 +3056,31 @@
 
       function metroms_get_index(dates,now,should_loop,old_ip) result(index_pair)
 
-      use ice_calendar, only: sec, yday
-      use ice_constants, only: c1, secday
+!      use ice_calendar, only: sec, yday
+      use ice_constants, only: c1
+
+
+!== 
+
+      use ice_constants, only:  p5, c4, secday
+
+      integer (kind=int_kind) :: &
+          recnum  
+ 
+      real (kind=dbl_kind) :: &
+          sec6hr                    ! seconds in data interval
+
+      ! local variables
+
+      real (kind=dbl_kind) :: &
+          secyr            ! seconds in a year
+
+      real (kind=dbl_kind) :: &
+          tt           , & ! seconds elapsed in current year
+          t1, t2       , & ! seconds elapsed at data points
+          rcnum, &          ! recnum => dbl_kind
+          c1intp_, c2intp_
+!==
 
       real (kind=dbl_kind), dimension(:) :: &
          dates
@@ -3078,7 +3096,7 @@
       integer (kind=int_kind) :: &
          i
       real (kind=dbl_kind) :: &
-         dt, tt
+         dt
 
       if (should_loop) then
         index_pair(1) = size(dates)
@@ -3102,10 +3120,7 @@
          index_pair(3) = 1
       endif
 
-
-      !tt=secday*(yday - c1) + sec
-
-      !interpolattion constants
+      !interpolation constants
       ! this version has reduced accuracy by a factor 10 because we use seconds since
       ! some year, not seconds in this year. Don't think it matters
       ! though... (i.e., numbers are 10x bigger, difference is still the
@@ -3122,14 +3137,38 @@
          print *, 'Looping forcing data is not correctly implemented'
          !assume timesteps are constant so we can use any pair.
          dt = dates(2) - dates(1) ! assume constant dt
-         if (now>dates(index_pair(1)) then ! at beginning, ip(1) = last record
+         if (now>dates(index_pair(1))) then ! at beginning, ip(1) = last record
             ! this code path is never taken, right?
             c1intp = (dates(index_pair(2))-dt - now) / dt 
             c2intp = c1 - c1intp
          else
-            c1int = (dates(index_pair(1))+dt - now) / dt
-            c2int = c1 - c1intp
+            c1intp = (dates(index_pair(1))+dt - now) / dt
+            c2intp = c1 - c1intp
+         endif
       endif
+
+
+!      sec6hr = secday/c4        ! seconds in 6 hours
+
+!      maxrec=4*nint(dayyr)          !  Takes acount of leap-years
+!      recnum = 1 + 4*int(yday-1)  + int(real(sec,kind=dbl_kind)/sec6hr)
+
+!      tt=secday*(yday - c1) + sec
+
+      ! Find neighboring times
+!      rcnum = real(recnum,kind=dbl_kind)
+!      t2 = rcnum*sec6hr
+!      t1 = t2 - sec6hr            !  - 1 interval
+
+      ! Compute coefficients
+!      c1intp_ =  abs((t2 - tt) / (t2 - t1))
+!      c2intp_ =  c1 - c1intp
+      
+      
+!      write(507,*) 'c1-c1_, c1, now, my task: ', c1intp-c1intp_, c1intp, now, my_task
+
+!      c1intp = c1intp_
+!      c2intp = c2intp_
 
       end function metroms_get_index
 
@@ -3170,9 +3209,7 @@
       call ice_open_nc(data_file, fid)
       call ice_read_nc(fid, nrec, varname, work, diag, &
                    field_loc, field_type)
-!      if (my_task==master_task) then !whats the point?!
-        call ice_close_nc(fid)
-!      endif
+      call ice_close_nc(fid)
 
       end subroutine metroms_read
 
@@ -3426,10 +3463,6 @@
             fsnow(:,:,iblk)=fsnow(:,:,iblk)*precip_factor
          end do
 
-      if (my_task == master_task) then
-        write(507,*) 'Max,min fsnow: ', maxval(fsnow),minval(fsnow)
-        write(507,*) 'recnum: ', recnum
-      endif
       end if
 
     !-------------------------------------------------------------------

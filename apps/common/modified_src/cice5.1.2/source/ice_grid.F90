@@ -1187,10 +1187,20 @@
 ! Land mask record number and field is:
 ! (1) KMT.
 !
+! These really doesn't matter and isn't correct anyways.
+! There's an offset of 4 due to xi_t, eta_t, xi_u and eta_u
+! that comes before in the file /seb
 ! Grid record number, field and units are: 
 ! (1) ULAT   (degrees)    
 ! (2) ULON   (degrees)    
-! (3) ANGLE  (radians)    
+! (3) ANGLE  (radians)
+! (4) HTN    (m)
+! (5) HTE    (m)
+! (6) dxt    (m)
+! (7) dyt    (m)
+! (8) dxu    (m)
+! (9) dyu    (m)
+!    
 !
 ! author: Keguang Wang, met.no, 14/10/2014
 
@@ -1278,11 +1288,42 @@
       call scatter_global(ANGLE, work_g1, master_task, distrb_info, &
                           field_loc_NEcorner, field_type_angle)
 
-      work_g1 = dxrect
-      call primary_grid_lengths_HTN(work_g1)  ! dxu, dxt
+      fieldname='HTN'
+      call ice_read_global_nc(fid_grid,4,fieldname,work_g1,diag) ! ANGLE    
+      call scatter_global(HTN, work_g1, master_task, distrb_info, &
+                          field_loc_NEcorner, field_type_angle)
 
-      work_g1 = dyrect
-      call primary_grid_lengths_HTE(work_g1)  ! dyu, dyt
+
+      fieldname='HTE'
+      call ice_read_global_nc(fid_grid,4,fieldname,work_g1,diag) ! ANGLE    
+      call scatter_global(HTE, work_g1, master_task, distrb_info, &
+                          field_loc_NEcorner, field_type_angle)
+
+      fieldname='dxt'
+      call ice_read_global_nc(fid_grid,5,fieldname,work_g1,diag) ! ANGLE    
+      call scatter_global(dxt, work_g1, master_task, distrb_info, &
+                          field_loc_NEcorner, field_type_angle)
+
+      fieldname='dyt'
+      call ice_read_global_nc(fid_grid,6,fieldname,work_g1,diag) ! ANGLE    
+      call scatter_global(dyt, work_g1, master_task, distrb_info, &
+                          field_loc_NEcorner, field_type_angle)
+
+      fieldname='dxu'
+      call ice_read_global_nc(fid_grid,7,fieldname,work_g1,diag) ! ANGLE    
+      call scatter_global(dxu, work_g1, master_task, distrb_info, &
+                          field_loc_NEcorner, field_type_angle)
+
+      fieldname='dyu'
+      call ice_read_global_nc(fid_grid,8,fieldname,work_g1,diag) ! ANGLE    
+      call scatter_global(dyu, work_g1, master_task, distrb_info, &
+                          field_loc_NEcorner, field_type_angle)
+
+!      work_g1 = dxrect
+!      call primary_grid_lengths_HTN(work_g1)  ! dxu, dxt
+
+!      work_g1 = dyrect
+!      call primary_grid_lengths_HTE(work_g1)  ! dyu, dyt
 
       ! fix units
       ULAT   = ULAT   / rad_to_deg
