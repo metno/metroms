@@ -20,7 +20,7 @@ fi
 mkdir -p ${tup}/tmproms
 cd ${tup}/tmproms
 # Unpack standard source files
-tar -xf ${metroms_base}/static_libs/mct-2.8.tar.gz
+#tar -xf ${metroms_base}/static_libs/mct-2.8.tar.gz
 export MCT_DIR=${tup}/tmproms/MCT
 cd $MCT_DIR
 
