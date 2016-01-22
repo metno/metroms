@@ -14,8 +14,8 @@ from ModelRun import *
 ########################################################################
 ########################################################################
 # Set cpus for ROMS:
-xcpu=16
-ycpu=12
+xcpu=8
+ycpu=6
 # Set cpus for CICE:
 icecpu=16
 # Choose a predefined ROMS-application:
@@ -33,7 +33,7 @@ print GlobalParams.RUNDIR
 print GlobalParams.COMMONPATH
 
 modelrun.preprocess()
-#modelrun.run_roms(Constants.MPI,Constants.NODEBUG,Constants.MET64) #24h hindcast
-modelrun.run_roms(Constants.DRY,Constants.NODEBUG,Constants.MET64) #24h hindcast
+modelrun.run_roms(Constants.MPI,Constants.NODEBUG,Constants.MET64) #24h hindcast
+#modelrun.run_roms(Constants.DRY,Constants.NODEBUG,Constants.MET64) #24h hindcast
 modelrun.postprocess()
 
