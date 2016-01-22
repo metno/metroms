@@ -1,7 +1,7 @@
 #PBS -N arctic-4km
 #PBS -A mifa01hi
 #PBS -l walltime=12:00:00
-#PBS -l select=13:ncpus=32:mpiprocs=16:ompthreads=16:mem=29gb
+#PBS -l select=7:ncpus=32:mpiprocs=16:ompthreads=16:mem=29gb
 #PBS -j oe
 #PBS -V
 datstamp=`date +%Y_%m_%d_%H_%M`
