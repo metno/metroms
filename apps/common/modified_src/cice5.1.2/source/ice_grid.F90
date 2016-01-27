@@ -25,7 +25,8 @@
       use ice_fileunits, only: nu_diag, nu_grid, nu_kmt
       use ice_gather_scatter, only: gather_global, scatter_global
       use ice_read_write, only: ice_read, ice_read_nc, ice_read_global, &
-          ice_read_global_nc, ice_open, ice_open_nc, ice_close_nc
+          ice_read_global_nc, ice_open, ice_open_nc, ice_close_nc, &
+          ice_read_global_nc2, ice_read_nc2
       use ice_timers, only: timer_bound, ice_timer_start, ice_timer_stop
 
       implicit none
@@ -1243,7 +1244,7 @@
       !-----------------------------------------------------------------
 
       fieldname='kmt'
-      call ice_read_nc(fid_kmt,1,fieldname,work1,diag, &
+      call ice_read_nc2(fid_kmt,fieldname,work1,diag, &
                        field_loc=field_loc_center, & 
                        field_type=field_type_scalar)
 
@@ -1272,50 +1273,49 @@
       allocate(work_g1(nx_global,ny_global))
 
       fieldname='ulat'
-      call ice_read_global_nc(fid_grid,1,fieldname,work_g1,diag) ! ULAT
+      call ice_read_global_nc2(fid_grid,fieldname,work_g1,diag) ! ULAT
       call gridbox_verts(work_g1,latt_bounds)       
       call scatter_global(ULAT, work_g1, master_task, distrb_info, &
                           field_loc_NEcorner, field_type_scalar)
 
       fieldname='ulon'
-      call ice_read_global_nc(fid_grid,2,fieldname,work_g1,diag) ! ULON
+      call ice_read_global_nc2(fid_grid,fieldname,work_g1,diag) ! ULON
       call gridbox_verts(work_g1,lont_bounds)       
       call scatter_global(ULON, work_g1, master_task, distrb_info, &
                           field_loc_NEcorner, field_type_scalar)
 
       fieldname='angle'
-      call ice_read_global_nc(fid_grid,3,fieldname,work_g1,diag) ! ANGLE    
+      call ice_read_global_nc2(fid_grid,fieldname,work_g1,diag) ! ANGLE    
       call scatter_global(ANGLE, work_g1, master_task, distrb_info, &
                           field_loc_NEcorner, field_type_angle)
 
       fieldname='HTN'
-      call ice_read_global_nc(fid_grid,4,fieldname,work_g1,diag) ! ANGLE    
+      call ice_read_global_nc2(fid_grid,fieldname,work_g1,diag)    
       call scatter_global(HTN, work_g1, master_task, distrb_info, &
                           field_loc_NEcorner, field_type_angle)
 
-
       fieldname='HTE'
-      call ice_read_global_nc(fid_grid,4,fieldname,work_g1,diag) ! ANGLE    
+      call ice_read_global_nc2(fid_grid,fieldname,work_g1,diag)    
       call scatter_global(HTE, work_g1, master_task, distrb_info, &
                           field_loc_NEcorner, field_type_angle)
 
       fieldname='dxt'
-      call ice_read_global_nc(fid_grid,5,fieldname,work_g1,diag) ! ANGLE    
+      call ice_read_global_nc2(fid_grid,fieldname,work_g1,diag)    
       call scatter_global(dxt, work_g1, master_task, distrb_info, &
                           field_loc_NEcorner, field_type_angle)
 
       fieldname='dyt'
-      call ice_read_global_nc(fid_grid,6,fieldname,work_g1,diag) ! ANGLE    
+      call ice_read_global_nc2(fid_grid,fieldname,work_g1,diag)    
       call scatter_global(dyt, work_g1, master_task, distrb_info, &
                           field_loc_NEcorner, field_type_angle)
 
       fieldname='dxu'
-      call ice_read_global_nc(fid_grid,7,fieldname,work_g1,diag) ! ANGLE    
+      call ice_read_global_nc2(fid_grid,fieldname,work_g1,diag)    
       call scatter_global(dxu, work_g1, master_task, distrb_info, &
                           field_loc_NEcorner, field_type_angle)
 
       fieldname='dyu'
-      call ice_read_global_nc(fid_grid,8,fieldname,work_g1,diag) ! ANGLE    
+      call ice_read_global_nc2(fid_grid,fieldname,work_g1,diag)
       call scatter_global(dyu, work_g1, master_task, distrb_info, &
                           field_loc_NEcorner, field_type_angle)
 
