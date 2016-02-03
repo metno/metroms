@@ -184,12 +184,14 @@ cd $EXEDIR
 if [ $RES == 'arctic-20km' ] || [ $RES == 'arctic-4km' ]; then
 #    [ -e cice.grid.nc ] || cp $SRCDIR/input_templates/$RES/cice_$GRID.grid.nc cice.grid.nc
 #    [ -e cice.kmt.nc ] || cp $SRCDIR/input_templates/$RES/cice_$GRID.kmt.nc cice.kmt.nc
-    [ -e cice.grid.nc ] || cp $SRCDIR/input_templates/$RES/cice.grid.nc cice.grid.nc
-    [ -e cice.kmt.nc ] || cp $SRCDIR/input_templates/$RES/cice.kmt.nc cice.kmt.nc
+##    [ -e cice.grid.nc ] || cp $SRCDIR/input_templates/$RES/cice.grid.nc cice.grid.nc
+##    [ -e cice.kmt.nc ] || cp $SRCDIR/input_templates/$RES/cice.kmt.nc cice.kmt.nc
+    cp -auv $SRCDIR/input_templates/$RES/cice.grid.nc cice.grid.nc
+    cp -auv $SRCDIR/input_templates/$RES/cice.kmt.nc cice.kmt.nc
 else
     if [ ! $RES == 'col' ]; then
-	[ -e grid.nc ] || cp $SRCDIR/input_templates/$RES/global_$RES.grid.nc grid.nc
-	[ -e kmt.nc ] || cp $SRCDIR/input_templates/$RES/global_$RES.kmt.nc kmt.nc
+	cp -auv $SRCDIR/input_templates/$RES/global_$RES.grid.nc grid.nc
+	cp -auv $SRCDIR/input_templates/$RES/global_$RES.kmt.nc kmt.nc
     fi
 fi
 
