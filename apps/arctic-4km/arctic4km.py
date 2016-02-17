@@ -12,12 +12,14 @@ from GlobalParams import *
 from Params import *
 from ModelRun import *
 ########################################################################
+import time
+time.sleep(20)
 ########################################################################
 # Set cpus for ROMS:
-xcpu=8
+xcpu=6
 ycpu=6
 # Set cpus for CICE:
-icecpu=16
+icecpu=12
 # Choose a predefined ROMS-application:
 app='arctic-4km' # Arctic-4km
 
@@ -33,7 +35,7 @@ print GlobalParams.RUNDIR
 print GlobalParams.COMMONPATH
 
 modelrun.preprocess()
-modelrun.run_roms(Constants.MPI,Constants.NODEBUG,Constants.MET64) #24h hindcast
+modelrun.run_roms(Constants.MPI,Constants.DEBUG,Constants.VILJE) #24h hindcast
 #modelrun.run_roms(Constants.DRY,Constants.NODEBUG,Constants.MET64) #24h hindcast
 modelrun.postprocess()
 
