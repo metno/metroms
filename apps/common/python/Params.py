@@ -64,7 +64,7 @@ class Params(object):
             ['VARFILE',GlobalParams.COMMONPATH+"/include/varinfo.dat"],
             ['XPOINTS',"320"],  #Could read from grd-file?
             ['YPOINTS',"240"],  #Could read from grd-file?
-            ['NLEVELS',"35"],  #Could read from grd-file?
+            ['NLEVELS',"42"],  #Could read from grd-file?
             ['XCPU',str(self.XCPU)],
             ['YCPU',str(self.YCPU)],
             ['TSTEPS',str(self.FCLEN/self.DELTAT)],
@@ -128,7 +128,7 @@ class Params(object):
             self.CICEKEYWORDFILE=self.CICERUNDIR + "/ice_in"
             self.FELT_CLMFILE=self.RUNPATH+"/FOAM.felt"
             self.DELTAT=300 
-            self.CICEDELTAT=3600
+            self.CICEDELTAT=900
             # Find restart-time of CICE:
             cice_start_step = (start_date-datetime(start_date.year,01,01)).total_seconds()/self.CICEDELTAT
             if restart == True:
@@ -172,7 +172,7 @@ class Params(object):
             ['RUNDIR',self.RUNPATH],
             ['TIDEDIR',self.RUNPATH],
             ['ATMDIR',self.RUNPATH],
-            ['RIVERFILE',GlobalParams.COMMONPATH+"/rivers/newA4_rivers_mitya.nc"],
+            ['RIVERFILE',GlobalParams.COMMONPATH+"/rivers/newA4_rivers_mitya42.nc"],
             ['FORCEFILES',"4"], # The files should be specified here as well
             ['ROMSINFILE', self.ROMSINFILE ],
             ['CICEINFILE', self.CICEINFILE ],
