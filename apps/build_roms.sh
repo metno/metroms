@@ -76,7 +76,7 @@ export USE_NETCDF4=on
 
 export USE_CICE=on
 
-#export USE_PARALLEL_IO=on 
+export USE_PARALLEL_IO=on 
 
 #export USE_MY_LIBS=on
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
