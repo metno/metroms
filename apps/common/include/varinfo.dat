@@ -1758,12 +1758,12 @@
 
 'Qair'                                             ! Input
   'surface air relative humidity'
-  'kg/kg'                                          ! [kg/kg]
+  'g/kg'                                          ! [g/kg] Kate roms wants kg/kg, Rutgers want g/kg...
   'Qair, scalar, series'
   'time'
   'idQair'
   'r2dvar'
-  1.00d0                                           ! was percent
+  1000.00d0                                           ! was kg/kg
 
 'cloud'                                            ! Input
   'cloud fraction'
