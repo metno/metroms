@@ -250,7 +250,7 @@
 
      THETA_S == 6.0d0                      ! 0 < THETA_S < 20
      THETA_B == 0.1d0                      ! 0 < THETA_B < 1
-      TCLINE == 30.0d0                     ! m
+      TCLINE == 100.0d0                     ! m
 
 ! Mean Density and Brunt-Vaisala frequency.
 
@@ -648,16 +648,16 @@ Dout(iTvdif) == F F                        ! vertical diffusion
     NFFILES == FORCEFILES                         ! number of forcing files
 
     FRCNAME ==  TIDEDIR/tide.nc  \
-                ATMDIR/AN_1997_unlim.nc | 
-                ATMDIR/AN_1998_unlim.nc |
-                ATMDIR/AN_1999_unlim.nc | 
-                ATMDIR/AN_2000_unlim.nc | 
-                ATMDIR/AN_2001_unlim.nc  \
-                ATMDIR/FC_1997_unlim.nc | 
-                ATMDIR/FC_1998_unlim.nc |
-                ATMDIR/FC_1999_unlim.nc | 
-                ATMDIR/FC_2000_unlim.nc | 
-                ATMDIR/FC_2001_unlim.nc \
+                ATMDIR/AN_1997_unlim.nc \ 
+!                ATMDIR/AN_1998_unlim.nc |
+!                ATMDIR/AN_1999_unlim.nc | 
+!                ATMDIR/AN_2000_unlim.nc | 
+!                ATMDIR/AN_2001_unlim.nc  \
+                ATMDIR/FC_1997_unlim.nc \ 
+!                ATMDIR/FC_1998_unlim.nc |
+!                ATMDIR/FC_1999_unlim.nc | 
+!                ATMDIR/FC_2000_unlim.nc | 
+!                ATMDIR/FC_2001_unlim.nc \
                 RIVERFILE
 
 
