@@ -127,8 +127,8 @@ class Params(object):
             self.CICEINFILE=self.RUNPATH + "/ice_in"
             self.CICEKEYWORDFILE=self.CICERUNDIR + "/ice_in"
             self.FELT_CLMFILE=self.RUNPATH+"/FOAM.felt"
-            self.DELTAT=300 
-            self.CICEDELTAT=900
+            self.DELTAT=30 
+            self.CICEDELTAT=1200
             # Find restart-time of CICE:
             cice_start_step = (start_date-datetime(start_date.year,01,01)).total_seconds()/self.CICEDELTAT
             if restart == True:
@@ -148,16 +148,18 @@ class Params(object):
             ['VARFILE',GlobalParams.COMMONPATH+"/include/varinfo.dat"],
             ['XPOINTS',"1600"],  #Could read from grd-file?
             ['YPOINTS',"1200"],  #Could read from grd-file?
-            ['NLEVELS',"42"],  #Could read from grd-file?
+            ['NLEVELS',"35"],  #Could read from grd-file?
             ['XCPU',str(self.XCPU)],
             ['YCPU',str(self.YCPU)],
             ['TSTEPS',str(self.FCLEN/self.DELTAT)],
             ['DELTAT',str(self.DELTAT)],
-            ['RATIO',"20"], #['RATIO',"30"],
+            ['RATIO',str(self.DELTAT)], #['RATIO',"30"],
             ['IRESTART',str(self.NRREC)],
             ['RSTSTEP',str(24*3600/int(self.DELTAT))],
             ['STASTEP',str(1*3600/int(self.DELTAT))],
+            #['INFOSTEP',str(1)],
             ['INFOSTEP',str(1*3600/int(self.DELTAT))],
+            #['HISSTEPP',str(10)],
             ['HISSTEPP',str(1*3600/int(self.DELTAT))],
             ['DEFHISSTEP',str(720*3600/int(self.DELTAT))],  #if 0; all output in one his-file
             ['AVGSTEPP',str(24*3600/int(self.DELTAT))],
@@ -172,7 +174,7 @@ class Params(object):
             ['RUNDIR',self.RUNPATH],
             ['TIDEDIR',self.RUNPATH],
             ['ATMDIR',self.RUNPATH],
-            ['RIVERFILE',GlobalParams.COMMONPATH+"/rivers/newA4_rivers_mitya42.nc"],
+            ['RIVERFILE',GlobalParams.COMMONPATH+"/rivers/newA4_rivers_mitya.nc"],
             ['FORCEFILES',"4"], # The files should be specified here as well
             ['ROMSINFILE', self.ROMSINFILE ],
             ['CICEINFILE', self.CICEINFILE ],
