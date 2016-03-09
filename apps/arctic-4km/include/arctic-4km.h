@@ -132,6 +132,7 @@
 
 #define ATM_PRESS          /* use to impose atmospheric pressure onto sea surface */
 #define SOLAR_SOURCE       /* define solar radiation source term */
+#define SPECIFIC_HUMIDITY  /* if input is specific humidity in kg/kg */
 
 /* TIDES */
 #define SSH_TIDES          /* turn on computation of tidal elevation, default define */
