@@ -64,7 +64,7 @@ class Params(object):
             ['VARFILE',GlobalParams.COMMONPATH+"/include/varinfo.dat"],
             ['XPOINTS',"320"],  #Could read from grd-file?
             ['YPOINTS',"240"],  #Could read from grd-file?
-            ['NLEVELS',"42"],  #Could read from grd-file?
+            ['NLEVELS',"35"],  #Could read from grd-file?
             ['XCPU',str(self.XCPU)],
             ['YCPU',str(self.YCPU)],
             ['TSTEPS',str(self.FCLEN/self.DELTAT)],
@@ -82,6 +82,11 @@ class Params(object):
             ['STARTTIME',str((start_date-self.TIMEREF).total_seconds()/86400)],
             ['TIDEREF',str((start_date-self.TIMEREF).total_seconds()/86400)],
             ['TIMEREF',self.TIMEREF.strftime("%Y%m%d.00")],
+            ['V_TRANS',"2"],
+            ['V_STRETCH',"1"],
+            ['TH_S',"6.0"],
+            ['TH_B',"0.1"],
+            ['T_CLINE',"30.0"],
             ['OBCFAKTOR',"120.0"],
             ['NUDGZONEWIDTH',"15"],
             ['GRDFILE',GlobalParams.COMMONPATH+"/grid/A20_grd_openBering.nc"],
@@ -168,6 +173,11 @@ class Params(object):
             ['STARTTIME',str((start_date-self.TIMEREF).total_seconds()/86400)],
             ['TIDEREF',str((start_date-self.TIMEREF).total_seconds()/86400)],
             ['TIMEREF',self.TIMEREF.strftime("%Y%m%d.00")],
+            ['V_TRANS',"2"],
+            ['V_STRETCH',"1"],
+            ['TH_S',"6.0"],
+            ['TH_B',"0.1"],
+            ['T_CLINE',"100.0"],
             ['OBCFAKTOR',"1.0"],
             ['NUDGZONEWIDTH',"15"],
             ['GRDFILE',GlobalParams.COMMONPATH+"/grid/arctic4km_grd.nc"],

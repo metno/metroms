@@ -243,14 +243,14 @@
 ! Set vertical, terrain-following coordinates transformation equation and
 ! stretching function (see below for details), [1:Ngrids].
 
-  Vtransform == 2                          ! transformation equation
- Vstretching == 1                          ! stretching function
+  Vtransform == V_TRANS                          ! transformation equation
+ Vstretching == V_STRETCH                          ! stretching function
 
 ! Vertical S-coordinates parameters, [1:Ngrids].
 
-     THETA_S == 6.0d0                      ! 0 < THETA_S < 20
-     THETA_B == 0.1d0                      ! 0 < THETA_B < 1
-      TCLINE == 100.0d0                     ! m
+     THETA_S == TH_Sd0                      ! 0 < THETA_S < 20
+     THETA_B == TH_Bd0                      ! 0 < THETA_B < 1
+      TCLINE == T_CLINEd0                     ! m
 
 ! Mean Density and Brunt-Vaisala frequency.
 
