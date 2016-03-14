@@ -34,7 +34,7 @@
 !         Philip W. Jones, LANL
 !         William H. Lipscomb, LANL
 
-      subroutine CICE_Run
+      subroutine CICE_Run(coupling_interval)
 
       use ice_aerosol, only: faero_default
       use ice_algae, only: get_forcing_bgc
@@ -47,7 +47,11 @@
       use ice_zbgc_shared, only: skl_bgc
 
 #ifdef ROMSCOUPLED
-      use CICE_MCT, only: CICE_MCT_coupling
+      use CICE_MCT, only: CICE_MCT_coupling,TimeInterval
+
+      real(kind=dbl_kind),optional :: coupling_interval
+
+      if (present(coupling_interval)) TimeInterval=coupling_interval
 #endif
 
    !--------------------------------------------------------------------
