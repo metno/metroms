@@ -60,19 +60,21 @@ module CICE_MCT
   implicit none
   private
   logical :: initial_call 
+  real (kind=dbl_kind) ::   TimeInterval = 3600.0
+  
+
   public  :: init_mct,                  &
        CICE_MCT_coupling,         &
        finalize_mct_coupling,     &
        GSMapCICE,                 &
        cice2ocn_AV,               &
        ocn2cice_AV,               &
-       CICEtoROMS
+       CICEtoROMS,                &
+       TimeInterval
 
   save
 
 
-!jd      real (kind=dbl_kind) ::   TimeInterval = 7200.0
-  real (kind=dbl_kind) ::   TimeInterval = 3600.0
  ! real (kind=dbl_kind) ::   tcoupling = 0.0
   
   character (len=240) :: &

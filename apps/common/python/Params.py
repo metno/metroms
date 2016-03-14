@@ -42,6 +42,7 @@ class Params(object):
             self.FELT_CLMFILE=self.RUNPATH+"/FOAM.felt"
             self.DELTAT=1200 
             self.CICEDELTAT=3600
+            self.COUPLINGTIME_I2O=3600.0
             #self.ROMSINIFILE=self.RUNPATH+"/"+INIFILE
             # Find restart-time of CICE:
             cice_start_step = (start_date-datetime(start_date.year,01,01)).total_seconds()/self.CICEDELTAT
@@ -64,7 +65,10 @@ class Params(object):
             ['VARFILE',GlobalParams.COMMONPATH+"/include/varinfo.dat"],
             ['XPOINTS',"320"],  #Could read from grd-file?
             ['YPOINTS',"240"],  #Could read from grd-file?
-            ['NLEVELS',"42"],  #Could read from grd-file?
+            ['NLEVELS',"35"],  #Could read from grd-file?
+            ['GRDTHETAS',"6.0d0"],
+            ['GRDTHETAB',"0.1d0"],
+            ['GRDTCLINE',"30.0d0"],            
             ['XCPU',str(self.XCPU)],
             ['YCPU',str(self.YCPU)],
             ['TSTEPS',str(self.FCLEN/self.DELTAT)],
@@ -91,6 +95,7 @@ class Params(object):
             ['RIVERFILE',GlobalParams.COMMONPATH+"/rivers/newA20_rivers_mitya.nc"],
             ['FORCEFILES',"4"], # The files should be specified here as well
             #['ROMS/External/coupling.dat', self.RUNPATH + "/coupling.dat"],
+            ['COUPLINGTIMEI2O',str(self.COUPLINGTIME_I2O)],
             ['ROMSINFILE', self.ROMSINFILE ],
             ['CICEINFILE', self.CICEINFILE ],
             ['NUMROMSCORES',str(int(self.XCPU)*int(self.YCPU))],
@@ -129,6 +134,7 @@ class Params(object):
             self.FELT_CLMFILE=self.RUNPATH+"/FOAM.felt"
             self.DELTAT=30 
             self.CICEDELTAT=1200
+            self.COUPLINGTIME_I2O=1200
             # Find restart-time of CICE:
             cice_start_step = (start_date-datetime(start_date.year,01,01)).total_seconds()/self.CICEDELTAT
             if restart == True:
@@ -149,6 +155,9 @@ class Params(object):
             ['XPOINTS',"1600"],  #Could read from grd-file?
             ['YPOINTS',"1200"],  #Could read from grd-file?
             ['NLEVELS',"35"],  #Could read from grd-file?
+            ['GRDTHETAS',"6.0d0"],
+            ['GRDTHETAB',"0.1d0"],
+            ['GRDTCLINE',"100.0d0"],            
             ['XCPU',str(self.XCPU)],
             ['YCPU',str(self.YCPU)],
             ['TSTEPS',str(self.FCLEN/self.DELTAT)],
