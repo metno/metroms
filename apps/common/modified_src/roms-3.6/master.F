@@ -81,7 +81,7 @@
       integer :: MyColor, MyCOMM, MyError, MyKey, Nnodes
       integer :: ng
 
-      real(r4) :: CouplingTime             ! single precision
+      real(r4) :: CouplingTime         ! single / double precision 
 !
 !-----------------------------------------------------------------------
 !  Initialize distributed-memory (MPI) configuration
@@ -184,7 +184,7 @@
         ice_CICEid=CICEid
         ice_OCNid=OCNid
         CALL CICE_INITIALIZE
-        CALL CICE_RUN
+        CALL CICE_RUN(TimeInterval(Iocean,Icice))
         CALL CICE_FINALIZE
       END IF
 #endif
