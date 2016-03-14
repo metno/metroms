@@ -359,15 +359,15 @@ SO_sdev(isTsur) == 1.0d0 1.0d0             ! NT surface tracer flux
 ! Logical switches (TRUE/FALSE) to activate writing of fields into
 ! HISTORY output file.
 
-Hout(idUvel) == F                          ! 3D U-velocity
-Hout(idVvel) == F                          ! 3D V-velocity
-Hout(idWvel) == F                          ! 3D W-velocity
-Hout(idOvel) == F                          ! omega vertical velocity
+Hout(idUvel) == T                          ! 3D U-velocity
+Hout(idVvel) == T                          ! 3D V-velocity
+Hout(idWvel) == T                          ! 3D W-velocity
+Hout(idOvel) == T                          ! omega vertical velocity
 Hout(idUbar) == T                          ! 2D U-velocity
 Hout(idVbar) == T                          ! 2D V-velocity
 Hout(idFsur) == T                          ! free-surface
 
-Hout(idTvar) == F F                        ! temperature and salinity
+Hout(idTvar) == T T                        ! temperature and salinity
 
 Hout(idUsms) == F                          ! surface U-stress
 Hout(idVsms) == F                          ! surface V-stress
@@ -390,7 +390,7 @@ Hout(idTsur) == F F                        ! surface net heat and salt flux
 Hout(idLhea) == F                          ! latent heat flux
 Hout(idShea) == F                          ! sensible heat flux
 Hout(idLrad) == F                          ! longwave radiation flux
-Hout(idSrad) == T                          ! shortwave radiation flux
+Hout(idSrad) == F                          ! shortwave radiation flux
 Hout(idevap) == F                          ! evaporation rate
 Hout(idrain) == F                          ! precipitation rate
 
