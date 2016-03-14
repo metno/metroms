@@ -248,9 +248,9 @@
 
 ! Vertical S-coordinates parameters, [1:Ngrids].
 
-     THETA_S == TH_Sd0                      ! 0 < THETA_S < 20
-     THETA_B == TH_Bd0                      ! 0 < THETA_B < 1
-      TCLINE == T_CLINEd0                     ! m
+     THETA_S == GRDTHETAS                      ! 0 < THETA_S < 20
+     THETA_B == GRDTHETAB                      ! 0 < THETA_B < 1
+      TCLINE == GRDTCLINE                     ! m
 
 ! Mean Density and Brunt-Vaisala frequency.
 
@@ -1477,7 +1477,7 @@ Nthreads(cice) = NUMCICECORES
 
 !   TimeInterval = 60.0d0 10.0d0  10.0d0
 
-TimeInterval = 3600.0d0
+TimeInterval = COUPLINGTIMEI2O
 
 ! Coupled model standard input file name, [1:Nmodels] KEYWORD entries are
 ! expected with the label code in parenthesis.
