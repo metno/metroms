@@ -1477,7 +1477,7 @@ Nthreads(cice) = NUMCICECORES
 
 !   TimeInterval = 60.0d0 10.0d0  10.0d0
 
-TimeInterval = COUPLINGTIMEI2O
+TimeInterval = COUPLINGTIME_I2O
 
 ! Coupled model standard input file name, [1:Nmodels] KEYWORD entries are
 ! expected with the label code in parenthesis.
