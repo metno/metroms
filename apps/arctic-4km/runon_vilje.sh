@@ -1,9 +1,9 @@
-#PBS -N arctic-4km
+#PBS -N arctic4
 ###PBS -A nn9239k
 #PBS -A mifa01hi
-#PBS -l walltime=24:00:00
-#PBS -l select=28:ncpus=32:mpiprocs=8:ompthreads=8:mem=30gb
-####PBS -l select=3:ncpus=32:mpiprocs=16:ompthreads=16:mem=30gb
+#PBS -l walltime=240:00:00
+#PBS -l select=18:ncpus=32:mpiprocs=12:ompthreads=12:mem=30gb
+####PBS -l select=5:ncpus=32:mpiprocs=12:ompthreads=12:mem=30gb
 #PBS -j oe
 ###PBS -V
 datstamp=`date +%Y_%m_%d_%H_%M`
