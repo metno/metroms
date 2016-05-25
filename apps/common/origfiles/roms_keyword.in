@@ -184,12 +184,12 @@
 ! Harmonic/biharmonic horizontal diffusion of tracer: [1:NAT+NPT,Ngrids].
 
         TNU2 == 2*3.5d2                         ! m2/s
-        TNU4 == 2*10.0d10                         ! m4/s
+        TNU4 == 1.6d8                           ! m4/s
 
 ! Harmononic/biharmonic, horizontal viscosity coefficient: [Ngrids].
 
        VISC2 == 0.5d1                           ! m2/s
-       VISC4 == 4.0d10                         ! m4/s
+       VISC4 == 1.6d8                           ! m4/s
 
 ! Vertical mixing coefficients for active tracers: [1:NAT+NPT,Ngrids]
 
@@ -236,7 +236,7 @@
 
 ! Various parameters.
 
-       WTYPE == 4
+       WTYPE == 1
      LEVSFRC == 15
      LEVBFRC == 1
 
@@ -268,10 +268,10 @@
 ! Nudging/relaxation time scales, inverse scales will be computed
 ! internally, [1:Ngrids].
 
-       TNUDG == 5.0d0 5.0d0                ! days
+       TNUDG == 15.0d0 15.0d0              ! days
        ZNUDG == 0.0d0                      ! days
       M2NUDG == 5.0d0                      ! days
-      M3NUDG == 5.0d0                      ! days
+      M3NUDG == 15.0d0                     ! days
 
 ! Factor between passive (outflow) and active (inflow) open boundary
 ! conditions, [1:Ngrids]. If OBCFAC > 1, nudging on inflow is stronger
@@ -359,15 +359,15 @@ SO_sdev(isTsur) == 1.0d0 1.0d0             ! NT surface tracer flux
 ! Logical switches (TRUE/FALSE) to activate writing of fields into
 ! HISTORY output file.
 
-Hout(idUvel) == T                          ! 3D U-velocity
-Hout(idVvel) == T                          ! 3D V-velocity
-Hout(idWvel) == T                          ! 3D W-velocity
-Hout(idOvel) == T                          ! omega vertical velocity
+Hout(idUvel) == F                          ! 3D U-velocity
+Hout(idVvel) == F                          ! 3D V-velocity
+Hout(idWvel) == F                          ! 3D W-velocity
+Hout(idOvel) == F                          ! omega vertical velocity
 Hout(idUbar) == T                          ! 2D U-velocity
 Hout(idVbar) == T                          ! 2D V-velocity
 Hout(idFsur) == T                          ! free-surface
 
-Hout(idTvar) == T T                        ! temperature and salinity
+Hout(idTvar) == F F                        ! temperature and salinity
 
 Hout(idUsms) == F                          ! surface U-stress
 Hout(idVsms) == F                          ! surface V-stress
@@ -404,30 +404,6 @@ Hout(idMtke) == F                          ! turbulent kinetic energy
 Hout(idMtls) == F                          ! turbulent length scale
 
 Hout(idSSSf) == F                          ! sea surface salinity corr. flux
-
-! Logical switches (TRUE/FALSE) to activate writing of ice prognostic
-! variables into HISTORY output file.
-Hout(idUice) == F
-Hout(idVice) == F
-Hout(idAice) == F
-Hout(idHice) == F
-Hout(idTice) == F
-Hout(idHsno) == F
-Hout(idTimid) == F
-Hout(idSfwat) == F
-Hout(idTauiw) == F
-Hout(idChuiw) == F
-Hout(idAgeice) == F
-Hout(idSig11) == F
-Hout(idSig12) == F
-Hout(idSig22) == F
-Hout(idT0mk) == F
-Hout(idS0mk) == F
-Hout(idWfr) == F
-Hout(idWai) == F
-Hout(idWao) == F
-Hout(idWio) == F
-Hout(idWro) == F
 
 ! Logical switches (TRUE/FALSE) to activate writing of extra inert passive
 ! tracers other than biological and sediment tracers. An inert passive tracer
@@ -545,30 +521,6 @@ Aout(idUTav) == F F                        ! quadratic <u*t> T/S terms
 Aout(idVTav) == F F                        ! quadratic <v*t> T/S terms
 Aout(iHUTav) == F F                        ! T/S volume flux, <Huon*t>
 Aout(iHVTav) == F F                        ! T/S volume flux, <Hvom*t>
-
-! Logical switches (TRUE/FALSE) to activate writing of ice prognostic
-! variables into AVERAGES output file.
-Aout(idUice) == F
-Aout(idVice) == F
-Aout(idAice) == F
-Aout(idHice) == F
-Aout(idTice) == F
-Aout(idHsno) == F
-Aout(idTimid) == F
-Aout(idSfwat) == F
-Aout(idTauiw) == F
-Aout(idChuiw) == F
-Aout(idAgeice) == F
-Aout(idSig11) == F
-Aout(idSig12) == F
-Aout(idSig22) == F
-Aout(idS0mk) == F
-Aout(idT0mk) == F
-Aout(idWfr) == F
-Aout(idWai) == F
-Aout(idWao) == F
-Aout(idWio) == F
-Aout(idWro) == F
 
 ! Logical switches (TRUE/FALSE) to activate writing of extra inert passive
 ! tracers other than biological and sediment tracers into the AVERAGE file.
