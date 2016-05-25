@@ -21,6 +21,7 @@ mkdir -p ${tup}/tmproms
 cd ${tup}/tmproms
 # Unpack standard source files
 #tar -xf ${metroms_base}/static_libs/mct-2.8.tar.gz
+tar -xf ${metroms_base}/static_libs/mct-2.9.tar.gz
 export MCT_DIR=${tup}/tmproms/MCT
 cd $MCT_DIR
 
@@ -35,5 +36,6 @@ fi
 
 ./configure FC=$FORT --prefix=$MCT_DIR
 make install
+make clean
 
 set +x

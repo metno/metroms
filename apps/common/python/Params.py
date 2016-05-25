@@ -41,7 +41,7 @@ class Params(object):
             self.CICEKEYWORDFILE=self.CICERUNDIR + "/ice_in"
             self.FELT_CLMFILE=self.RUNPATH+"/FOAM.felt"
             self.DELTAT=1200 
-            self.CICEDELTAT=3600
+            self.CICEDELTAT=3600.0
             self.COUPLINGTIME_I2O=3600.0
             #self.ROMSINIFILE=self.RUNPATH+"/"+INIFILE
             # Find restart-time of CICE:
@@ -113,9 +113,9 @@ class Params(object):
             #     cicerst_truefalse = ".false."
             self.CICEKEYWORDLIST=[
             ['CICEYEARSTART',start_date.strftime("%Y")],
-            ['CICESTARTSTEP',str(cice_start_step)],  #number of hours after 00:00 Jan 1st
+            ['CICESTARTSTEP',str(int(cice_start_step))],  #number of hours after 00:00 Jan 1st
             ['CICEDELTAT',str(self.CICEDELTAT)],
-            ['CICENPT',str((self.FCLEN/self.CICEDELTAT)-(cice_rst_time - cice_start_step))],   # minus diff restart og start_date
+            ['CICENPT',str(int((self.FCLEN/self.CICEDELTAT)-(cice_rst_time - cice_start_step)))],   # minus diff restart og start_date
             ['CICERUNTYPE',"'continue'"],
             ['CICEIC',"'default'"],
             ['CICEREST',".true."],
@@ -200,9 +200,9 @@ class Params(object):
             ########################################################################
             self.CICEKEYWORDLIST=[
             ['CICEYEARSTART',start_date.strftime("%Y")],
-            ['CICESTARTSTEP',str(cice_start_step)],  #number of hours after 00:00 Jan 1st
+            ['CICESTARTSTEP',str(int(cice_start_step))],  #number of hours after 00:00 Jan 1st
             ['CICEDELTAT',str(self.CICEDELTAT)],
-            ['CICENPT',str((self.FCLEN/self.CICEDELTAT)-(cice_rst_time - cice_start_step))],   # minus diff restart og start_date
+            ['CICENPT',str(int((self.FCLEN/self.CICEDELTAT)-(cice_rst_time - cice_start_step)))],   # minus diff restart og start_date
             ['CICERUNTYPE',"'continue'"],
             ['CICEIC',"'default'"],
             ['CICEREST',".true."],
