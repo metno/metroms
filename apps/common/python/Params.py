@@ -134,9 +134,9 @@ class Params(object):
             self.CICEINFILE=self.RUNPATH + "/ice_in"
             self.CICEKEYWORDFILE=self.CICERUNDIR + "/ice_in"
             self.FELT_CLMFILE=self.RUNPATH+"/FOAM.felt"
-            self.DELTAT=30 
-            self.CICEDELTAT=1200
-            self.COUPLINGTIME_I2O=1200
+            self.DELTAT=60 
+            self.CICEDELTAT=600
+            self.COUPLINGTIME_I2O=600
             # Find restart-time of CICE:
             cice_start_step = (start_date-datetime(start_date.year,01,01)).total_seconds()/self.CICEDELTAT
             if restart == True:
@@ -166,11 +166,11 @@ class Params(object):
             ['DELTAT',str(self.DELTAT)],
             ['RATIO',str(self.DELTAT)], #['RATIO',"30"],
             ['IRESTART',str(self.NRREC)],
-            ['RSTSTEP',str(24*3600/int(self.DELTAT))],
-            ['STASTEP',str(1*3600/int(self.DELTAT))],
+            ['RSTSTEP',str(7*24*3600/int(self.DELTAT))],
+            ['STASTEP',str(120*3600/int(self.DELTAT))],
             #['INFOSTEP',str(1)],
             ['INFOSTEP',str(1*3600/int(self.DELTAT))],
-            #['HISSTEPP',str(10)],
+            #['HISSTEPP',str(1)],
             ['HISSTEPP',str(1*3600/int(self.DELTAT))],
             ['DEFHISSTEP',str(720*3600/int(self.DELTAT))],  #if 0; all output in one his-file
             ['AVGSTEPP',str(24*3600/int(self.DELTAT))],
@@ -189,6 +189,7 @@ class Params(object):
             ['ATMDIR',self.RUNPATH],
             ['RIVERFILE',GlobalParams.COMMONPATH+"/rivers/newA4_rivers_mitya.nc"],
             ['FORCEFILES',"4"], # The files should be specified here as well
+            ['COUPLINGTIMEI2O',str(self.COUPLINGTIME_I2O)],
             ['ROMSINFILE', self.ROMSINFILE ],
             ['CICEINFILE', self.CICEINFILE ],
             ['NUMROMSCORES',str(int(self.XCPU)*int(self.YCPU))],
