@@ -81,7 +81,7 @@
       integer :: MyColor, MyCOMM, MyError, MyKey, Nnodes
       integer :: ng
 
-      real(r4) :: CouplingTime         ! single / double precision 
+      real(r4) :: CouplingTime             ! single precision
 !
 !-----------------------------------------------------------------------
 !  Initialize distributed-memory (MPI) configuration
@@ -198,12 +198,21 @@
           DO ng=1,Ngrids
             run_time=MAX(run_time, dt(ng)*ntimes(ng))
           END DO
+        ELSE
+          CALL mpi_abort(MPI_COMM_WORLD, MyError)
         END IF
         IF (exit_flag.eq.NoError) THEN
 !jd          WRITE (stdout,*) ' Calling ROMS_run: ', MyRank
           CALL ROMS_run (run_time)
+        ELSE
+          CALL mpi_abort(MPI_COMM_WORLD, MyError)
         END IF
-        CALL ROMS_finalize
+        IF (exit_flag.eq.NoError) THEN
+           CALL ROMS_finalize
+        ELSE
+          CALL ROMS_finalize
+          CALL mpi_abort(MPI_COMM_WORLD, MyError)
+        END IF
 #if defined SWAN_COUPLING || defined REFDIF_COUPLING
         CALL finalize_ocn2wav_coupling
 #endif
