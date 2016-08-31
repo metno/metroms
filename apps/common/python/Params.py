@@ -45,7 +45,7 @@ class Params(object):
             self.COUPLINGTIME_I2O=3600.0
             #self.ROMSINIFILE=self.RUNPATH+"/"+INIFILE
             # Find restart-time of CICE:
-            cice_start_step = (start_date-datetime(start_date.year,01,01)).total_seconds()/self.CICEDELTAT
+            cice_start_step = (start_date-datetime(start_date.year,01,01,00)).total_seconds()/self.CICEDELTAT
             if restart == True:
                 f = open(self.CICERUNDIR+'/restart/ice.restart_file', 'r')
                 cice_restartfile = f.readline().strip()
@@ -68,26 +68,26 @@ class Params(object):
             ['NLEVELS',"35"],  #Could read from grd-file?
             ['GRDTHETAS',"6.0d0"],
             ['GRDTHETAB',"0.1d0"],
-            ['GRDTCLINE',"30.0d0"],            
+            ['GRDTCLINE',"100.0d0"],#
             ['XCPU',str(self.XCPU)],
             ['YCPU',str(self.YCPU)],
             ['TSTEPS',str(self.FCLEN/self.DELTAT)],
             ['DELTAT',str(self.DELTAT)],
             ['RATIO',"20"], #['RATIO',"30"],
             ['IRESTART',str(self.NRREC)],
-            ['RSTSTEP',str(24*3600/int(self.DELTAT))],
-            ['STASTEP',str(1*3600/int(self.DELTAT))],
+            ['RSTSTEP',str(30*24*3600/int(self.DELTAT))],
+            ['STASTEP',str(24*3600/int(self.DELTAT))],
             ['INFOSTEP',str(1*3600/int(self.DELTAT))],
             ['HISSTEPP',str(1*3600/int(self.DELTAT))],
-            ['DEFHISSTEP',str(720*3600/int(self.DELTAT))],  #if 0; all output in one his-file
-            ['AVGSTEPP',str(24*3600/int(self.DELTAT))],
-            ['STARTAVG',"0"],
-            ['DEFAVGSTEP',str(720*3600/int(self.DELTAT))],  #if 0; all output in one avg-file
+            ['DEFHISSTEP',str(30*24*3600/int(self.DELTAT))],  #if 0; all output in one his-file
+            ['AVGSTEPP',str(1*24*3600/int(self.DELTAT))],
+            ['STARTAVG',"1"],
+            ['DEFAVGSTEP',str(30*24*3600/int(self.DELTAT))],  #if 0; all output in one avg-file
             ['STARTTIME',str((start_date-self.TIMEREF).total_seconds()/86400)],
             ['TIDEREF',str((start_date-self.TIMEREF).total_seconds()/86400)],
             ['TIMEREF',self.TIMEREF.strftime("%Y%m%d.00")],
             ['V_TRANS',"2"],
-            ['V_STRETCH',"1"],
+            ['V_STRETCH',"2"],
             ['OBCFAKTOR',"120.0"],
             ['NUDGZONEWIDTH',"15"],
             ['GRDFILE',GlobalParams.COMMONPATH+"/grid/A20_grd_openBering.nc"],
@@ -138,7 +138,7 @@ class Params(object):
             self.CICEDELTAT=600
             self.COUPLINGTIME_I2O=600
             # Find restart-time of CICE:
-            cice_start_step = (start_date-datetime(start_date.year,01,01)).total_seconds()/self.CICEDELTAT
+            cice_start_step = (start_date-datetime(start_date.year,01,01,00)).total_seconds()/self.CICEDELTAT
             if restart == True:
                 f = open(self.CICERUNDIR+'/restart/ice.restart_file', 'r')
                 cice_restartfile = f.readline().strip()
@@ -159,7 +159,7 @@ class Params(object):
             ['NLEVELS',"35"],  #Could read from grd-file?
             ['GRDTHETAS',"6.0d0"],
             ['GRDTHETAB',"0.1d0"],
-            ['GRDTCLINE',"100.0d0"],            
+            ['GRDTCLINE',"100.0d0"],
             ['XCPU',str(self.XCPU)],
             ['YCPU',str(self.YCPU)],
             ['TSTEPS',str(self.FCLEN/self.DELTAT)],
@@ -180,7 +180,7 @@ class Params(object):
             ['TIDEREF',str((start_date-self.TIMEREF).total_seconds()/86400)],
             ['TIMEREF',self.TIMEREF.strftime("%Y%m%d.00")],
             ['V_TRANS',"2"],
-            ['V_STRETCH',"1"],
+            ['V_STRETCH',"2"],
             ['OBCFAKTOR',"1.0"],
             ['NUDGZONEWIDTH',"15"],
             ['GRDFILE',GlobalParams.COMMONPATH+"/grid/arctic4km_grd.nc"],

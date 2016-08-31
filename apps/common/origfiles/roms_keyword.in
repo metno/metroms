@@ -584,8 +584,8 @@ Dout(iTvdif) == F F                        ! vertical diffusion
 
      GRDNAME == GRDFILE
      ININAME == RUNDIR/ocean_ini.nc
-     CLMNAME == RUNDIR/ocean_clm.nc
-     BRYNAME == RUNDIR/ocean_bry.nc
+     CLMNAME == RUNDIR/ocean_1997_clm.nc
+     BRYNAME == RUNDIR/ocean_1997_bry.nc
 
 ! Input forcing NetCDF file name(s).  The USER has the option to enter
 ! several files names per each nested grid.  For example, the USER may

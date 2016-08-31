@@ -21,8 +21,8 @@ icecpu=2
 # Choose a predefined ROMS-application:
 app='arctic-20km' # Arctic-20km
 
-start_date = datetime(1997,01,16,12)
-end_date   = datetime(1997,01,17,12)
+start_date = datetime(1997,01,17,00)
+end_date   = datetime(1997,02,16,00)
 
 
 a20params=Params(app,xcpu,ycpu,start_date,end_date,nrrec=-1,cicecpu=icecpu,restart=False)

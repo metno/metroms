@@ -195,7 +195,7 @@
 !
 !  Open input coupling variable information file.
 !
-      WRITE (stdout,*) ' Opening coupeling variable information file: ', CPLname
+!jd      WRITE (stdout,*) ' Opening coupeling variable information file: ', CPLname
       OPEN (inp, FILE=TRIM(CPLname), FORM='formatted', STATUS='old',    &
      &      ERR=10)
       GO TO 20
@@ -206,7 +206,7 @@
 !  Read in variable information.  Ignore blank and comment [char(33)=!]
 !  input lines.
 !
-      WRITE (stdout,*) ' Reading coupling variable information file'
+!jd      WRITE (stdout,*) ' Reading coupling variable information file'
       varid=0
       DO WHILE (.TRUE.)
         READ (inp,*,ERR=30,END=40) Vinfo(1)
@@ -278,7 +278,7 @@
 !
 !  Allocate IDs structures.
 !
-      WRITE (stdout,*) ' Allocate IDs structures'
+!jd      WRITE (stdout,*) ' Allocate IDs structures'
       IF (.not.allocated(ExportID)) THEN
         allocate ( ExportID(Nmodels) )
         DO model=1,Nmodels
@@ -343,7 +343,7 @@
 !
 !  Allocate structure.
 !
-      WRITE (stdout,*) ' Assign processors to coupled models.'
+!jd      WRITE (stdout,*) ' Assign processors to coupled models.'
       IF (.not.allocated(pets)) THEN
         allocate ( pets(Nmodels) )
         DO model=1,Nmodels

@@ -26,10 +26,10 @@
 
 #define UV_ADV             /* turn ON or OFF advection terms */
 #define UV_COR             /* turn ON or OFF Coriolis term */
-#undef  UV_VIS2            /* turn ON or OFF Laplacian horizontal mixing */
-#define UV_VIS4            /* turn ON or OFF biharmonic horizontal mixing */
+#define  UV_VIS2            /* turn ON or OFF Laplacian horizontal mixing */
+#undef  UV_VIS4            /* turn ON or OFF biharmonic horizontal mixing */
 #undef  UV_U3ADV_SPLIT     /* use 3rd-order upstream split momentum advection */
-#undef  UV_U3HADVECTION    /* define if 3rd-order upstream horiz. advection */
+#define  UV_U3HADVECTION    /* define if 3rd-order upstream horiz. advection */
 #undef  UV_SADVECTION      /* turn ON or OFF splines vertical advection */
 #undef  UV_C4HADVECTION    /* define if 4th-order centered horizontal advection */
 #define UV_QDRAG           /* turn ON or OFF quadratic bottom friction */
@@ -38,7 +38,8 @@
 #undef  VISC_GRID          /* viscosity coefficient scaled by grid size */
 #define NONLIN_EOS         /* define if using nonlinear equation of state */
 #undef  WJ_GRADP           /* Weighted density Jacobian (Song, 1998) */
-#define DJ_GRADPS          /* Splines density  Jacobian (Shchepetkin, 2000) */
+#define  DJ_GRADPS          /* Splines density  Jacobian (Shchepetkin, 2000) */
+#undef  PJ_GRADPQ4         /* quartic 4 Pressure Jacobian (Shchepetkin,2000) */
 #undef  DIFF_GRID          /* diffusion coefficient scaled by grid size */
 
 #define TS_DIF2            /* turn ON or OFF Laplacian horizontal mixing */
@@ -46,7 +47,7 @@
 #undef  TS_U3ADV_SPLIT     /* use 3rd-order upstream split tracer advection */
 #undef  TS_U3HADVECTION    /* define if 3rd-order upstream horiz. advection */
 #define TS_A4HADVECTION    /* define if 4th-order Akima horiz. advection */
-#undef  TS_C4HADVECTION    /* define if 4th-order centered horizontal advection */
+#undef TS_C4HADVECTION    /* define if 4th-order centered horizontal advection */
 
 #undef  TS_MPDATA          /* define if recursive MPDATA 3D advection */
 
@@ -75,12 +76,15 @@
 #undef  STATIONS_CGRID     /* define if extracting data at native C-grid */
 
 #undef  BVF_MIXING         /* define if Brunt_Vaisala frequency mixing */
-#define LMD_MIXING         /* define if Large et al. (1994) interior closure */
+#define  LMD_MIXING         /* define if Large et al. (1994) interior closure */
 #undef  MY25_MIXING        /* define if Mellor/Yamada level-2.5 mixing */
 #undef  GLS_MIXING         /* Activate Generic Length-Scale mixing */
 
 #ifdef GLS_MIXING
 # define N2S2_HORAVG       /* Activate horizontal smoothing of buoyancy/shear */
+# undef KANTHA_CLAYSON    /* Value for CLS_CMU0 and CLS_C3M vary with choise of stability function */
+# define CANUTO_A           
+# undef CANUTO_B
 #endif
 #ifdef LMD_MIXING
 # define  LMD_BKPP          /* use if bottom boundary layer KPP mixing */

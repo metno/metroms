@@ -16,9 +16,9 @@
   , restart_dir    = '<cicedir>/rundir/restart/'
   , restart_file   = 'iced'
   , pointer_file   = '<cicedir>/rundir/restart/ice.restart_file'
-  , dumpfreq       = 'y'
-  , dumpfreq_n     = 1
-  , dump_last      = .true.
+  , dumpfreq       = 'd'
+  , dumpfreq_n     = 30
+  , dump_last      = .false.
   , bfbflag        = .false.
   , diagfreq       = 24
   , diag_type      = 'stdout'
@@ -93,7 +93,7 @@
 &dynamics_nml
     kdyn            = 1
   , ndte            = 120
-  , revised_evp     = .false.
+  , revised_evp     = .true.
   , advection       = 'remap'
   , kstrength       = 1
   , krdg_partic     = 1
@@ -152,11 +152,11 @@
 &forcing_nml
     formdrag        = .false.
   , atmbndy         = 'default'
-  , fyear_init      = 1997
+  , fyear_init      = 1993
   , ycycle          = 100
   , atm_data_format = 'nc'
-  , atm_data_type   = 'ecmwf'
-  , atm_data_dir    = './'
+  , atm_data_type   = 'metroms'
+  , atm_data_dir    = './atmcice/'
   , calc_strair     = .true.
   , highfreq        = .false.
   , natmiter        = 5
@@ -164,7 +164,7 @@
   , precip_units    = 'm_per_12hr'
   , ustar_min       = 0.0005
   , fbot_xfer_type  = 'constant'
-  , update_ocn_f    = .false.
+  , update_ocn_f    = .true.
   , l_mpond_fresh   = .false.
   , tfrz_option     = 'mushy'
   , oceanmixed_ice  = .false.

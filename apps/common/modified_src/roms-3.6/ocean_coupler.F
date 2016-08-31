@@ -377,10 +377,10 @@
       allocate(uwater(LBi:UBi,LBj:UBj))
       allocate(vwater(LBi:UBi,LBj:UBj))
 
-!      uw=0.0_r8
-!      vw=0.0_r8
-!      uwater=0.0_r8
-!      vwater=0.0_r8
+      uw=0.0_r8
+      vw=0.0_r8
+      uwater=0.0_r8
+      vwater=0.0_r8
 
 
       IF (Master) THEN
@@ -782,7 +782,8 @@
 !jd weight over a typical mixed (?)/ near-ice layer. 
              ICE(ng)%qfraz_accum(i,j) = rho0*Cp *                       &
      &        min(t_freeze(OCEAN(ng)%t(i,j,N(ng),NOUT,isalt),0.0_r8)    &
-     &        - OCEAN(ng)%t(i,j,N(ng),NOUT,itemp), 0.0_r8 ) * 5.0_r8
+     &        - OCEAN(ng)%t(i,j,N(ng),NOUT,itemp), 0.0_r8 )             &
+     &        * 5.0_r8 / (ncouple*dt(ng))
              end if
             end do
            end do
