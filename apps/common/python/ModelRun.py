@@ -26,7 +26,8 @@ class ModelRun(object):
         self._replace_keywords_roms_in()
         self._replace_keywords_cice_in()
         # Check to see if roms ini- and cice ini-file have same timestamp:
-        self._check_starttime()
+        if (self._params.RESTART == True):
+            self._check_starttime()
         self._run(runoption,debugoption,architecture)
         # Should check output-files to verify a successful run?
         # Output to std.out that model has finished:
@@ -228,8 +229,12 @@ class ModelRun(object):
             exit(1)
 
     def _check_starttime(self):
-        roms_ini = netCDF4.num2date(netCDF4.Dataset(self._params.RUNPATH+"/ocean_ini.nc").variables['ocean_time'][:], 
-            netCDF4.Dataset(self._params.RUNPATH+"/ocean_ini.nc").variables['ocean_time'].units)
+        try:
+            roms_ini = netCDF4.num2date(netCDF4.Dataset(self._params.RUNPATH+"/ocean_ini.nc").variables['ocean_time'][:], 
+                                        netCDF4.Dataset(self._params.RUNPATH+"/ocean_ini.nc").variables['ocean_time'].units)
+        except:
+            roms_ini = netCDF4.num2date(netCDF4.Dataset(self._params.RUNPATH+"/ocean_ini.nc").variables['ocean_time'],
+                                        netCDF4.Dataset(self._params.RUNPATH+"/ocean_ini.nc").variables['ocean_time'].units)            
         f = open(self._params.CICERUNDIR+'/restart/ice.restart_file', 'r')
         cice_restartfile = f.readline().strip()
         cice_rst_day = netCDF4.Dataset(cice_restartfile).mday
