@@ -26,10 +26,10 @@
 
 #define UV_ADV             /* turn ON or OFF advection terms */
 #define UV_COR             /* turn ON or OFF Coriolis term */
-#define  UV_VIS2            /* turn ON or OFF Laplacian horizontal mixing */
+#define UV_VIS2            /* turn ON or OFF Laplacian horizontal mixing */
 #undef  UV_VIS4            /* turn ON or OFF biharmonic horizontal mixing */
 #undef  UV_U3ADV_SPLIT     /* use 3rd-order upstream split momentum advection */
-#define  UV_U3HADVECTION    /* define if 3rd-order upstream horiz. advection */
+#define UV_U3HADVECTION    /* define if 3rd-order upstream horiz. advection */
 #undef  UV_SADVECTION      /* turn ON or OFF splines vertical advection */
 #undef  UV_C4HADVECTION    /* define if 4th-order centered horizontal advection */
 #define UV_QDRAG           /* turn ON or OFF quadratic bottom friction */
@@ -38,7 +38,7 @@
 #undef  VISC_GRID          /* viscosity coefficient scaled by grid size */
 #define NONLIN_EOS         /* define if using nonlinear equation of state */
 #undef  WJ_GRADP           /* Weighted density Jacobian (Song, 1998) */
-#define  DJ_GRADPS          /* Splines density  Jacobian (Shchepetkin, 2000) */
+#define DJ_GRADPS          /* Splines density  Jacobian (Shchepetkin, 2000) */
 #undef  PJ_GRADPQ4         /* quartic 4 Pressure Jacobian (Shchepetkin,2000) */
 #undef  DIFF_GRID          /* diffusion coefficient scaled by grid size */
 
@@ -47,7 +47,7 @@
 #undef  TS_U3ADV_SPLIT     /* use 3rd-order upstream split tracer advection */
 #undef  TS_U3HADVECTION    /* define if 3rd-order upstream horiz. advection */
 #define TS_A4HADVECTION    /* define if 4th-order Akima horiz. advection */
-#undef TS_C4HADVECTION    /* define if 4th-order centered horizontal advection */
+#undef  TS_C4HADVECTION    /* define if 4th-order centered horizontal advection */
 
 #undef  TS_MPDATA          /* define if recursive MPDATA 3D advection */
 
@@ -58,7 +58,7 @@
 
 #undef  MIX_S_TS           /* mixing on constant S-surfaces */
 #define MIX_GEO_TS         /* mixing on geopotential (constant Z) surfaces */
-#define  MIX_S_UV           /* mixing along constant S-surfaces */
+#define MIX_S_UV           /* mixing along constant S-surfaces */
 #undef  MIX_GEO_UV         /* mixing on geopotential (constant Z) surfaces */
 
 #define SALINITY           /* define if using salinity */
@@ -76,15 +76,15 @@
 #undef  STATIONS_CGRID     /* define if extracting data at native C-grid */
 
 #undef  BVF_MIXING         /* define if Brunt_Vaisala frequency mixing */
-#define  LMD_MIXING         /* define if Large et al. (1994) interior closure */
+#define LMD_MIXING         /* define if Large et al. (1994) interior closure */
 #undef  MY25_MIXING        /* define if Mellor/Yamada level-2.5 mixing */
 #undef  GLS_MIXING         /* Activate Generic Length-Scale mixing */
 
-#ifdef GLS_MIXING
+#ifdef  GLS_MIXING
 # define N2S2_HORAVG       /* Activate horizontal smoothing of buoyancy/shear */
-# undef KANTHA_CLAYSON    /* Value for CLS_CMU0 and CLS_C3M vary with choise of stability function */
+# undef  KANTHA_CLAYSON    /* Value for CLS_CMU0 and CLS_C3M vary with choise of stability function */
 # define CANUTO_A           
-# undef CANUTO_B
+# undef  CANUTO_B
 #endif
 #ifdef LMD_MIXING
 # define  LMD_BKPP          /* use if bottom boundary layer KPP mixing */
@@ -105,15 +105,16 @@
 #undef  ANA_SSFLUX         /* analytical surface salinity flux */
 #undef  ANA_STFLUX         /* analytical surface temperature flux */
 #undef  ANA_SMFLUX         /* analytical surface momentum stress */
+#undef  ANA_NUDGCOEF
 
 /* CLIMATOLOGY */
-#undef M2CLIMATOLOGY      /* define 2D momentum climatology */
+#undef  M2CLIMATOLOGY      /* define 2D momentum climatology */
 #define M3CLIMATOLOGY      /* define 3D momentum climatology */
 #define TCLIMATOLOGY       /* define tracers climatology */
 #undef  M2CLM_NUDGING
 #define M3CLM_NUDGING      /* nudging 3D momentum climatology */
 #define TCLM_NUDGING       /* nudging tracers climatology */
-#define OBC_NUDGING
+#undef  OBC_NUDGING
 
 #undef  WRF_COUPLING       /* coupling to WRF atmospheric model */
 
@@ -141,16 +142,16 @@
 #define SPECIFIC_HUMIDITY  /* if input is specific humidity in kg/kg */
 
 /* TIDES */
-#define SSH_TIDES          /* turn on computation of tidal elevation, default define */
-#define UV_TIDES           /* turn on computation of tidal currents */
-#define ADD_FSOBC          /* Add tidal elevation to processed OBC data, default define */
-#define ADD_M2OBC          /* Add tidal currents  to processed OBC data */
-#define ADD_FS_INV_BARO
-#define RAMP_TIDES         /* Spin up tidal forcing */
+#undef SSH_TIDES          /* turn on computation of tidal elevation, default define */
+#undef UV_TIDES           /* turn on computation of tidal currents */
+#undef ADD_FSOBC          /* Add tidal elevation to processed OBC data, default define */
+#undef ADD_M2OBC          /* Add tidal currents  to processed OBC data */
+#undef ADD_FS_INV_BARO
+#undef RAMP_TIDES         /* Spin up tidal forcing */
 
 
 /* ELVER */
-#define UV_PSOURCE         /* turn ON or OFF point Sources/Sinks */
-#define TS_PSOURCE         /* turn ON or OFF point Sources/Sinks */
+#undef UV_PSOURCE         /* turn ON or OFF point Sources/Sinks */
+#undef TS_PSOURCE         /* turn ON or OFF point Sources/Sinks */
 /* --------------------------- */
 
