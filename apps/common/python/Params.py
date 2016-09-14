@@ -17,10 +17,7 @@ class Params(object):
     NRREC=None
     
     def __init__(self,app,xcpu,ycpu,start_date,end_date,nrrec=-1,cicecpu=0,restart=False):
-        self.KEYWORDFILE=GlobalParams.COMMONORIGPATH+"/roms_keyword.in"
-        #self.CICEKEYWORDFILE=GlobalParams.COMMONPATH + "/../../../tmproms/cice/rundir/ice_in_keyword"
-        #self.CICEKEYWORDFILE=GlobalParams.COMMONPATH + "/cice_input_grids/a20/ice_in.cice5.1.2"
-        #self.ROMSINFILE=GlobalParams.RUNDIR+"/roms.in"
+        self.KEYWORDFILE=GlobalParams.COMMONORIGPATH+"/roms_keyword.in_roms-trunk"
         self.XCPU=xcpu
         self.YCPU=ycpu
         self.CICECPU=cicecpu
@@ -81,8 +78,8 @@ class Params(object):
             ['IRESTART',str(self.NRREC)],
             ['RSTSTEP',str(30*24*3600/int(self.DELTAT))],
             ['STASTEP',str(24*3600/int(self.DELTAT))],
-            ['INFOSTEP',str(1*3600/int(self.DELTAT))],
-            ['HISSTEPP',str(1*3600/int(self.DELTAT))],
+            ['INFOSTEP', str(1*3600/int(self.DELTAT))],
+            ['HISSTEPP', str(1*3600/int(self.DELTAT))],
             ['DEFHISSTEP',str(30*24*3600/int(self.DELTAT))],  #if 0; all output in one his-file
             ['AVGSTEPP',str(1*24*3600/int(self.DELTAT))],
             ['STARTAVG',"1"],
@@ -102,7 +99,7 @@ class Params(object):
             ['TIDEDIR',self.RUNPATH],
             ['ATMDIR',self.RUNPATH+"/AN_1993_unlim.nc | \n"+self.RUNPATH+"/AN_1994_unlim.nc | \n"+self.RUNPATH+"/AN_1995_unlim.nc | \n" +self.RUNPATH+"/AN_1996_unlim.nc | \n" +self.RUNPATH+"/AN_1997_unlim.nc \ \n"+self.RUNPATH+"/FC_1993_unlim.nc | \n"+self.RUNPATH+"/FC_1994_unlim.nc | \n"+self.RUNPATH+"/FC_1995_unlim.nc | \n"+self.RUNPATH+"/FC_1996_unlim.nc | \n"+self.RUNPATH+"/FC_1997_unlim.nc"],
             ['RIVERFILE',GlobalParams.COMMONPATH+"/rivers/newA20_rivers_mitya.nc"],
-            ['FORCEFILES',"4"], # The files should be specified here as well
+            ['FORCEFILES',"3"], # The files should be specified here as well
             #['ROMS/External/coupling.dat', self.RUNPATH + "/coupling.dat"],
             ['COUPLINGTIMEI2O',str(self.COUPLINGTIME_I2O)],
             ['ROMSINFILE', self.ROMSINFILE ],
