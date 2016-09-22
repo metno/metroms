@@ -797,6 +797,9 @@
               ng=GridNumber(ig,nl)
               DO tile=last_tile(ng),first_tile(ng),-1
                 CALL step3d_t (ng, tile)
+# if defined CICE_OCEAN
+                CALL frazil_ice_prod (ng,tile)
+# endif
               END DO
 !$OMP BARRIER
             END DO
