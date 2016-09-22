@@ -1384,7 +1384,7 @@
   'time'
   'idQair'
   'r2dvar'                                         ! relative        specific
-  0.01d0                                           ! 1/100      or   1.0
+  1.0d0                                           ! 1/100      or   1.0
 
 'cloud'                                            ! Input
   'cloud fraction'
