@@ -1,4 +1,5 @@
 #ifdef ROMSCOUPLED
+!#define REPORT_ALL
 module CICE_MCT
 
   use ice_kinds_mod
@@ -31,7 +32,7 @@ module CICE_MCT
   USE m_GlobalSegMap, ONLY : GlobalSegMap_init => init
   USE m_GlobalSegMap, ONLY : GlobalSegMap_lsize => lsize
   USE m_GlobalSegMap, ONLY : GlobalSegMap_clean => clean
-  USE m_GlobalSegMap, ONLY : GlobalSegMap_Ordpnts => OrderedPoints
+!jd  USE m_GlobalSegMap, ONLY : GlobalSegMap_Ordpnts => OrderedPoints
 !
 !  Field storage data types and associated methods.
 !
@@ -39,7 +40,7 @@ module CICE_MCT
   USE m_AttrVect, ONLY : AttrVect_init => init
   USE m_AttrVect, ONLY : AttrVect_zero => zero
   USE m_AttrVect, ONLY : AttrVect_clean => clean
-  USE m_AttrVect, ONLY : AttrVect_indxR => indexRA
+!jd  USE m_AttrVect, ONLY : AttrVect_indxR => indexRA
   USE m_AttrVect, ONLY : AttrVect_importRAttr => importRAttr
   USE m_AttrVect, ONLY : AttrVect_exportRAttr => exportRAttr
 !
@@ -52,7 +53,6 @@ module CICE_MCT
   USE m_Transfer, ONLY : MCT_Send => send
   USE m_Transfer, ONLY : MCT_Recv => recv
   
-!jd  USE ice_communicate, ONLY: MPI_COMM_ICE, nprocs, my_task, master_task
   USE ice_communicate, ONLY: MPI_COMM_ICE, my_task, master_task
 
 !
@@ -118,8 +118,9 @@ contains
     !
     call ice_timer_start(timer_tmp)
     CALL MCTWorld_init (Nmodels, MPI_COMM_WORLD, MPI_COMM_ICE, CICEid)
+#ifdef REPORT_ALL
     WRITE (ice_stdout,*) ' CICE: MCTWorld_init called'
-
+#endif
 
 !-------------------------------------------------------------------
 
@@ -140,7 +141,9 @@ contains
        n = n + (1+jhi-jlo)
     enddo
     lsize = n
+#ifdef REPORT_ALL
     WRITE (ice_stdout,*) ' CICE: lsize=', lsize
+#endif
     allocate(start(lsize))
     allocate(length(lsize))
     n=0
@@ -160,14 +163,18 @@ contains
     enddo
 
 !  Use grid decomposition to initialize global segmentation map
+#ifdef REPORT_ALL
     WRITE (ice_stdout,*) ' CICE: GlobalSegMap_init'
+#endif
     call GlobalSegMap_init(GSMapCICE, start, length, 0, MPI_COMM_ICE, CICEid)
     Asize=GlobalSegMap_lsize(GSMapCICE, MPI_COMM_ICE)
 
 
 !  Initialize import/export attribute vectors
 
+#ifdef REPORT_ALL
     WRITE (ice_stdout,*) ' CICE: AttrVect_init, Asize=', Asize
+#endif
     call AttrVect_init(ocn2cice_AV, rList=importList, lsize=Asize)
     call AttrVect_zero(ocn2cice_AV)
     call AttrVect_init(cice2ocn_AV, rlist=exportList, lsize=Asize)
@@ -175,9 +182,13 @@ contains
     
 
 !  Initialize router to ROMS
+#ifdef REPORT_ALL
     WRITE (ice_stdout,*) ' CICE: Router_init'
+#endif
     call Router_init (OCNid, GSMapCICE, MPI_COMM_ICE, CICEtoROMS)
+#ifdef REPORT_ALL
     WRITE (ice_stdout,*) ' CICE: Router_init. Done.'
+#endif
     
     deallocate(start,length)
     initial_call = .true.
@@ -268,16 +279,20 @@ contains
        call ice_timer_stop(timer_cplrecv)
 
        call ice_timer_start(timer_rcvsnd)
+#ifdef REPORT_ALL
        write(ice_stdout,*) 'CICE - Ocean: CICE Received data'
+#endif
 
 !
 ! SST
 !
        CALL AttrVect_exportRAttr(ocn2cice_AV, 'SST', avdata)
 
+#ifdef REPORT_ALL
        write(ice_stdout,*) 'CICE rank ',my_task,  &
             ' setting the sst field (max/min): ', &
             maxval(avdata), ' ', minval(avdata)
+#endif
 
        call avec2field(avdata,sst)
        call ice_HaloUpdate (sst, halo_info, &
@@ -286,9 +301,11 @@ contains
 ! Salinity
        CALL AttrVect_exportRAttr(ocn2cice_AV, 'SSS', avdata)
        
+#ifdef REPORT_ALL
        write(ice_stdout,*) 'CICE rank ',my_task,  &
             ' setting the sss field (max/min): ', &
             maxval(avdata), ' ', minval(avdata)
+#endif
 
        call avec2field(avdata,sss)
 
@@ -315,9 +332,11 @@ contains
 ! Melt freeze potential
        CALL AttrVect_exportRAttr(ocn2cice_AV, 'FRZMLT', avdata)
 
+#ifdef REPORT_ALL
        write(ice_stdout,*) 'CICE rank ',my_task,  &
             ' setting the frzmlt field (max/min): ', &
             maxval(avdata), ' ', minval(avdata)
+#endif
 
        call avec2field(avdata,frzmlt)
        call ice_HaloUpdate (frzmlt, halo_info, &
@@ -331,9 +350,11 @@ contains
        !
        CALL AttrVect_exportRAttr(ocn2cice_AV, 'u', avdata)
 
+#ifdef REPORT_ALL
        write(ice_stdout,*) 'CICE rank ', my_task,    &
             ' setting the U (uocn) field(max/min): ',&
             maxval(avdata), ' ', minval(avdata)
+#endif
 
        call avec2field(avdata,uocn)
 
@@ -346,9 +367,11 @@ contains
 
        CALL AttrVect_exportRAttr(ocn2cice_AV, 'v', avdata)
        
-       write(ice_stdout,*) 'CICE rank ', my_task, &
+#ifdef REPORT_ALL 
+      write(ice_stdout,*) 'CICE rank ', my_task, &
             ' setting the v (vocn) field(max/min): ', &
             maxval(avdata), ' ', minval(avdata)
+#endif
        
        call avec2field(avdata,vocn)
        call ice_HaloUpdate (vocn, halo_info, &
@@ -365,9 +388,11 @@ contains
 !
        CALL AttrVect_exportRAttr(ocn2cice_AV, 'SSH', avdata)
 
+#ifdef REPORT_ALL
        write(ice_stdout,*) 'CICE rank ', my_task, &
             ' setting the SSH field(max/min): ', &
             maxval(avdata), ' ', minval(avdata)
+#endif
 
        call avec2field(avdata,zeta)
        call ice_HaloUpdate (zeta, halo_info, &
@@ -415,9 +440,11 @@ contains
 
       call field2avec(field,avdata)
       
+#ifdef REPORT_ALL
       write(ice_stdout,*) 'CICE rank ', my_task, &
            ' sending ',trim(fieldname),' field (max/min): ', &
            maxval(avdata), ' ', minval(avdata)
+#endif
       
       CALL AttrVect_importRAttr(cice2ocn_AV, trim(fieldname), avdata)
       

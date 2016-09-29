@@ -162,9 +162,9 @@
 
       if (write_ic) call accum_hist(dt) ! write initial conditions 
 
-#ifdef ROMSCOUPLED
-      call CICE_MCT_coupling
-#endif
+!jd#ifdef ROMSCOUPLED
+!jd      call CICE_MCT_coupling
+!jd#endif
 
       end subroutine cice_init
 
