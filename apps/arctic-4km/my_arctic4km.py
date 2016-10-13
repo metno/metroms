@@ -12,21 +12,17 @@ from GlobalParams import *
 from Params import *
 from ModelRun import *
 ########################################################################
-#import time
-#time.sleep(20)
 ########################################################################
 # Set cpus for ROMS:
 xcpu=16
 ycpu=12
-#xcpu=6
-#ycpu=8
 # Set cpus for CICE:
 icecpu=24
 # Choose a predefined ROMS-application:
 app='arctic-4km' # Arctic-4km
 
-start_date = datetime(1997,01,16,12)
-end_date   = datetime(1998,01,16,12)
+start_date = datetime(1993,01,17,00)
+end_date   = datetime(1997,01,01,00)
 
 
 a4params=Params(app,xcpu,ycpu,start_date,end_date,nrrec=-1,cicecpu=icecpu,restart=False)

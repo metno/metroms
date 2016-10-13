@@ -3,3 +3,4 @@
 *.pyc
 .project
 .pydevproject
+my_*.py
