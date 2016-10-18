@@ -2865,35 +2865,13 @@
           sec12hr
 
 
-      sec6hr = secday/c4
       should_loop = .false.
-
-
-      sec12hr = secday/c2       ! seconds in 12 hours
-      maxrec=2*dayyr             ! Takes acount of leap-years 
-      recnum = 1 + 2*(int(yday)-1) + int(real(sec,kind=dbl_kind)/sec12hr)
-      read12 = .false.
-      if (oldrecnum12 .ne. recnum) read12 = .true.
-      oldrecnum12 = recnum
 
       fieldname = 'rain'
 
      ! now = metroms_offset + tday + mod(time,secday)/secday
       now = metroms_offset + time/secday
       ip = metroms_get_index(metroms_dates_rain, now,should_loop,metroms_ip_rain)
-!      if (my_task==master_task) then
-!        print *, metroms_offset
-!        print *, now
-!        print *, 'year_init: ', year_init
-!        print *, 'month: ', month
-!        print *, 'mday: ', mday, mod(time,secday)/secday
-!        print *, 1 + 4*int(yday-1)  + int(real(sec,kind=dbl_kind)/sec6hr)
-!        print *, metroms_dates_rain(ip(1)), ip(1),ip(2),ip(3)
-!        print *, 'interp constants', c1intp,c2intp
-!      endif
-!      if (ip(3) == 1 .NEQV. read12) then
-!         print*, "TIMEKEEPING MISMATCH!!"
-!      endif
       if (ip(3) == 1) then ! ip(3) = read/don't read flag. Don't read if index hasn't been updated
          metroms_ip_rain = ip
          call metroms_read( &
@@ -2991,7 +2969,7 @@
 ! Helper routines and functions
 
       subroutine metroms_read_and_interpolate(fieldname, &
-             dates, ind, paths, field,work, &
+             dates, ind, paths, field,field_data, &
              field_loc, field_type, should_loop, old_ip)
        
 
@@ -3021,13 +2999,13 @@
            old_ip
         real (kind=dbl_kind), dimension(nx_block,ny_block,2,max_blocks), &
            intent(inout) :: &
-           work
+           field_data
 
         ! local vars
-        integer (kind=int_kind), dimension(3) :: &
-           ip ! index_pair + read flag
+        integer (kind=int_kind), dimension(3) :: & ! index_pair + read flag
+             ip
         logical (kind=log_kind) :: &
-           diag 
+           diag = .false.
         real (kind=dbl_kind) :: &
            now
 
@@ -3036,19 +3014,27 @@
         !now = metroms_offset + tday-c1 + mod(time,secday)/secday 
         now = metroms_offset + time/secday
         diag = .true.
+
         ip = metroms_get_index(dates, now,should_loop,old_ip) 
        
  
         if (ip(3) == 1) then ! ip(3) = read/don't read flag. Don't read if index hasn't been updated
-           old_ip = ip
-           call metroms_read(paths(ip(1)), ind(ip(1)), fieldname, &
-                 work(:,:,1,:), diag, &
-                 field_loc, field_type)
+           if (ip(1) == old_ip(2)) then
+!jd Old time-level allready present, should ideally swap indexes, but copy array for now
+              field_data(:,:,1,:) = field_data(:,:,2,:)
+           else
+!jd Have to read old field also
+              call metroms_read(paths(ip(1)), ind(ip(1)), fieldname, &
+                   field_data(:,:,1,:), diag, &
+                   field_loc, field_type)
+           end if
            call metroms_read(paths(ip(2)), ind(ip(2)), fieldname, &
-                 work(:,:,2,:), diag, &
+                 field_data(:,:,2,:), diag, &
                  field_loc, field_type)
+           old_ip = ip
+
         endif
-        call interpolate_data(work, field)
+        call interpolate_data(field_data, field)
         
       end subroutine metroms_read_and_interpolate
 
@@ -3174,8 +3160,12 @@
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-      subroutine metroms_read(data_file, nrec, varname, work, &
+      subroutine metroms_read(data_file, nrec, varname, field, &
              diag, field_loc, field_type)
+
+      use ice_global_reductions, only: global_minval, global_maxval
+      use ice_domain, only: distrb_info
+      use ice_grid, only: tmask
 
       character (char_len_long), intent(in) :: &
          data_file           ! data file to be read
@@ -3197,19 +3187,24 @@
      !      restart_ext       ! if true, read extended grid
 
       real (kind=dbl_kind), dimension(nx_block,ny_block,max_blocks), &
-         intent(out) :: work
+         intent(out) :: field
 
       ! locals
       integer (kind=int_kind) :: &
          fid                  ! file id for netCDF routines
 
-!      real (kind=dbl_kind), dimension(nx_block,ny_block,2,max_blocks) :: &
-!          wrk
+      real (kind=dbl_kind) :: fmin,fmax
 
       call ice_open_nc(data_file, fid)
-      call ice_read_nc(fid, nrec, varname, work, diag, &
+      call ice_read_nc(fid, nrec, varname, field, .false., &
                    field_loc, field_type)
       call ice_close_nc(fid)
+      if (diag) then
+           fmin = global_minval(field,distrb_info,tmask)
+           fmax = global_maxval(field,distrb_info,tmask)
+           if (my_task.eq.master_task)  &
+               write (nu_diag,*) trim(varname),fmin,fmax
+      endif
 
       end subroutine metroms_read
 
