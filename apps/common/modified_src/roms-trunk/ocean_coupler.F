@@ -1,4 +1,7 @@
 #include "cppdefs.h"
+
+#undef REPORT_COUPLING_ALL
+
       MODULE ocean_coupler_mod
 
 #if defined MODEL_COUPLING && defined MCT_LIB
@@ -383,15 +386,12 @@
 
 
       IF (Master) THEN
-          write(stdout,*) ''
-          write(stdout,*) '  ***************************************** '
-          write(stdout,*)                                               &
-     &     '    Ocean - CICE: coupling routine called from ROMS'
+          write(stdout,*) ' '
+          write(stdout,*) ' ***************************************** '
+          write(stdout,*) &
+     &         '    Ocean - CICE: coupling routine called from ROMS'
           write(stdout,*) &
           '    Time : ', time_code, time
-          write(stdout,*) '  ****************************************  '
-
-          write(stdout,*) ''
       END IF
 
 !
@@ -689,6 +689,10 @@
 #endif
            
         END SELECT
+        IF (Master) write(stdout,*)                                     &
+     &       'i2o: ',trim(code),' min/max', Fields(id)%ImpMin,        &
+     &          Fields(id)%ImpMax
+
       END DO
 
 !
@@ -925,6 +929,12 @@
 
 
         END SELECT
+
+        IF (Master) write(stdout,*)                                     &
+     &       'o2i: ',trim(code),' min/max', Fields(id)%ExpMin,        &
+     &          Fields(id)%ExpMax
+
+
       END DO
 
 !
