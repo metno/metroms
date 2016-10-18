@@ -1,12 +1,13 @@
 #ifdef ROMSCOUPLED
-!#define REPORT_ALL
+#undef REPORT_ALL
 module CICE_MCT
 
   use ice_kinds_mod
   use ice_blocks, only : block, get_block, nx_block, ny_block
   use ice_constants, only: c0,p5, field_loc_center, field_type_scalar,&
        field_loc_NEcorner, field_type_vector
-  use ice_domain, only : nblocks, blocks_ice, halo_info
+  use ice_global_reductions, only: global_minval, global_maxval
+  use ice_domain, only : nblocks, blocks_ice, halo_info, distrb_info
   use ice_domain_size, only : nx_global, ny_global, max_blocks !, block_size_x, block_size_y
   use ice_flux, only: sst, uocn, vocn, zeta, ss_tltx, ss_tlty,&
        sss,frzmlt
@@ -62,6 +63,8 @@ module CICE_MCT
   logical :: initial_call 
   real (kind=dbl_kind) ::   TimeInterval = 3600.0
   
+  logical :: report_cpl = .true.
+
 
   public  :: init_mct,                  &
        CICE_MCT_coupling,         &
@@ -204,19 +207,17 @@ contains
 !***********************************************************************
 
 
-!jd  subroutine CICE_MCT_coupling(time,dt)
   subroutine CICE_MCT_coupling()
-    use ice_grid, only: HTN, HTE, dxu, dyu, dxt, dyt, &
+    use ice_grid, only: HTN, HTE, dxu, dyu, dxt, dyt, tmask,umask,&
          t2ugrid_vector
     use ice_calendar, only: dt, time, write_ic ,istep, istep1
-!jd    real(kind=dbl_kind), intent(in) :: time,dt
 
     real(kind=dbl_kind), pointer :: avdata(:)
     integer     :: ilo, ihi, jlo, jhi ! beginning and end of physical domain
     type(block) :: this_block         ! block information for current block
     integer     :: i,j,Asize,iblk,n
 
-
+    real(kind=dbl_kind) :: fmin,fmax
 
 !        ***********************************
 !             ROMS coupling
@@ -298,6 +299,8 @@ contains
        call ice_HaloUpdate (sst, halo_info, &
             field_loc_center, field_type_scalar)
 
+       if (report_cpl) call o2i_report(sst,'SST',tmask)
+
 ! Salinity
        CALL AttrVect_exportRAttr(ocn2cice_AV, 'SSS', avdata)
        
@@ -328,6 +331,7 @@ contains
        endif
        call ice_HaloUpdate (sss, halo_info, &
             field_loc_center, field_type_scalar)
+       if (report_cpl) call o2i_report(sss,'SSS',tmask)
 
 ! Melt freeze potential
        CALL AttrVect_exportRAttr(ocn2cice_AV, 'FRZMLT', avdata)
@@ -341,7 +345,7 @@ contains
        call avec2field(avdata,frzmlt)
        call ice_HaloUpdate (frzmlt, halo_info, &
             field_loc_center, field_type_scalar)
-
+       if (report_cpl) call o2i_report(frzmlt,'FRZMLT',tmask)
 !
 ! recieve ocean currents and interpolate to B grid
 !
@@ -363,6 +367,7 @@ contains
        call ice_HaloUpdate (uocn, halo_info, &
             field_loc_NEcorner, field_type_vector)
 
+       if (report_cpl) call o2i_report(uocn,'u',umask)
 ! Vocn
 
        CALL AttrVect_exportRAttr(ocn2cice_AV, 'v', avdata)
@@ -381,7 +386,7 @@ contains
        
        call ice_HaloUpdate (vocn, halo_info, &
             field_loc_NEcorner, field_type_vector)
-
+       if (report_cpl) call o2i_report(vocn,'v',umask)
        
        !
        ! SSH
@@ -397,6 +402,7 @@ contains
        call avec2field(avdata,zeta)
        call ice_HaloUpdate (zeta, halo_info, &
             field_loc_center, field_type_scalar)
+       if (report_cpl) call o2i_report(zeta,'zeta',tmask)
 
        do iblk = 1, nblocks
           this_block = get_block(blocks_ice(iblk),iblk)
@@ -432,11 +438,32 @@ contains
 
 !        ***********************************
   contains
+
+    subroutine o2i_report(field,fieldname,mask)
+      real (kind=dbl_kind), dimension (nx_block,ny_block,max_blocks), &
+           intent(in) :: field
+      logical (kind=log_kind), &
+         dimension (nx_block,ny_block,max_blocks),intent(in) :: mask
+      character(len=*),intent(in) :: fieldname
+
+      fmin = global_minval(field,distrb_info,mask)
+      fmax = global_maxval(field,distrb_info,mask)
+      if (my_task.eq.master_task)  &
+           write (ice_stdout,*) 'o2i: ',trim(fieldname),' min/max', fmin,fmax 
+
+    end subroutine o2i_report
+
     subroutine ice2ocn_send_field(field,fieldname)
-!jd     use ice_domain_size, only: max_blocks
+
       real (kind=dbl_kind), dimension (nx_block,ny_block,max_blocks), &
            intent(in) :: field
       character(len=*),intent(in) :: fieldname
+
+      fmin = global_minval(field,distrb_info,tmask)
+      fmax = global_maxval(field,distrb_info,tmask)
+      if (my_task.eq.master_task)  &
+           write (ice_stdout,*) 'i2o: ',trim(fieldname),' min/max', fmin,fmax 
+
 
       call field2avec(field,avdata)
       
@@ -446,12 +473,12 @@ contains
            maxval(avdata), ' ', minval(avdata)
 #endif
       
+
       CALL AttrVect_importRAttr(cice2ocn_AV, trim(fieldname), avdata)
       
     end subroutine ice2ocn_send_field
     
     subroutine avec2field(avec, field)
-!jd     use ice_domain_size, only: max_blocks
       real(kind=dbl_kind), pointer :: avec(:)
       real (kind=dbl_kind), dimension (nx_block,ny_block,max_blocks), &
            intent(out) :: field
