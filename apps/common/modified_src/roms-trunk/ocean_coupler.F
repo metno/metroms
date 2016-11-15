@@ -1,14 +1,14 @@
 #include "cppdefs.h"
 
-#undef REPORT_COUPLING_ALL
+!#define REPORT_COUPLING_ALL
 
       MODULE ocean_coupler_mod
 
 #if defined MODEL_COUPLING && defined MCT_LIB
 !
-!svn $Id: ocean_coupler.F 795 2016-05-11 01:42:43Z arango $
+!svn $Id: ocean_coupler.F 523 2011-01-05 03:21:38Z arango $
 !==================================================== John C. Warner ===
-!  Copyright (c) 2002-2016 The ROMS/TOMS Group      Hernan G. Arango   !
+!  Copyright (c) 2002-2011 The ROMS/TOMS Group      Hernan G. Arango   !
 !    Licensed under a MIT/X style license                              !
 !    See License_ROMS.txt                                              !
 !=======================================================================
@@ -115,11 +115,9 @@
       TYPE(GlobalSegMap) :: GSMapROMS         ! GloabalSegMap variables
 
       CONTAINS
-/*
-************************************************************************
-*  Include model specific communication routines.
-************************************************************************
-*/
+!************************************************************************
+!*  Include model specific communication routines.
+!************************************************************************
 
 # ifdef SWAN_COUPLING
 #  include "mct_roms_swan.h"
@@ -149,7 +147,6 @@
 !  Local variable declarations.
 !
       integer :: Istr, Iend, Jstr, Jend
-      integer :: IstrR, IendR, JstrR, JendR, IstrU, JstrV
       integer :: Asize, Jsize, MyError
       integer :: j, jc, nprocs
 
@@ -201,15 +198,10 @@
       Iend=BOUNDS(ng)%Iend(tile)
       Jstr=BOUNDS(ng)%Jstr(tile)
       Jend=BOUNDS(ng)%Jend(tile)
-
-      IstrR=BOUNDS(ng)%IstrR(tile)
-      IendR=BOUNDS(ng)%IendR(tile)
-      JstrR=BOUNDS(ng)%JstrR(tile)
-      JendR=BOUNDS(ng)%JendR(tile)
 !
 !  Determine start and lengths for domain decomposition.
 !
-      Jsize=JendR-JstrR+1
+      Jsize=Jend-Jstr+1
 #ifdef REPORT_COUPLING_ALL
       WRITE (stdout,*) ' ROMS Ocean Coupler: Jsize=', Jsize
 #endif
@@ -220,10 +212,10 @@
         allocate ( length(Jsize) )
       END IF
       jc=0
-      DO j=JstrR,JendR
+      DO j=Jstr,Jend
         jc=jc+1
-        start (jc)=(j-1)*Lm(ng)+IstrR
-        length(jc)=(IendR-IstrR+1)
+        start (jc)=(j-1)*Lm(ng)+Istr
+        length(jc)=(Iend-Istr+1)
       END DO
 #ifdef REPORT_COUPLING_ALL
       WRITE (stdout,*) ' ROMS Ocean Coupler: calling GlobalSegMap_init'
@@ -324,7 +316,6 @@
 !  Local variable declarations.
 !
       integer :: Istr, Iend, Jstr, Jend
-      integer :: IstrR, IendR, JstrR, JendR, IstrU, JstrV
       integer :: Asize, Iimport, Iexport, MyError
       integer :: gtype, i, id, ifield, ij, j, status
 
@@ -386,13 +377,6 @@
       Iend=BOUNDS(ng)%Iend(tile)
       Jstr=BOUNDS(ng)%Jstr(tile)
       Jend=BOUNDS(ng)%Jend(tile)
-      IstrU=BOUNDS(ng)%IstrU(tile)
-      JstrV=BOUNDS(ng)%JstrV(tile)
-
-      IstrR=BOUNDS(ng)%IstrR(tile)
-      IendR=BOUNDS(ng)%IendR(tile)
-      JstrR=BOUNDS(ng)%JstrR(tile)
-      JendR=BOUNDS(ng)%JendR(tile)
 !
 !-----------------------------------------------------------------------
 !  Allocate communications array.
@@ -437,7 +421,7 @@
            CALL ROMS_import2d (ng, tile,                                &
      &                         id, gtype, scale, add_offset,            &
      &                         Asize, A,                                &
-     &                         IstrR, IendR, JstrR, JendR,              &
+     &                         Istr, Iend, Jstr, Jend,                  &
      &                         LBi, UBi, LBj, UBj,                      &
      &                         Fields(id)%ImpMin, Fields(id)%ImpMax,    &
      &                         ICE(ng)%aice,                            &
@@ -445,8 +429,8 @@
 
 !jd Transfere to u- and v- points for weigthing with stress
 
-           DO j=JstrR,JendR
-              DO i=Istr,IendR
+           DO j=Jstr,Jend
+              DO i=Istr,Iend
                  ICE(ng)%aice_u(i,j)=                                   &
      &                0.5_r8*(ICE(ng)%aice(i-1,j)+ICE(ng)%aice(i,j))
 !# ifdef MASKING
@@ -454,8 +438,8 @@
 !# endif
               END DO
            END DO
-           DO j=Jstr,JendR
-              DO i=IstrR,IendR
+           DO j=Jstr,Jend
+              DO i=Istr,Iend
                  ICE(ng)%aice_v(i,j)=                                   &
      &                0.5_r8*(ICE(ng)%aice(i,j-1)+ICE(ng)%aice(i,j))
 !# ifdef MASKING
@@ -496,7 +480,7 @@
            CALL ROMS_import2d (ng, tile,                                &
      &                         id, gtype, scale, add_offset,            &
      &                         Asize, A,                                &
-     &                         IstrR, IendR, JstrR, JendR,              &
+     &                         Istr, Iend, Jstr, Jend,                  &
      &                         LBi, UBi, LBj, UBj,                      &
      &                         Fields(id)%ImpMin, Fields(id)%ImpMax,    &
      &                         ICE(ng)%freshAI,                         &
@@ -516,7 +500,7 @@
            CALL ROMS_import2d (ng, tile,                                &
      &                         id, gtype, scale, add_offset,            &
      &                         Asize, A,                                &
-     &                         IstrR, IendR, JstrR, JendR,              &
+     &                         Istr, Iend, Jstr, Jend,                  &
      &                         LBi, UBi, LBj, UBj,                      &
      &                         Fields(id)%ImpMin, Fields(id)%ImpMax,    &
      &                         ICE(ng)%fsaltAI,                         &
@@ -536,7 +520,7 @@
            CALL ROMS_import2d (ng, tile,                                &
      &                         id, gtype, scale, add_offset,            &
      &                         Asize, A,                                &
-     &                         IstrR, IendR, JstrR, JendR,              &
+     &                         Istr, Iend, Jstr, Jend,                  &
      &                         LBi, UBi, LBj, UBj,                      &
      &                         Fields(id)%ImpMin, Fields(id)%ImpMax,    &
      &                         ICE(ng)%fhocnAI,                         &
@@ -556,7 +540,7 @@
            CALL ROMS_import2d (ng, tile,                                &
      &                         id, gtype, scale, add_offset,            &
      &                         Asize, A,                                &
-     &                         IstrR, IendR, JstrR, JendR,              &
+     &                         Istr, Iend, Jstr, Jend,                  &
      &                         LBi, UBi, LBj, UBj,                      &
      &                         Fields(id)%ImpMin, Fields(id)%ImpMax,    &
      &                         ICE(ng)%fswthruAI,                       &
@@ -577,15 +561,15 @@
            CALL ROMS_import2d (ng, tile,                                &
      &                         id, gtype, scale, add_offset,            &
      &                         Asize, A,                                &
-     &                         IstrR, IendR, JstrR, JendR,              &
+     &                         Istr, Iend, Jstr, Jend,                  &
      &                         LBi, UBi, LBj, UBj,                      &
      &                         Fields(id)%ImpMin, Fields(id)%ImpMax,    &
      &                         ICE(ng)%strx,                            &
      &                         status)
 
 
-           DO j=JstrR,JendR
-              DO i=Istr,IendR
+           DO j=Jstr,Jend
+              DO i=Istr,Iend
                  ICE(ng)%stru(i,j) = 0.5_r8*                            &
      &                (ICE(ng)%strx(i-1,j) + ICE(ng)%strx(i,j))
 
@@ -623,14 +607,14 @@
            CALL ROMS_import2d (ng, tile,                                &
      &                         id, gtype, scale, add_offset,            &
      &                         Asize, A,                                &
-     &                         IstrR, IendR, JstrR, JendR,              &
+     &                         Istr, Iend, Jstr, Jend,                  &
      &                         LBi, UBi, LBj, UBj,                      &
      &                         Fields(id)%ImpMin, Fields(id)%ImpMax,    &
      &                         ICE(ng)%stry,                            &
      &                         status)
 
-           DO j=Jstr,JendR
-              DO i=IstrR,IendR
+           DO j=Jstr,Jend
+              DO i=Istr,Iend
                  ICE(ng)%strv(i,j)=0.5_r8*                              &
      &                (ICE(ng)%stry(i,j-1)+ICE(ng)%stry(i,j))
 !# ifdef MASKING
@@ -662,8 +646,8 @@
 
 !  Prepare for depth-averaging.
 
-      do j=JstrR,JendR
-         do i=IstrR,IendR
+      do j=Jstr,Jend
+         do i=Istr,Iend
 !           mlio = min(MIXING(ng)%hsbl(i,j),-5.0r8)
             mlio = -5.0_r8
             nbot(i,j) = 1
@@ -725,8 +709,8 @@
             Iexport=Iexport+1
 
          CASE ('FRZMLT')
-           do j=JstrR,JendR
-            do i=IstrR,IendR
+           do j=Jstr,Jend
+            do i=Istr,Iend
 # ifdef ICESHELF
              ! Don't touch the ice shelf cavities
              if (GRID(ng)%zice(i,j) .eq. 0.0_r8) then
@@ -774,8 +758,8 @@
 ! KSH: this is a bit of a mess in that we average to rho points, then
 ! in CICE we average this to psi points.
         CASE ('u')
-           do j=JstrR,JendR
-              do i=IstrR,IendR
+           do j=Jstr,Jend
+              do i=Istr,Iend
                  uw(i,j) = 0.0_r8
                  totml = 0.0_r8
                  do k=N(ng),nbot(i,j),-1
@@ -816,8 +800,8 @@
            Iexport=Iexport+1
 
         CASE ('v')
-           do j=JstrR,JendR
-              do i=IstrR,IendR
+           do j=Jstr,Jend
+              do i=Istr,Iend
                  vw(i,j) = 0.0_r8
                  totml = 0.0_r8
                  do k=N(ng),nbot(i,j),-1
@@ -874,8 +858,8 @@
 
           CASE ('TAIR')
 
-           do j=JstrR,JendR
-              do i=IstrR,IendR
+           do j=Jstr,Jend
+              do i=Istr,Iend
                  vw(i,j) = FORCES(ng)%Tair(i,j) + 273.16
               enddo
            enddo
