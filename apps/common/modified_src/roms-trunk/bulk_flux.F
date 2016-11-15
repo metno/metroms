@@ -123,6 +123,8 @@
      &                     FORCES(ng) % shflx,                          &
      &                     FORCES(ng) % srflx,                          &
      &                     FORCES(ng) % stflx,                          &
+     &                     FORCES(ng) % LW_down,                        &
+     &                     FORCES(ng) % SW_down,                        &
 # ifdef EMINUSP
      &                     FORCES(ng) % EminusP,                        &
      &                     FORCES(ng) % evap,                           &
@@ -164,6 +166,7 @@
 # endif
      &                           rain, lhflx, lrflx, shflx,             &
      &                           srflx, stflx,                          &
+     &                           LW_down, SW_down,                      &
 # ifdef EMINUSP
      &                           EminusP, evap,                         &
 # endif
@@ -225,6 +228,8 @@
       real(r8), intent(inout) :: shflx(LBi:,LBj:)
       real(r8), intent(inout) :: srflx(LBi:,LBj:)
       real(r8), intent(inout) :: stflx(LBi:,LBj:,:)
+      real(r8), intent(out) :: LW_down(LBi:,LBj:)
+      real(r8), intent(out) :: SW_down(LBi:,LBj:)
 
 #  ifdef EMINUSP
       real(r8), intent(out) :: EminusP(LBi:,LBj:)
@@ -272,6 +277,8 @@
       real(r8), intent(inout) :: shflx(LBi:UBi,LBj:UBj)
       real(r8), intent(inout) :: srflx(LBi:UBi,LBj:UBj)
       real(r8), intent(inout) :: stflx(LBi:UBi,LBj:UBj,NT(ng))
+      real(r8), intent(out) :: LW_down(LBi:UBi,LBj:UBj)
+      real(r8), intent(out) :: SW_down(LBi:UBi,LBj:UBj)
 
 #  ifdef EMINUSP
       real(r8), intent(out) :: EminusP(LBi:UBi,LBj:UBj)
@@ -289,7 +296,7 @@
       real(r8), parameter :: eps = 1.0E-20_r8
       real(r8), parameter :: r3 = 1.0_r8/3.0_r8
 
-      real(r8) :: Bf, Cd, Hl, Hlw, Hscale, Hs, Hsr, IER
+      real(r8) :: Bf, Cd, Hl, Hlw, Hscale, Hscale2, Hs, Hsr, IER
       real(r8) :: PairM,  RH, Taur
       real(r8) :: Wspeed, ZQoL, ZToL
 
@@ -366,6 +373,7 @@
 !=======================================================================
 !
       Hscale=rho0*Cp
+      Hscale2=1.0_r8/(rho0*Cp)
       twopi_inv=0.5_r8/pi
       DO j=Jstr-1,JendR
         DO i=Istr-1,IendR
@@ -816,13 +824,14 @@
 !  to (psu m/s) for stflx(isalt) in "set_vbc.F". The E-P value is
 !  saved in variable EminusP for I/O purposes.
 !
-      Hscale=1.0_r8/(rho0*Cp)
       cff=1.0_r8/rhow
       DO j=JstrR,JendR
         DO i=IstrR,IendR
-          lrflx(i,j)=LRad(i,j)*Hscale
-          lhflx(i,j)=-LHeat(i,j)*Hscale
-          shflx(i,j)=-SHeat(i,j)*Hscale
+          LW_down(i,j) = lrflx(i,j)*Hscale
+          SW_down(i,j) = srflx(i,j)*Hscale
+          lrflx(i,j)=LRad(i,j)*Hscale2
+          lhflx(i,j)=-LHeat(i,j)*Hscale2
+          shflx(i,j)=-SHeat(i,j)*Hscale2
           stflx(i,j,itemp)=(srflx(i,j)+lrflx(i,j)+                      &
      &                      lhflx(i,j)+shflx(i,j))
 # ifdef MASKING
@@ -890,6 +899,12 @@
         CALL exchange_r2d_tile (ng, tile,                               &
      &                          LBi, UBi, LBj, UBj,                     &
      &                          stflx(:,:,itemp))
+        CALL exchange_r2d_tile (ng, tile,                               &
+     &                          LBi, UBi, LBj, UBj,                     &
+     &                          LW_down)
+        CALL exchange_r2d_tile (ng, tile,                               &
+     &                          LBi, UBi, LBj, UBj,                     &
+     &                          SW_down)
 # ifdef EMINUSP
         CALL exchange_r2d_tile (ng, tile,                               &
      &                          LBi, UBi, LBj, UBj,                     &
@@ -916,6 +931,11 @@
      &                    EWperiodic(ng), NSperiodic(ng),               &
      &                    lrflx, lhflx, shflx,                          &
      &                    stflx(:,:,itemp))
+      CALL mp_exchange2d (ng, tile, iNLM, 2,                            &
+     &                    LBi, UBi, LBj, UBj,                           &
+     &                    NghostPoints,                                 &
+     &                    EWperiodic(ng), NSperiodic(ng),               &
+     &                    LW_down, SW_down)
 #  ifdef EMINUSP
       CALL mp_exchange2d (ng, tile, iNLM, 3,                            &
      &                    LBi, UBi, LBj, UBj,                           &

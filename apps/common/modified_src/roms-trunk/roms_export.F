@@ -96,26 +96,10 @@
       Jstr=BOUNDS(ng)%Jstr(tile)
       Jend=BOUNDS(ng)%Jend(tile)
 
-      IF (DOMAIN(ng)%Western_Edge(tile)) THEN
-         IstrR=BOUNDS(ng)%Istr(tile)-1
-      ELSE
-         IstrR=BOUNDS(ng)%Istr(tile)
-      END IF
-      IF (DOMAIN(ng)%Eastern_Edge(tile)) THEN
-         IendR=BOUNDS(ng)%Iend(tile)+1
-      ELSE
-         IendR=BOUNDS(ng)%Iend(tile)
-      END IF
-      IF (DOMAIN(ng)%Southern_Edge(tile)) THEN
-         JstrR=BOUNDS(ng)%Jstr(tile)-1
-      ELSE
-         JstrR=BOUNDS(ng)%Jstr(tile)
-      END IF
-      IF (DOMAIN(ng)%Northern_Edge(tile)) THEN
-         JendR=BOUNDS(ng)%Jend(tile)+1
-      ELSE
-         JendR=BOUNDS(ng)%Jend(tile)
-      END IF
+      IstrR=BOUNDS(ng)%IstrR(tile)
+      IendR=BOUNDS(ng)%IendR(tile)
+      JstrR=BOUNDS(ng)%JstrR(tile)
+      JendR=BOUNDS(ng)%JendR(tile)
 
 # else
 #  include "set_bounds.h"

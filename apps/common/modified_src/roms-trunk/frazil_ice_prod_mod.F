@@ -66,8 +66,12 @@
 # ifdef WET_DRY
      &                      GRID(ng) % rmask_wet,                       &
 # endif
+# ifdef ICESHELF
+     &                      GRID(ng) % zice,                            &
+# endif
      &                      GRID(ng) % Hz,                              &
      &                      GRID(ng) % z_r,                             &
+     &                      GRID(ng) % z_w,                             &
      &                      OCEAN(ng) % t,                              &
      &                      ICE(ng) % qfraz,                          &
      &                      ICE(ng) % qfraz_accum)
@@ -88,7 +92,10 @@
 # ifdef WET_DRY
      &                            rmask_wet,                            &
 # endif
-     &                            Hz, z_r, t, qfraz, qfraz_accum)
+# ifdef ICESHELF
+     &                            zice,                                 &
+# endif
+     &                            Hz, z_r, z_w, t, qfraz, qfraz_accum)
 !***********************************************************************
 !
       USE mod_param
@@ -118,8 +125,12 @@
 #  ifdef WET_DRY
       real(r8), intent(in) :: rmask_wet(LBi:,LBj:)
 #  endif
+#  ifdef ICESHELF
+      real(r8), intent(in) :: zice(LBi:,LBj:)
+#  endif
       real(r8), intent(in) :: Hz(LBi:,LBj:,:)
       real(r8), intent(in) :: z_r(LBi:,LBj:,:)
+      real(r8), intent(in) :: z_w(LBi:,LBj:,0:)
       real(r8), intent(inout) :: t(LBi:,LBj:,:,:,:)
       real(r8), intent(out) :: qfraz(LBi:,LBj:)
       real(r8), intent(inout) :: qfraz_accum(LBi:,LBj:)
@@ -130,8 +141,12 @@
 #  ifdef WET_DRY
       real(r8), intent(in) :: rmask_wet(LBi:UBi,LBj:UBj)
 #  endif
+#  ifdef ICESHELF
+      real(r8), intent(in) :: zice(LBi:UBi,LBj:UBj)
+#  endif
       real(r8), intent(in) :: Hz(LBi:UBi,LBj:UBj,N(ng))
       real(r8), intent(in) :: z_r(LBi:UBi,LBj:UBj,N(ng))
+      real(r8), intent(in) :: z_w(LBi:UBi,LBj:UBj,0:N(ng))
       real(r8), intent(inout) :: t(LBi:UBi,LBj:UBj,N(ng),3,NT(ng))
       real(r8), intent(out) :: qfraz(LBi:UBi,LBj:UBj)
       real(r8), intent(inout) :: qfraz_accum(LBi:UBi,LBj:UBj)
@@ -144,73 +159,82 @@
 
       real(r8), parameter :: Lh_ice = 334000.0_r8
 
-      real(r8), parameter :: z_r_max= -50.0_r8
+      real(r8), parameter :: bl_thick = 5.0_r8
+      real(r8), parameter :: salice = 4.0_r8
+      real(r8), parameter :: salref = 34.7_r8
 
-!jd      real(r8), parameter :: Lhat = 79.2_r8
-!jd      real(r8), parameter :: r = 0.5_r8
-
-      real(r8) :: rhocp
-      real(r8) :: cpw_hat
-      real(r8) :: qfraz_prod  ! Energy to frazil in this layer (T < T_freeze)
-      real(r8) :: meltpot     ! Energy available to melt frazil in layer (T>T_freeze)
-      real(r8) :: meltheat    ! Energy used to melt frazil in layer
-
-      real(r8) :: t_fr, Sold
+      real(r8) :: t_fr, Sold, potice, dz, cp_over_lhfusion
 
 # include "set_bounds.h"
 
-      cpw_hat= Cp/Lh_ice
-      rhocp = rho0*Cp
+      cp_over_lhfusion = Cp/Lh_ice
 
       DO j=Jstr,Jend
         DO i=Istr,Iend
           qfraz(i,j) = 0.0_r8
+          potice = 0.0_r8
 # ifdef MASKING
             IF (rmask(i,j) .ne. 0.0_r8) THEN
 # endif
 # ifdef WET_DRY
             IF (rmask_wet(i,j) .ne. 0.0_r8) THEN
 # endif
-          DO k=1,N(ng)
-             if (z_r(i,j,k) < z_r_max) cycle
-!jd To ensure S >= 0, S<0 is unphysical 
+# ifdef ICESHELF
+            ! Don't touch the ice shelf cavities
+            IF (zice(i,j) .eq. 0.0_r8) THEN
+# endif
+            ! Loop from the bottom to the surface
+            DO k=1,N(ng)
+               ! If we are deeper than the specified frazil layer and
+               ! not in the surface layer, skip calculations
+               if ((z_w(i,j,N(ng))-z_w(i,j,k) > bl_thick).and.          &
+     &             (k<N(ng))) cycle
                Sold = max(0.0_r8,t(i,j,k,nnew,isalt))
-              t_fr = t_freeze(Sold,z_r(i,j,k))
-              qfraz_prod= rhocp*Hz(i,j,k) *                             &
-     &             max(t_fr - t(i,j,k,nnew,itemp),0.0_r8)
+               t_fr = t_freeze(Sold,z_r(i,j,k))
+               dz = Hz(i,j,k)
+               ! Calculate potential ice formation in K*m
+               ! positive freeze, negative melt
+               potice = (t_fr - t(i,j,k,nnew,itemp))*dz
+               ! If negative, use it to melt any ice from lower layers
+               potice = max(potice, -qfraz(i,j))
+               ! Update temperature and salinity
+               t(i,j,k,nnew,itemp) = t(i,j,k,nnew,itemp) + potice/dz
+               ! Comment out the salinity changes if update_ocn_f = true
+!               t(i,j,k,nnew,isalt) = max(0.0_r8,                        &
+!     &                                   t(i,j,k,nnew,isalt) +          &
+!     &               (salref-salice)*potice*cp_over_lhfusion/dz
+               qfraz(i,j) = qfraz(i,j) + potice
+            END DO
+            qfraz_accum(i,j) = qfraz_accum(i,j) + qfraz(i,j)
 
-              meltpot= rhocp*Hz(i,j,k) *                                & 
-     &             min(t_fr - t(i,j,k,nnew,itemp),0.0_r8)
-
-
-! Add possible frazil ice production
-              qfraz(i,j) = qfraz(i,j) + qfraz_prod
-
-! Allow warm water to melt ice produced in deeper layers
-
-              meltheat= max (meltpot, -qfraz(i,j) )     ! <= 0
-
-              qfraz(i,j) = qfraz(i,j) + meltheat
-
-! Adjust temperature in accordance with change in qfraz
-              t(i,j,k,nnew,itemp) =  t(i,j,k,nnew,itemp) +              &
-     &             (qfraz_prod + meltheat )/(rhocp*Hz(i,j,k))
-
-          END DO
+            ! Calculate residual melting in surface layer
+            k=N(ng)
+            Sold = max(0.0_r8,t(i,j,k,nnew,isalt))
+            t_fr = t_freeze(Sold,z_r(i,j,k))
+            dz = Hz(i,j,k)
+            potice = (t_fr - t(i,j,k,nnew,itemp))*dz
+            ! If negative, use it to melt any ice previously calculated
+            ! since last coupling timestep
+            potice = max(potice, -qfraz_accum(i,j))
+            t(i,j,k,nnew,itemp) = t(i,j,k,nnew,itemp) + potice/dz
+            ! Comment out the salinity changes if update_ocn_f = true
+!            t(i,j,k,nnew,isalt) = max(0.0_r8,                           &
+!     &                                t(i,j,k,nnew,isalt) +             &
+!     &           (salref-salice)*potice*cp_over_lhfusion/dz
+            qfraz_accum(i,j) = qfraz_accum(i,j) + potice
+            
+# ifdef ICESHELF
+            END IF
+# endif
 # ifdef WET_DRY
             END IF
 # endif
 # ifdef MASKING
             END IF
 # endif
-          qfraz(i,j) = qfraz(i,j)/dt(ng)
-          IF (qfraz(i,j) .lt. 0.0_r8) THEN
-            print *, 'trouble in frazil_ice_mod', i, j,                 &
-     &         t(i,j,N(ng),nnew,itemp), t(i,j,N(ng),nnew,isalt),        &
-     &         qfraz(i,j), Hz(i,j,N(ng))
-          END IF
         END DO
       END DO
+
       CALL bc_r2d_tile (ng, tile,                                       &
      &                          LBi, UBi, LBj, UBj,                     &
      &                          qfraz)
@@ -220,12 +244,6 @@
      &                    NghostPoints, EWperiodic(ng), NSperiodic(ng), &
      &                    qfraz)
 #endif
-
-      DO j=Jstr,Jend
-        DO i=Istr,Iend
-          qfraz_accum(i,j) = qfraz_accum(i,j) + qfraz(i,j)
-        ENDDO
-      ENDDO
 
       CALL bc_r2d_tile (ng, tile,                                       &
      &                          LBi, UBi, LBj, UBj,                     &

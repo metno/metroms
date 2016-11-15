@@ -141,7 +141,7 @@
       USE mod_scalars
       USE mod_iounits, only: stdout
 
-! 
+!
 !  Imported variable definitions.
 !
       integer, intent(in) :: ng, tile
@@ -201,27 +201,11 @@
       Iend=BOUNDS(ng)%Iend(tile)
       Jstr=BOUNDS(ng)%Jstr(tile)
       Jend=BOUNDS(ng)%Jend(tile)
-!
-      IF (DOMAIN(ng)%Western_Edge(tile)) THEN
-        IstrR=BOUNDS(ng)%Istr(tile)-1
-      ELSE
-        IstrR=BOUNDS(ng)%Istr(tile)
-      END IF
-      IF (DOMAIN(ng)%Eastern_Edge(tile)) THEN
-        IendR=BOUNDS(ng)%Iend(tile)+1
-      ELSE
-        IendR=BOUNDS(ng)%Iend(tile)
-      END IF
-      IF (DOMAIN(ng)%Southern_Edge(tile)) THEN
-        JstrR=BOUNDS(ng)%Jstr(tile)-1
-      ELSE
-        JstrR=BOUNDS(ng)%Jstr(tile)
-      END IF
-      IF (DOMAIN(ng)%Northern_Edge(tile)) THEN
-        JendR=BOUNDS(ng)%Jend(tile)+1
-      ELSE
-        JendR=BOUNDS(ng)%Jend(tile)
-      END IF
+
+      IstrR=BOUNDS(ng)%IstrR(tile)
+      IendR=BOUNDS(ng)%IendR(tile)
+      JstrR=BOUNDS(ng)%JstrR(tile)
+      JendR=BOUNDS(ng)%JendR(tile)
 !
 !  Determine start and lengths for domain decomposition.
 !
@@ -238,7 +222,7 @@
       jc=0
       DO j=JstrR,JendR
         jc=jc+1
-        start (jc)=j*(Lm(ng)+2)+IstrR+1
+        start (jc)=(j-1)*Lm(ng)+IstrR
         length(jc)=(IendR-IstrR+1)
       END DO
 #ifdef REPORT_COUPLING_ALL
@@ -257,7 +241,7 @@
       Asize=GlobalSegMap_lsize(GSMapROMS, OCN_COMM_WORLD)
 
 #ifdef REPORT_COUPLING_ALL
-      WRITE (stdout,*) ' ROMS Ocean Coupler: calling AttrVect_init.',   & 
+      WRITE (stdout,*) ' ROMS Ocean Coupler: calling AttrVect_init.',   &
      &     ' Asize=', Asize
 #endif
 
@@ -349,22 +333,19 @@
       real(r8), pointer :: A(:)
 
       ! intermediates for ice stress interpolation
-      real(r8) :: aice_psip, aice_psi, sap, sa 
+      real(r8) :: aice_psip, aice_psi, sap, sa
 
       character (len=3 ), dimension(2) :: op_handle
       character (len=40) :: code
 
 
-      integer :: nbotu, nbotv, k
+      integer :: k
       integer, dimension(:,:), allocatable :: nbot
       real(r8), dimension(:,:), allocatable :: uw
       real(r8), dimension(:,:), allocatable :: vw
-      real(r8), dimension(:,:), allocatable :: uwater
-      real(r8), dimension(:,:), allocatable :: vwater
+      real(r8), dimension(:,:), allocatable :: frzmlt
 
-      real(r8) :: mlio
-      real(r8) :: dml
-      real(r8) :: totml
+      real(r8) :: Sold, t_fr, dz, mlio, totml, dml
 
 #include "tile.h"
 
@@ -372,26 +353,25 @@
       CALL wclock_on (ng, iNLM, 36)
 #endif
 
-
-      allocate(nbot(IminS:ImaxS,JminS:JmaxS))
-      allocate(uw(IminS:ImaxS,JminS:JmaxS))
-      allocate(vw(IminS:ImaxS,JminS:JmaxS))
-      allocate(uwater(LBi:UBi,LBj:UBj))
-      allocate(vwater(LBi:UBi,LBj:UBj))
+      allocate(nbot(LBi:UBi,LBj:UBj))
+      allocate(uw(LBi:UBi,LBj:UBj))
+      allocate(vw(LBi:UBi,LBj:UBj))
+      allocate(frzmlt(LBi:UBi,LBj:UBj))
 
       uw=0.0_r8
       vw=0.0_r8
-      uwater=0.0_r8
-      vwater=0.0_r8
-
+      frzmlt=0.0_r8
 
       IF (Master) THEN
-          write(stdout,*) ' '
-          write(stdout,*) ' ***************************************** '
-          write(stdout,*) &
-     &         '    Ocean - CICE: coupling routine called from ROMS'
+          write(stdout,*) ''
+          write(stdout,*) '  ***************************************** '
+          write(stdout,*)                                               &
+     &     '    Ocean - CICE: coupling routine called from ROMS'
           write(stdout,*) &
           '    Time : ', time_code, time
+          write(stdout,*) '  ****************************************  '
+
+          write(stdout,*) ''
       END IF
 
 !
@@ -409,27 +389,10 @@
       IstrU=BOUNDS(ng)%IstrU(tile)
       JstrV=BOUNDS(ng)%JstrV(tile)
 
-!
-      IF (DOMAIN(ng)%Western_Edge(tile)) THEN
-        IstrR=BOUNDS(ng)%Istr(tile)-1
-      ELSE
-        IstrR=BOUNDS(ng)%Istr(tile)
-      END IF
-      IF (DOMAIN(ng)%Eastern_Edge(tile)) THEN
-        IendR=BOUNDS(ng)%Iend(tile)+1
-      ELSE
-        IendR=BOUNDS(ng)%Iend(tile)
-      END IF
-      IF (DOMAIN(ng)%Southern_Edge(tile)) THEN
-        JstrR=BOUNDS(ng)%Jstr(tile)-1
-      ELSE
-        JstrR=BOUNDS(ng)%Jstr(tile)
-      END IF
-      IF (DOMAIN(ng)%Northern_Edge(tile)) THEN
-        JendR=BOUNDS(ng)%Jend(tile)+1
-      ELSE
-        JendR=BOUNDS(ng)%Jend(tile)
-      END IF
+      IstrR=BOUNDS(ng)%IstrR(tile)
+      IendR=BOUNDS(ng)%IendR(tile)
+      JstrR=BOUNDS(ng)%JstrR(tile)
+      JendR=BOUNDS(ng)%JendR(tile)
 !
 !-----------------------------------------------------------------------
 !  Allocate communications array.
@@ -457,7 +420,7 @@
         add_offset=Fields(id)%AddOffset
 
         SELECT CASE (TRIM(code))
-         
+
 
 
         CASE ('AICE')           ! Sea ice concentration
@@ -479,7 +442,7 @@
      &                         Fields(id)%ImpMin, Fields(id)%ImpMax,    &
      &                         ICE(ng)%aice,                            &
      &                         status)
-       
+
 !jd Transfere to u- and v- points for weigthing with stress
 
            DO j=JstrR,JendR
@@ -619,7 +582,7 @@
      &                         Fields(id)%ImpMin, Fields(id)%ImpMax,    &
      &                         ICE(ng)%strx,                            &
      &                         status)
-           
+
 
            DO j=JstrR,JendR
               DO i=Istr,IendR
@@ -646,7 +609,7 @@
 #endif
 
 
-        CASE ('strocny')        ! ice-ocean stress y-dir 
+        CASE ('strocny')        ! ice-ocean stress y-dir
 
            CALL AttrVect_exportRAttr (cice2ocn_AV, TRIM(code), A, Asize)
            Iimport=Iimport+1
@@ -687,12 +650,8 @@
      &          EWperiodic(ng), NSperiodic(ng),                         &
      &          ICE(ng)%strv )
 #endif
-           
-        END SELECT
-        IF (Master) write(stdout,*)                                     &
-     &       'i2o: ',trim(code),' min/max', Fields(id)%ImpMin,        &
-     &          Fields(id)%ImpMax
 
+        END SELECT
       END DO
 
 !
@@ -701,18 +660,12 @@
 !-----------------------------------------------------------------------
 !
 
-!  Prepare for depth-averaging (find k index just below mixed layer)
+!  Prepare for depth-averaging.
 
-#  define I_RANGE MAX(Istr-2,0),MIN(Iend+2,Lm(ng)+1)
-#  define J_RANGE MAX(Jstr-2,0),MIN(Jend+2,Mm(ng)+1)
-      do j=J_RANGE
-         do i=I_RANGE
-            
-#  ifdef LMD_SKPP
-            mlio = min(MIXING(ng)%hsbl(i,j),-10._r8)
-#  else
-            mlio = -10._r8
-#  endif
+      do j=JstrR,JendR
+         do i=IstrR,IendR
+!           mlio = min(MIXING(ng)%hsbl(i,j),-5.0r8)
+            mlio = -5.0_r8
             nbot(i,j) = 1
             do k=N(ng),1,-1
                if(GRID(ng)%z_r(i,j,k).lt.mlio) then
@@ -724,8 +677,6 @@
  1111       continue
          enddo
       enddo
-#undef I_RANGE
-#undef J_RANGE
 
 !  Schedule sending fields to the cice model.
 !
@@ -774,27 +725,38 @@
             Iexport=Iexport+1
 
          CASE ('FRZMLT')
-            
            do j=JstrR,JendR
             do i=IstrR,IendR
+# ifdef ICESHELF
+             ! Don't touch the ice shelf cavities
+             if (GRID(ng)%zice(i,j) .eq. 0.0_r8) then
+# endif
              if (ICE(ng)%qfraz_accum(i,j).gt.0.0_r8) then
-              ICE(ng)%qfraz_accum(i,j)=                                 &
-     &               ICE(ng)%qfraz_accum(i,j)/ncouple
+              ! Ice was formed
+              ! Convert from K*m to W/m^2
+              frzmlt(i,j) = ICE(ng)%qfraz_accum(i,j)*rho0*Cp/           &
+     &                      (ncouple*dt(ng))
              else
-!jd Assume 5-meter thickness of layer. Here melt potential should be a proper 
-!jd weight over a typical mixed (?)/ near-ice layer. 
-             ICE(ng)%qfraz_accum(i,j) = rho0*Cp *                       &
-     &        min(t_freeze(OCEAN(ng)%t(i,j,N(ng),NOUT,isalt),0.0_r8)    &
-     &        - OCEAN(ng)%t(i,j,N(ng),NOUT,itemp), 0.0_r8 )             &
-     &        * 5.0_r8 / (ncouple*dt(ng))
+              ! No ice was formed; recompute melt potential in surface
+              Sold = max(0.0_r8,OCEAN(ng)%t(i,j,N(ng),NOUT,isalt))
+              t_fr = t_freeze(Sold,GRID(ng)%z_r(i,j,N(ng)))
+              dz = GRID(ng)%Hz(i,j,N(ng))
+              frzmlt(i,j) = min(0.0_r8,                                 &
+     &                   t_fr - OCEAN(ng)%t(i,j,N(ng),NOUT,itemp))*     &
+     &                   dz*rho0*Cp/(ncouple*dt(ng))
              end if
+# ifdef ICESHELF
+             else
+               frzmlt(i,j) = 0.0_r8
+             end if
+# endif
             end do
            end do
 
            CALL ROMS_export2d (ng, tile,                                &
      &                         id, gtype, scale, add_offset,            &
      &                         LBi, UBi, LBj, UBj,                      &
-     &                         ICE(ng)%qfraz_accum(:,:),                &
+     &                         frzmlt,                                  &
      &                         Fields(id)%ExpMin, Fields(id)%ExpMax,    &
      &                         Asize, A,                                &
      &                         status)
@@ -809,47 +771,38 @@
 !jd Reset accumulation array
            ICE(ng)%qfraz_accum(:,:) = 0
 
-
+! KSH: this is a bit of a mess in that we average to rho points, then
+! in CICE we average this to psi points.
         CASE ('u')
-#  define I_RANGE MAX(Istr-1,1),Iend+1             
-           do j=Jstr,Jend
-              do i=I_RANGE
-                 nbotu = NINT(0.5_r8*(nbot(i-1,j)+nbot(i,j)))
-                 nbotu = max(min(nbotu,N(ng)),1)
-                 uw(i,j) = 0._r8
-                 totml = 0._r8
-                 do k=N(ng),nbotu,-1
-                    dml = 0.5_r8*(GRID(ng)%z_w(i-1,j,k)                 &
-     &                   -GRID(ng)%z_w(i-1,j,k-1)                       &
-     &                   + GRID(ng)%z_w(i,j,k)-GRID(ng)%z_w(i,j,k-1))
-                    uw(i,j) = uw(i,j) + OCEAN(ng)%u(i,j,k,NOUT)*dml
+           do j=JstrR,JendR
+              do i=IstrR,IendR
+                 uw(i,j) = 0.0_r8
+                 totml = 0.0_r8
+                 do k=N(ng),nbot(i,j),-1
+                    dml = GRID(ng)%z_w(i,j,k)-GRID(ng)%z_w(i,j,k-1)
+                    uw(i,j) = uw(i,j) + 0.5_r8*dml*                     &
+     &                        (OCEAN(ng)%u(i+1,j,k,NOUT) +          &
+     &                         OCEAN(ng)%u(i,j,k,NOUT))
                     totml = totml + dml
                  enddo
                  uw(i,j) = uw(i,j)/totml
               enddo
            enddo
-#  undef I_RANGE
-           do j=Jstr,Jend
-              do i=IstrU,Iend
-                 uwater(i,j) = uw(i,j)
-              enddo
-           enddo
 !  Apply boundary conditions.
-           CALL bc_u2d_tile (ng, tile,                                  &
+           CALL bc_r2d_tile (ng, tile,                                  &
      &          LBi, UBi, LBj, UBj,                                     &
-     &          uwater)
+     &          uw)
 #ifdef DISTRIBUTE
            CALL mp_exchange2d (ng, tile, iNLM, 1,                       &
      &          LBi, UBi, LBj, UBj,                                     &
      &          NghostPoints, EWperiodic(ng), NSperiodic(ng),           &
-     &          uwater)
+     &          uw)
 #endif
 !            write(stdout,*) TRIM(code),id,gtype
            CALL ROMS_export2d (ng, tile,                                &
      &                         id, gtype, scale, add_offset,            &
      &                         LBi, UBi, LBj, UBj,                      &
-     &                         uwater,                                  &
-!     &                         OCEAN(ng)%u(:,:,N(ng),NOUT),            &
+     &                         uw,                                      &
      &                         Fields(id)%ExpMin, Fields(id)%ExpMax,    &
      &                         Asize, A,                                &
      &                         status)
@@ -863,42 +816,34 @@
            Iexport=Iexport+1
 
         CASE ('v')
-#  define J_RANGE MAX(Jstr-1,1),Jend+1 
-           do j=J_RANGE
-              do i=Istr,Iend
-                 nbotv = NINT(0.5_r8*(nbot(i,j-1)+nbot(i,j)))
-                 nbotv = max(min(nbotv,N(ng)),1)
-                 vw(i,j) = 0._r8
-                 totml = 0._r8
-                 do k=N(ng),nbotv,-1
-                    dml = 0.5_r8*(GRID(ng)%z_w(i,j-1,k)-GRID(ng)%z_w(i,j-1,k-1) + GRID(ng)%z_w(i,j,k)-GRID(ng)%z_w(i,j,k-1))
-                    vw(i,j) = vw(i,j) + OCEAN(ng)%v(i,j,k,NOUT)*dml
+           do j=JstrR,JendR
+              do i=IstrR,IendR
+                 vw(i,j) = 0.0_r8
+                 totml = 0.0_r8
+                 do k=N(ng),nbot(i,j),-1
+                    dml = GRID(ng)%z_w(i,j,k)-GRID(ng)%z_w(i,j,k-1)
+                    vw(i,j) = vw(i,j) + 0.5_r8*dml*                     &
+     &                        (OCEAN(ng)%v(i,j+1,k,NOUT) +          &
+     &                         OCEAN(ng)%v(i,j,k,NOUT))
                     totml = totml + dml
                  enddo
                  vw(i,j) = vw(i,j)/totml
               enddo
            enddo
-#  undef J_RANGE
-           do j=JstrV,Jend
-              do i=Istr,Iend
-                 vwater(i,j) = vw(i,j)
-              enddo
-             enddo
 !  Apply boundary conditions.
-             CALL bc_v2d_tile (ng, tile,                                &
+             CALL bc_r2d_tile (ng, tile,                                &
      &            LBi, UBi, LBj, UBj,                                   &
-     &            vwater)
+     &            vw)
 #ifdef DISTRIBUTE
              CALL mp_exchange2d (ng, tile, iNLM, 1,                     &
      &            LBi, UBi, LBj, UBj,                                   &
      &            NghostPoints, EWperiodic(ng), NSperiodic(ng),         &
-     &            vwater)
+     &            vw)
 #endif
              CALL ROMS_export2d (ng, tile,                              &
      &                           id, gtype, scale, add_offset,          &
      &                           LBi, UBi, LBj, UBj,                    &
-     &                           vwater,                                &
-!     &                          OCEAN(ng)%v(:,:,N(ng),NOUT),            &
+     &                           vw,                                    &
      &                           Fields(id)%ExpMin, Fields(id)%ExpMax,  &
      &                           Asize, A,                              &
      &                           status)
@@ -927,14 +872,159 @@
              CALL AttrVect_importRAttr(ocn2cice_AV,TRIM(code),A,Asize)
              Iexport=Iexport+1
 
+          CASE ('TAIR')
+
+           do j=JstrR,JendR
+              do i=IstrR,IendR
+                 vw(i,j) = FORCES(ng)%Tair(i,j) + 273.16
+              enddo
+           enddo
+!  Apply boundary conditions.
+           CALL bc_r2d_tile (ng, tile,                                  &
+     &          LBi, UBi, LBj, UBj,                                     &
+     &          vw)
+#ifdef DISTRIBUTE
+           CALL mp_exchange2d (ng, tile, iNLM, 1,                       &
+     &          LBi, UBi, LBj, UBj,                                     &
+     &          NghostPoints, EWperiodic(ng), NSperiodic(ng),           &
+     &          vw)
+#endif
+             CALL ROMS_export2d (ng, tile,                              &
+     &                          id, gtype, scale, add_offset,           &
+     &                          LBi, UBi, LBj, UBj,                     &
+     &                          vw,                                     &
+     &                          Fields(id)%ExpMin, Fields(id)%ExpMax,   &
+     &                          Asize, A,                               &
+     &                          status)
+#ifdef REPORT_COUPLING_ALL
+             write(stdout,*)                                            &
+     &           'ROMS rank ',MyRank,' sending Tair field (max/min):',  &
+     &            maxval(A), ' ', minval(A),' gtype : ', gtype
+#endif
+             CALL AttrVect_importRAttr(ocn2cice_AV,TRIM(code),A,Asize)
+             Iexport=Iexport+1
+
+          CASE ('QAIR')
+
+             CALL ROMS_export2d (ng, tile,                              &
+     &                          id, gtype, scale, add_offset,           &
+     &                          LBi, UBi, LBj, UBj,                     &
+     &                          FORCES(ng)%Hair,                        &
+     &                          Fields(id)%ExpMin, Fields(id)%ExpMax,   &
+     &                          Asize, A,                               &
+     &                          status)
+#ifdef REPORT_COUPLING_ALL
+             write(stdout,*)                                            &
+     &           'ROMS rank ',MyRank,' sending Qair field (max/min):',  &
+     &            maxval(A), ' ', minval(A),' gtype : ', gtype
+#endif
+             CALL AttrVect_importRAttr(ocn2cice_AV,TRIM(code),A,Asize)
+             Iexport=Iexport+1
+
+          CASE ('UWIND')
+
+             CALL ROMS_export2d (ng, tile,                              &
+     &                          id, gtype, scale, add_offset,           &
+     &                          LBi, UBi, LBj, UBj,                     &
+     &                          FORCES(ng)%Uwind,                       &
+     &                          Fields(id)%ExpMin, Fields(id)%ExpMax,   &
+     &                          Asize, A,                               &
+     &                          status)
+#ifdef REPORT_COUPLING_ALL
+             write(stdout,*)                                            &
+     &           'ROMS rank ',MyRank,' sending Uwind field (max/min):', &
+     &            maxval(A), ' ', minval(A),' gtype : ', gtype
+#endif
+             CALL AttrVect_importRAttr(ocn2cice_AV,TRIM(code),A,Asize)
+             Iexport=Iexport+1
+
+          CASE ('VWIND')
+
+             CALL ROMS_export2d (ng, tile,                              &
+     &                          id, gtype, scale, add_offset,           &
+     &                          LBi, UBi, LBj, UBj,                     &
+     &                          FORCES(ng)%Vwind,                       &
+     &                          Fields(id)%ExpMin, Fields(id)%ExpMax,   &
+     &                          Asize, A,                               &
+     &                          status)
+#ifdef REPORT_COUPLING_ALL
+             write(stdout,*)                                            &
+     &           'ROMS rank ',MyRank,' sending Vwind field (max/min):', &
+     &            maxval(A), ' ', minval(A),' gtype : ', gtype
+#endif
+             CALL AttrVect_importRAttr(ocn2cice_AV,TRIM(code),A,Asize)
+             Iexport=Iexport+1
+
+          CASE ('RAIN')
+
+             CALL ROMS_export2d (ng, tile,                              &
+     &                          id, gtype, scale, add_offset,           &
+     &                          LBi, UBi, LBj, UBj,                     &
+     &                          FORCES(ng)%rain,                        &
+     &                          Fields(id)%ExpMin, Fields(id)%ExpMax,   &
+     &                          Asize, A,                               &
+     &                          status)
+#ifdef REPORT_COUPLING_ALL
+             write(stdout,*)                                            &
+     &           'ROMS rank ',MyRank,' sending rain field (max/min):',  &
+     &            maxval(A), ' ', minval(A),' gtype : ', gtype
+#endif
+             CALL AttrVect_importRAttr(ocn2cice_AV,TRIM(code),A,Asize)
+             Iexport=Iexport+1
+
+          CASE ('SNOW')
+
+             CALL ROMS_export2d (ng, tile,                              &
+     &                          id, gtype, scale, add_offset,           &
+     &                          LBi, UBi, LBj, UBj,                     &
+     &                          FORCES(ng)%snow,                        &
+     &                          Fields(id)%ExpMin, Fields(id)%ExpMax,   &
+     &                          Asize, A,                               &
+     &                          status)
+#ifdef REPORT_COUPLING_ALL
+             write(stdout,*)                                            &
+     &           'ROMS rank ',MyRank,' sending snow field (max/min):',  &
+     &            maxval(A), ' ', minval(A),' gtype : ', gtype
+#endif
+             CALL AttrVect_importRAttr(ocn2cice_AV,TRIM(code),A,Asize)
+             Iexport=Iexport+1
+
+          CASE ('SW_DN')
+
+             CALL ROMS_export2d (ng, tile,                              &
+     &                          id, gtype, scale, add_offset,           &
+     &                          LBi, UBi, LBj, UBj,                     &
+     &                          FORCES(ng)%SW_down,                     &
+     &                          Fields(id)%ExpMin, Fields(id)%ExpMax,   &
+     &                          Asize, A,                               &
+     &                          status)
+#ifdef REPORT_COUPLING_ALL
+             write(stdout,*)                                            &
+     &           'ROMS rank ',MyRank,' sending SW_DN field (max/min):', &
+     &            maxval(A), ' ', minval(A),' gtype : ', gtype
+#endif
+             CALL AttrVect_importRAttr(ocn2cice_AV,TRIM(code),A,Asize)
+             Iexport=Iexport+1
+
+          CASE ('LW_DN')
+
+             CALL ROMS_export2d (ng, tile,                              &
+     &                          id, gtype, scale, add_offset,           &
+     &                          LBi, UBi, LBj, UBj,                     &
+     &                          FORCES(ng)%LW_down,                     &
+     &                          Fields(id)%ExpMin, Fields(id)%ExpMax,   &
+     &                          Asize, A,                               &
+     &                          status)
+#ifdef REPORT_COUPLING_ALL
+             write(stdout,*)                                            &
+     &           'ROMS rank ',MyRank,' sending LW_DN field (max/min):', &
+     &            maxval(A), ' ', minval(A),' gtype : ', gtype
+#endif
+             CALL AttrVect_importRAttr(ocn2cice_AV,TRIM(code),A,Asize)
+             Iexport=Iexport+1
+
 
         END SELECT
-
-        IF (Master) write(stdout,*)                                     &
-     &       'o2i: ',trim(code),' min/max', Fields(id)%ExpMin,        &
-     &          Fields(id)%ExpMax
-
-
       END DO
 
 !
@@ -952,7 +1042,7 @@
 !
 !  Deallocate communication arrays.
 !
-      deallocate (A,nbot,uw,vw,uwater,vwater)
+      deallocate (A,uw,vw)
 
 #ifdef PROFILE
       CALL wclock_off (ng, iNLM, 36)

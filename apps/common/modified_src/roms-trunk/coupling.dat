@@ -59,16 +59,16 @@
   0.0d0
   1.0d0
 
-'Tair'                                             ! at 2 m, usually
+'TAIR'                                             ! at 2 m, usually
   'Tair'
   'surface air temperature'
   'Celsius'                                        ! [Kelvin]
   'r2dvar'
-  273.16d0                                         ! Kelvin to Celsius
+  0.0d0       ! 273.16d0 Kelvin to Celsius
   1.0d0
 
-'Hair'                                             ! at 10 m, usually
-  'Hair'
+'QAIR'                                             ! at 10 m, usually
+  'Qair'
   'surface air relative humidity'
   'percentage'                                     ! [percentage]
   'r2dvar'
@@ -83,23 +83,23 @@
   0.0d0
   1.0d0
 
-'SWrad'                                            ! at 10 m, usually
-  'swrad'
+'SW_DN'                                            ! at 10 m, usually
+  'SW_down'
   'solar shortwave radiation flux'
   'Celsius meter second-1'                         ! [Watt/m2]
   'r2dvar'
   0.0d0
   1.0d0                                            ! 1/rho0/Cp
 
-'LWrad'                                            ! at 10 m, usually
-  'lwrad_down'
+'LW_DN'                                            ! at 10 m, usually
+  'LW_down'
   'downwelling longwave radiation flux'
   'Celsius meter second-1'                         ! [Watt/m2]
   'r2dvar'
   0.0d0
   1.0d0                                            ! 1/rho0/Cp
 
-'rain'                                             ! at 10 m, usually
+'RAIN'                                             ! at 10 m, usually
   'rain'
   'rain fall rate'
   'kilogram meter-2 second-1'                      ! [kg m2/s]
@@ -107,7 +107,15 @@
   0.0d0
   1.0d0                                            ! 1/rhow (0.001 m3/kg) if m/s
 
-'Uwind'                                            ! at 10 m, usually
+'SNOW'                                             ! at 10 m, usually
+  'snow'
+  'snow fall rate'
+  'kilogram meter-2 second-1'                      ! [kg m2/s]
+  'r2dvar'
+  0.0d0
+  1.0d0                                            ! 1/rhow (0.001 m3/kg) if m/s
+
+'UWIND'                                            ! at 10 m, usually
   'Uwind'
   'surface u-wind component'
   'meter second-1'                                 ! [m/s]
@@ -115,7 +123,7 @@
   0.0d0
   1.0d0
 
-'Vwind'                                            ! at 10 m, usually
+'VWIND'                                            ! at 10 m, usually
   'Vwind'
   'surface v-wind component'
   'meter second-1'                                 ! [m/s]
