@@ -64,18 +64,21 @@ if __name__ == "__main__":
     if path[-1] != '/':
        path += '/'
     for f in nc_files:
-        print("doing file: {}".format(f))
-	nc = Dataset(f)
-	all_vars = nc.variables.keys()
-        vars = [v for k,v in variable_names.iteritems() if k in all_vars]
-	timeslots = nc.variables['time'][:]
-        for v in vars:
-	    timeslots_,inds,ff = lists[v]
-            timeslots_ = np.hstack((timeslots_,timeslots))
-            inds = inds + range(1,len(timeslots)+1)
-            fs = [path+f]*len(timeslots) # list with repeated elements
-            ff = ff+fs
-            lists[v] = (timeslots_,inds,ff)
-        nc.close()
+        try:
+            print("doing file: {}".format(f))
+            nc = Dataset(f)
+            all_vars = nc.variables.keys()
+            vars = [v for k,v in variable_names.iteritems() if k in all_vars]
+            timeslots = nc.variables['time'][:]
+            for v in vars:
+                timeslots_,inds,ff = lists[v]
+                timeslots_ = np.hstack((timeslots_,timeslots))
+                inds = inds + range(1,len(timeslots)+1)
+                fs = [path+f]*len(timeslots) # list with repeated elements
+                ff = ff+fs
+                lists[v] = (timeslots_,inds,ff)
+            nc.close()
+        except Exception as ex:
+            print 'Error: '+str(ex)
     print("Writing files")
     write_files(lists)

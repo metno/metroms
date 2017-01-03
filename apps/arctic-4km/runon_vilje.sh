@@ -18,4 +18,4 @@ cd ~/metroms/apps/arctic-4km
 export MPI_BUFS_PER_PROC=256
 export MPI_BUFS_PER_HOST=1024
 #export PYTHONPATH=$PYTHONPATH:~/metroms/apps/common/python/
-python arctic4km.py
+python my_arctic4km.py
