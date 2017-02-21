@@ -81,6 +81,7 @@ export USE_NETCDF4=on
 export USE_PARALLEL_IO=on 
 
 #export USE_MY_LIBS=on
+export         which_MPI=mpich2        # compile with MPICH2 library
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 # ... and here.
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -103,9 +104,9 @@ fi
 tmpdir=tmproms
 
 export MY_ROMS_SRC=${tup}/${tmpdir}/roms_src
-mkdir -p ${MY_ROMS_SRC}
-cd ${MY_ROMS_SRC}
-tar -xf ${metroms_base}/static_libs/${roms_ver}.tar.gz
+#mkdir -p ${MY_ROMS_SRC}
+#cd ${MY_ROMS_SRC}
+#tar -xf ${metroms_base}/static_libs/${roms_ver}.tar.gz
 
 # JD : Added temporary to have place for a new file
 touch $MY_ROMS_SRC/ROMS/Nonlinear/frazil_ice_prod_mod.F
@@ -184,81 +185,81 @@ if [ "$gotModifiedSourceAPP" != "" ] || [ "$gotModifiedSourceCOMMON" != "" ]; th
 
         # Check where original resides
         origFile=`find ${MY_ROMS_SRC} -name $ModSrc`
-
+	
         if [ -f "$origFile" ]; then
-
+	    
             # Moving original and copying user-modifed source code
             # first checking if the original already exists with
             # the .orig extension
             if [ ! -f "$origFile.orig" ]; then
-              mv $origFile $origFile.orig
-              echo "Moving $origFile to $origFile.orig"
+		mv $origFile $origFile.orig
+		echo "Moving $origFile to $origFile.orig"
             fi
-
+	    
             # Copying from local source directory to repository
             cp $MODIFIED_SRC_FOLDER/$ModSrc $origFile
             echo "Copying modified_src/$ModSrc to $origFile"
-
+	    
             if [ ! -f USER_MODIFIED_CODE ]; then
-
+		
                 # Touch file to notify that user modified code has been
                 # placed in the repository
                 touch USER_MODIFIED_CODE
-
-              fi
-            else
-
+		
+            fi
+        else
+	    
             # No such file in repository, quit script
             echo "No source code file $ModSrc in repository, exiting."
             exit 3
-
-          fi
-        done
+	    
+        fi
+    done
     # Copy locally modified source to main ROMS directory
     for ModSrc in $gotModifiedSourceAPP; do
 
         # Check where original resides
         origFile=`find ${MY_ROMS_SRC} -name $ModSrc`
-
+	
         if [ -f "$origFile" ]; then
-
+	    
             # Moving original and copying user-modifed source code
             # first checking if the original already exists with
             # the .orig extension
             if [ ! -f "$origFile.orig" ]; then
-              mv $origFile $origFile.orig
-              echo "Moving $origFile to $origFile.orig"
+		mv $origFile $origFile.orig
+		echo "Moving $origFile to $origFile.orig"
             fi
-
+	    
             # Copying from local source directory to repository
             cp modified_src/$ModSrc $origFile
             echo "Copying modified_src/$ModSrc to $origFile"
-
+	    
             if [ ! -f USER_MODIFIED_CODE ]; then
-
+		
                 # Touch file to notify that user modified code has been
                 # placed in the repository
                 touch USER_MODIFIED_CODE
-
-              fi
-            else
-
+		
+            fi
+        else
+	    
             # No such file in repository, quit script
             echo "No source code file $ModSrc in repository, exiting."
             exit 3
-
-          fi
-        done
-      fi
+	    
+        fi
+    done
+fi
 
 # Removing user modified source code in repository
 # KHC - 20110209
 # NMK - 2013
 rollback() {
- cd $MY_ROOT_DIR
-
+    cd $MY_ROOT_DIR
+    
     if [ -f USER_MODIFIED_CODE ]; then
-
+	
     # Find source code files with ".orig"-ending and
     # remove ending
     filelist=`find "$MY_ROMS_SRC" -name *.orig`
