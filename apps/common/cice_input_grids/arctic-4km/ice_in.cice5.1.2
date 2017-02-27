@@ -12,7 +12,7 @@
   , restart_ext    = .false.
   , use_restart_time = CICERSTTIME
   , restart_format = 'nc'
-  , lcdf64         = .false.
+  , lcdf64         = .true.
   , restart_dir    = '<cicedir>/rundir/restart/'
   , restart_file   = 'iced'
   , pointer_file   = '<cicedir>/rundir/restart/ice.restart_file'
@@ -31,7 +31,7 @@
   , lonpnt(2)      = -10.
   , dbug           = .true.
   , histfreq       = 'm','d','x','x','x'
-  , histfreq_n     =  1 , 1 , 2 , 1 , 1
+  , histfreq_n     =  1 , 1 , 1 , 1 , 1
   , hist_avg       = .true.
   , history_dir    = '<cicedir>/rundir/history/'
   , history_file   = 'iceh'
@@ -56,9 +56,9 @@
   , distribution_wght = 'latitude'
   , ew_boundary_type  = 'open'
   , ns_boundary_type  = 'open'
-  , maskhalo_dyn      = .false.
-  , maskhalo_remap    = .false.
-  , maskhalo_bound    = .false.
+  , maskhalo_dyn      = .true.
+  , maskhalo_remap    = .true.
+  , maskhalo_bound    = .true.
 /
 
 &tracer_nml
@@ -93,7 +93,7 @@
 &dynamics_nml
     kdyn            = 1
   , ndte            = 120
-  , revised_evp     = .false.
+  , revised_evp     = .true.
   , advection       = 'remap'
   , kstrength       = 1
   , krdg_partic     = 1
@@ -152,11 +152,11 @@
 &forcing_nml
     formdrag        = .false.
   , atmbndy         = 'default'
-  , fyear_init      = 1997
+  , fyear_init      = 1979
   , ycycle          = 100
   , atm_data_format = 'nc'
-  , atm_data_type   = 'ecmwf'
-  , atm_data_dir    = './'
+  , atm_data_type   = 'metroms'
+  , atm_data_dir    = './atmice/'
   , calc_strair     = .true.
   , highfreq        = .false.
   , natmiter        = 5
@@ -259,21 +259,21 @@
   , f_fsurf_ai     = 'x'
   , f_fcondtop_ai  = 'x'
   , f_fmeltt_ai    = 'x' 
-  , f_strairx      = 'm' 
-  , f_strairy      = 'm' 
+  , f_strairx      = 'mdh' 
+  , f_strairy      = 'mdh' 
   , f_strtltx      = 'x' 
   , f_strtlty      = 'x' 
   , f_strcorx      = 'x' 
   , f_strcory      = 'x' 
   , f_strocnx      = 'mdh' 
   , f_strocny      = 'mdh' 
-  , f_strintx      = 'x' 
-  , f_strinty      = 'x'
-  , f_strength     = 'm'
-  , f_divu         = 'm'
-  , f_shear        = 'm'
-  , f_sig1         = 'm' 
-  , f_sig2         = 'm' 
+  , f_strintx      = 'mdh' 
+  , f_strinty      = 'mdh'
+  , f_strength     = 'mdh'
+  , f_divu         = 'mdh'
+  , f_shear        = 'mdh'
+  , f_sig1         = 'mdh' 
+  , f_sig2         = 'mdh' 
   , f_dvidtt       = 'm' 
   , f_dvidtd       = 'm' 
   , f_daidtt       = 'm'
@@ -284,17 +284,17 @@
   , f_frz_onset    = 'm'
   , f_hisnap       = 'x'
   , f_aisnap       = 'x'
-  , f_trsig        = 'm'
+  , f_trsig        = 'md'
   , f_icepresent   = 'm'
   , f_iage         = 'm'
   , f_FY           = 'x'
-  , f_aicen        = 'x'
-  , f_vicen        = 'x'
-  , f_vsnon        = 'x'
+  , f_aicen        = 'm'
+  , f_vicen        = 'm'
+  , f_vsnon        = 'm'
   , f_keffn_top    = 'x'
-  , f_Tinz         = 'x'
-  , f_Sinz         = 'x'
-  , f_Tsnz         = 'x'
+  , f_Tinz         = 'm'
+  , f_Sinz         = 'm'
+  , f_Tsnz         = 'm'
   , f_fsurfn_ai    = 'x'
   , f_fcondtopn_ai = 'x'
   , f_fmelttn_ai   = 'x'
