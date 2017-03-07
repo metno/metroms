@@ -1,28 +1,20 @@
 #!/bin/bash
 set -x
 
-workingdir=${PWD} 
-cd ../
-metroms_base=${PWD} 
-cd ../
-if [ "$METROMS_TMPDIR" == "" ]; then
-    tup=${PWD}
-else
-    tup=${METROMS_TMPDIR}
-    if [ ! -d $tup ] ; then
-	echo "$tup not defined, set environment variable METROMS_TMPDIR to "
-	echo "override default behaviour"
-	exit 
-    fi
+if [ ! -d ${METROMS_TMPDIR} ] ; then
+    echo "METROMS_TMPDIR not defined, set environment variable METROMS_TMPDIR"
+    exit 
+fi
+if [ ! -d ${METROMS_BASEDIR} ] ; then
+    echo "METROMS_BASEDIR not defined, set environment variable METROMS_TMPDIR"
+    exit 
 fi
 
 # Build MCT
-mkdir -p ${tup}/tmproms
-cd ${tup}/tmproms
+cd ${METROMS_TMPDIR}
 # Unpack standard source files
-#tar -xf ${metroms_base}/static_libs/mct-2.8.tar.gz
-tar -xf ${metroms_base}/static_libs/mct-2.9.tar.gz
-export MCT_DIR=${tup}/tmproms/MCT
+tar -xvf ${METROMS_BASEDIR}/static_libs/mct-2.9.tar.gz
+export MCT_DIR=${METROMS_TMPDIR}/MCT
 cd $MCT_DIR
 
 if [ ${METROMS_MYHOST} == "metlocal" ]; then
