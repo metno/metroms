@@ -24,12 +24,12 @@
 
 #define UV_ADV             /* turn ON or OFF advection terms */
 #define UV_COR             /* turn ON or OFF Coriolis term */
-#undef  UV_VIS2            /* turn ON or OFF Laplacian horizontal mixing */
-#define UV_VIS4            /* turn ON or OFF biharmonic horizontal mixing */
+#define UV_VIS2            /* turn ON or OFF Laplacian horizontal mixing */
+#undef  UV_VIS4            /* turn ON or OFF biharmonic horizontal mixing */
 #undef  UV_U3ADV_SPLIT     /* use 3rd-order upstream split momentum advection */
-#undef  UV_U3HADVECTION    /* define if 3rd-order upstream horiz. advection */
+#define UV_U3HADVECTION    /* define if 3rd-order upstream horiz. advection */
 #undef  UV_SADVECTION      /* turn ON or OFF splines vertical advection */
-#define UV_C4HADVECTION    /* define if 4th-order centered horizontal advection */
+#undef  UV_C4HADVECTION    /* define if 4th-order centered horizontal advection */
 #define UV_QDRAG           /* turn ON or OFF quadratic bottom friction */
 #undef  UV_SMAGORINSKY
 
@@ -39,12 +39,12 @@
 #define DJ_GRADPS          /* Splines density  Jacobian (Shchepetkin, 2000) */
 #undef  DIFF_GRID          /* diffusion coefficient scaled by grid size */
 
-#undef  TS_DIF2            /* turn ON or OFF Laplacian horizontal mixing */
-#define TS_DIF4            /* turn ON or OFF biharmonic horizontal mixing */
+#define TS_DIF2            /* turn ON or OFF Laplacian horizontal mixing */
+#undef  TS_DIF4            /* turn ON or OFF biharmonic horizontal mixing */
 #undef  TS_U3ADV_SPLIT     /* use 3rd-order upstream split tracer advection */
-#undef  TS_U3HADVECTION    /* define if 3rd-order upstream horiz. advection */
+#define TS_U3HADVECTION    /* define if 3rd-order upstream horiz. advection */
 #undef  TS_A4HADVECTION    /* define if 4th-order Akima horiz. advection */
-#define TS_C4HADVECTION    /* define if 4th-order centered horizontal advection */
+#undef  TS_C4HADVECTION    /* define if 4th-order centered horizontal advection */
 
 #undef  TS_MPDATA          /* define if recursive MPDATA 3D advection */
 
@@ -141,10 +141,5 @@
 #define ADD_M2OBC          /* Add tidal currents  to processed OBC data */
 #define ADD_FS_INV_BARO
 #define RAMP_TIDES         /* Spin up tidal forcing */
-
-
-/* ELVER */
-#define UV_PSOURCE         /* turn ON or OFF point Sources/Sinks */
-#define TS_PSOURCE         /* turn ON or OFF point Sources/Sinks */
 /* --------------------------- */
 

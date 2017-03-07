@@ -106,6 +106,7 @@ export MY_ROMS_SRC=${tup}/${tmpdir}/roms_src
 mkdir -p ${MY_ROMS_SRC}
 cd ${MY_ROMS_SRC}
 tar -xf ${metroms_base}/static_libs/${roms_ver}.tar.gz
+rm -rf User
 
 # JD : Added temporary to have place for a new file
 touch $MY_ROMS_SRC/ROMS/Nonlinear/frazil_ice_prod_mod.F
