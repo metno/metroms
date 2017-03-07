@@ -1,9 +1,0 @@
-This is a version of Arctic-4km with coupled to the CICE ice model.
-
-Before running python-script 'arctic-4km.py', run 
-'export PYTHONPATH=$PYTHONPATH:/disk1/$USER/metroms/apps/common/python/'.
-
-The scripts expect a folder structure like this:
-/disk1/<username>/metroms and
-/disk1/<username>/tmproms (this will be made by the build-scripts)
-
