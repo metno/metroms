@@ -234,7 +234,7 @@ class ModelRun(object):
             nrrec = self._params.NRREC
         if os.path.isfile(_rst):
             # Check if START_DATE is on rst-file:
-            nrrec2 = bisect.bisect(netCDF4.num2date(nc_rst.variables['ocean_time'][:],nc_rst.variables['ocean_time'].units), self._params.START_DATE)
+            nrrec2 = bisect.bisect(netCDF4.num2date(nc_rst.variables['ocean_time'][:],nc_rst.variables['ocean_time'].units), self._params.START_DATE) - 1
             print nrrec, nrrec2
             if nrrec2 >= len(nc_rst.variables['ocean_time'][:]): nrrec2 = len(nc_rst.variables['ocean_time'][:])-1
             print nrrec, nrrec2
