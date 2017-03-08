@@ -36,7 +36,7 @@ NudgeSouth = False
 
 NudgeWhole = True
 
-VerticalNudge = True
+VerticalNudge = False
 
 # Set NetCDF variables to process. Nudging in ROMS is:
 #
@@ -114,6 +114,8 @@ w_idx   = int(width)
 work    = np.zeros((Nr,Lr,Mr))
 work[:] = inner
 
+print inner, inner3D, outer
+
 if (NudgeWest):
     for i in range(w_idx):                   # Western boundary
     #    work[:,w_idx:JendR-w_idx,i] = outer*(1.+np.cos(np.pi*(np.float64(i)/width)))#inner + (width - i) * (outer - inner) / width
@@ -152,7 +154,6 @@ if (VerticalNudge):
 
 if (LnudgeM2CLM):
     nfv['M2_NudgeCoef'][:] = work[0,:]
-    # nfv['M2_NudgeCoef'][:] = M2_NudgeCoef.squeeze()
     nf.sync()
 
 if (LnudgeM3CLM):  
