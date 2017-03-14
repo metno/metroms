@@ -226,47 +226,51 @@ class ModelRun(object):
         _rst = self._params.RUNPATH+"/ocean_rst.nc"
         try:
             nc_ini = netCDF4.Dataset(_ini)
+        except:
+            print "error finding ini-file"
+            pass
+        try:
             nc_rst = netCDF4.Dataset(_rst)
         except:
-            print "error finding nc-files"
+            print "error finding rst-file"
             pass
         if self._params.NRREC > 0:
             nrrec = self._params.NRREC - 1
         else:
             nrrec = self._params.NRREC
-        if os.path.isfile(_rst):
-            # Check if START_DATE is on rst-file:
-            nrrec2 = bisect.bisect(netCDF4.num2date(nc_rst.variables['ocean_time'][:],nc_rst.variables['ocean_time'].units), self._params.START_DATE) - 1
-            print nrrec, nrrec2
-            if nrrec2 >= len(nc_rst.variables['ocean_time'][:]): nrrec2 = len(nc_rst.variables['ocean_time'][:])-1
-            print nrrec, nrrec2
-            if nrrec != nrrec2:
-                print "I should not restart from specified nrrec!"
-                if (self._params.START_DATE == netCDF4.num2date(nc_rst.variables['ocean_time'][nrrec2],nc_rst.variables['ocean_time'].units)):
-                    nrrec = nrrec2
-                    self._params.NRREC = nrrec
-                    # Must update keywords!
-                    self._params.change_run_param('IRESTART',str(nrrec))
-                    print "Changes nrrec and keyword IRESTART"
-            if (self._params.START_DATE == netCDF4.num2date(nc_rst.variables['ocean_time'][nrrec],nc_rst.variables['ocean_time'].units)):
-                os.rename(_ini, self._params.RUNPATH+netCDF4.num2date(nc_ini.variables['ocean_time'][0],nc_ini.variables['ocean_time'].units).strftime("/ocean_ini.nc_%Y%m%d-%H%M"))
-                os.rename(_rst, _ini)
-                print "Cycled restart files"
-            elif (self._params.START_DATE == netCDF4.num2date(nc_ini.variables['ocean_time'][nrrec],nc_ini.variables['ocean_time'].units)):
-                print "No need to cycle restart-files"
-            # If model hasn't been run last day:
-            else:
-                self._params.START_DATE = netCDF4.num2date(nc_rst.variables['ocean_time'][nrrec],nc_rst.variables['ocean_time'].units)
-                self._params.FCLEN = (self._params.END_DATE-self._params.START_DATE).total_seconds()
-                # Must update keywords!
-                self._params.change_run_param('TSTEPS',str(self._params.FCLEN/self._params.DELTAT))
-                self._params.change_run_param('STARTTIME',str((self._params.START_DATE-self._params.TIMEREF).total_seconds()/86400))
-                os.rename(_ini, self._params.RUNPATH+netCDF4.num2date(nc_ini.variables['ocean_time'][nrrec],nc_ini.variables['ocean_time'].units).strftime("/ocean_ini.nc_%Y%m%d-%H%M"))
-                os.rename(_rst, _ini)
-                print "Cycled restart and changed START_DATE and FCLEN, icluding keywords"
+        if (self._params.START_DATE == netCDF4.num2date(nc_ini.variables['ocean_time'][nrrec],nc_ini.variables['ocean_time'].units)):
+            print "No need to cycle restart-files"
         else:
-            if (self._params.START_DATE == netCDF4.num2date(nc_ini.variables['ocean_time'][nrrec],nc_ini.variables['ocean_time'].units)):
-                print "No need to cycle restart-files"
+            if os.path.isfile(_rst):
+                # Check if START_DATE is on rst-file:
+                nrrec2 = bisect.bisect(netCDF4.num2date(nc_rst.variables['ocean_time'][:],nc_rst.variables['ocean_time'].units), self._params.START_DATE) - 1
+                print nrrec, nrrec2
+                if nrrec2 >= len(nc_rst.variables['ocean_time'][:]): nrrec2 = len(nc_rst.variables['ocean_time'][:])-1
+                print nrrec, nrrec2
+                if nrrec != nrrec2:
+                    print "I should not restart from specified nrrec!"
+                    if (self._params.START_DATE == netCDF4.num2date(nc_rst.variables['ocean_time'][nrrec2],nc_rst.variables['ocean_time'].units)):
+                        nrrec = nrrec2
+                        self._params.NRREC = nrrec
+                        # Must update keywords!
+                        self._params.change_run_param('IRESTART',str(nrrec))
+                        print "Changes nrrec and keyword IRESTART"
+                if (self._params.START_DATE == netCDF4.num2date(nc_rst.variables['ocean_time'][nrrec],nc_rst.variables['ocean_time'].units)):
+                    os.rename(_ini, self._params.RUNPATH+netCDF4.num2date(nc_ini.variables['ocean_time'][0],nc_ini.variables['ocean_time'].units).strftime("/ocean_ini.nc_%Y%m%d-%H%M"))
+                    os.rename(_rst, _ini)
+                    print "Cycled restart files"
+                elif (self._params.START_DATE == netCDF4.num2date(nc_ini.variables['ocean_time'][nrrec],nc_ini.variables['ocean_time'].units)):
+                    print "No need to cycle restart-files"
+                    # If model hasn't been run last day:
+                else:
+                    self._params.START_DATE = netCDF4.num2date(nc_rst.variables['ocean_time'][nrrec],nc_rst.variables['ocean_time'].units)
+                    self._params.FCLEN = (self._params.END_DATE-self._params.START_DATE).total_seconds()
+                    # Must update keywords!
+                    self._params.change_run_param('TSTEPS',str(self._params.FCLEN/self._params.DELTAT))
+                    self._params.change_run_param('STARTTIME',str((self._params.START_DATE-self._params.TIMEREF).total_seconds()/86400))
+                    os.rename(_ini, self._params.RUNPATH+netCDF4.num2date(nc_ini.variables['ocean_time'][nrrec],nc_ini.variables['ocean_time'].units).strftime("/ocean_ini.nc_%Y%m%d-%H%M"))
+                    os.rename(_rst, _ini)
+                    print "Cycled restart and changed START_DATE and FCLEN, icluding keywords"
             else:
                 print netCDF4.num2date(nc_ini.variables['ocean_time'][nrrec],nc_ini.variables['ocean_time'].units)
                 print "Restartfile not found!! Will exit"
