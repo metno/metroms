@@ -197,8 +197,9 @@
          ! seb: a bit of a hack this but it is also the least amount of
          ! change I could come up with.
          if(bool_accum_write) then
-            print*, 'ojoj bool_write prepp'
+            write(nu_diag,*) 'ROMSCOUPLED init_restart'
             status = nf90_put_att(ncid,nf90_global,'accum_time',accum_time)
+            write(nu_diag,*) 'ROMSCOUPLED: init_restart status: ', status
          endif
 #endif
          nx = nx_global
@@ -401,6 +402,13 @@
 
          deallocate(dims)
          status = nf90_enddef(ncid)
+!jd
+         if (status /= nf90_noerr) then
+            write(nchar,'(i0)') status
+            call abort_ice( &
+            'ice: Error defining restart ncfile '//trim(filename)//' Status '//trim(nchar))
+!jd
+         endif
 
          write(nu_diag,*) 'Writing ',filename(1:lenstr(filename))
       endif ! master_task
@@ -568,7 +576,10 @@
       status = nf90_close(ncid)
 
       if (my_task == master_task) &
-         write(nu_diag,*) 'Restart read/written ',istep1,time,time_forc
+         write(nu_diag,*) 'Restart read/written ',istep1,time,time_forc&
+!jd
+         ,status
+!jd
 
       end subroutine final_restart
 
@@ -578,6 +589,7 @@
 ! author David A Bailey, NCAR
 
       subroutine define_rest_field(ncid, vname, dims)
+      use ice_fileunits, only: nu_diag
 
       character (len=*)      , intent(in)  :: vname
       integer (kind=int_kind), intent(in)  :: dims(:)
@@ -589,6 +601,10 @@
         status        ! status variable from netCDF routine
 
       status = nf90_def_var(ncid,trim(vname),nf90_double,dims,varid)
+      
+!jd
+      if (status /= nf90_noerr ) &
+           write(nu_diag,*) 'Restart read/write, error defining ',trim(vname), status
         
       end subroutine define_rest_field
 

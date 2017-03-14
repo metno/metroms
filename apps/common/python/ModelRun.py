@@ -100,9 +100,11 @@ class ModelRun(object):
 
             else:
 #                os.environ["MPI_BUFS_PER_PROC"] = str(128)
-                os.system("mpiexec_mpt -np "+str(ncpus)+" "+executable+" "+infile)
+                result = os.system("mpiexec_mpt -np "+str(ncpus)+" "+executable+" "+infile)
+                if result != 0: os.system('cat cice_stderr')
         else:
-            os.system("mpirun -np "+str(ncpus)+" "+executable+" "+infile)
+            result = os.system("mpirun -np "+str(ncpus)+" "+executable+" "+infile)
+            if result != 0: os.system('cat cice_stderr')
 
 
     def _execute_roms_openmp(self,ncpus,infile,debugoption=Constants.NODEBUG):

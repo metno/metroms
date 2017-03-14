@@ -689,9 +689,11 @@
 #endif
            
         END SELECT
+#ifdef REPORT_COUPLING_ALL
         IF (Master) write(stdout,*)                                     &
      &       'i2o: ',trim(code),' min/max', Fields(id)%ImpMin,        &
      &          Fields(id)%ImpMax
+#endif
 
       END DO
 
@@ -930,9 +932,11 @@
 
         END SELECT
 
+#ifdef REPORT_COUPLING_ALL
         IF (Master) write(stdout,*)                                     &
      &       'o2i: ',trim(code),' min/max', Fields(id)%ExpMin,        &
      &          Fields(id)%ExpMax
+#endif
 
 
       END DO
