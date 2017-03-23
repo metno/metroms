@@ -18,7 +18,7 @@ if [ "$METROMS_MYHOST" == "metlocal" ]; then
     export METROMS_TMPDIR=/disk1/$USER
 elif [ "$METROMS_MYHOST" == "vilje" ]; then
     export METROMS_BASEDIR=$HOME/metroms
-    export METROMS_TMPDIR=/work/$USER/tmproms
+    export METROMS_TMPDIR=/work/$USER/tmproms/run
     export METROMS_APPDIR=$HOME/metroms_apps
 else
     echo "Undefined METROMS_MYHOST ", $METROMS_MYHOST

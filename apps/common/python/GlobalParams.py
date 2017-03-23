@@ -10,7 +10,7 @@ class GlobalParams(object):
     if MYHOST=='metlocal':
         METROMSDIR=os.environ.get('METROMS_BASEDIR','/disk1/'+username+'/metroms')
         tmpdir=os.environ.get('METROMS_TMPDIR','/disk1/'+username)
-        RUNDIR=tmpdir+'/run'
+        RUNDIR=tmpdir #+'/run'
     elif MYHOST=='vilje':
         HOME=os.environ.get('HOME')
         if HOME=='None':
@@ -20,7 +20,7 @@ class GlobalParams(object):
         METROMSDIR=os.environ.get('METROMS_BASEDIR',HOME+'/metroms')
 
         tmpdir=os.environ.get('METROMS_TMPDIR','/work/'+username)
-        RUNDIR=tmpdir+'/run'
+        RUNDIR=tmpdir #+'/run'
         METROMSAPPDIR=os.environ.get('METROMS_APPDIR',HOME+'/metroms_apps')
     else:
         print 'Environment variable MYHOST not defined (metlocal,vilje,)'
