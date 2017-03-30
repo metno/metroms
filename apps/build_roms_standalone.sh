@@ -303,7 +303,7 @@ export MY_ANALYTICAL_DIR=${MY_HEADER_DIR}
 
 # Build ROMS
 # Put the binary to execute in the following directory.
-export BINDIR=${METROMS_TMPDIR}/run/${ROMS_APPLICATION}
+export BINDIR=${METROMS_TMPDIR}/${ROMS_APPLICATION}
 mkdir -p $BINDIR
 
 cd ${MY_ROMS_SRC}
