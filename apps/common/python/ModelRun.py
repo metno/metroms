@@ -102,6 +102,17 @@ class ModelRun(object):
 #                os.environ["MPI_BUFS_PER_PROC"] = str(128)
                 result = os.system("mpiexec_mpt -np "+str(ncpus)+" "+executable+" "+infile)
                 if result != 0: os.system('cat cice_stderr')
+        if architecture==Constants.ALVIN:
+            if debugoption==Constants.PROFILE:
+#                os.system("make-profiler-libraries")
+#                os.system("perf-report --mpi=\"SGI MPT (batch)\" --processes="+str(ncpus)+" "+executable+" "+infile)
+                print "Profiling not working yet on "+architecture
+                exit(1)
+
+            else:
+#                os.environ["MPI_BUFS_PER_PROC"] = str(128)
+                result = os.system("mpprun -np "+str(ncpus)+" "+executable+" "+infile)
+                if result != 0: os.system('cat cice_stderr')
         else:
             result = os.system("mpirun -np "+str(ncpus)+" "+executable+" "+infile)
             if result != 0: os.system('cat cice_stderr')
@@ -202,7 +213,7 @@ class ModelRun(object):
                 print "No valid runoption!"
                 exit(1)
 
-        elif architecture==Constants.VILJE:
+        elif architecture==Constants.VILJE or architecture==Constants.ALVIN:
             if runoption==Constants.MPI:
                 self._execute_roms_mpi((int(self._params.XCPU)*int(self._params.YCPU))+
                                        int(self._params.CICECPU),
