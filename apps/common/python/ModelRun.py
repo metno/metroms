@@ -59,7 +59,7 @@ class ModelRun(object):
 
     def _replace_keywords_roms_in(self):
         """
-        This function will replace the keywords in the given 
+        This function will replace the keywords in the given
         keyword.in-file.
         """
         with open(self._params.KEYWORDFILE, 'r') as f:
@@ -71,7 +71,7 @@ class ModelRun(object):
 
     def _replace_keywords_cice_in(self):
         """
-        This function will replace the keywords in the given 
+        This function will replace the keywords in the given
         cice-keyword.in-file.
         """
         with open(self._params.CICEKEYWORDFILE, 'r') as f:
@@ -177,7 +177,7 @@ class ModelRun(object):
         self._bry_from_clm(GlobalParams.CLMFILE,None)
         self._ini_from_clm(GlobalParams.CLMFILE,None)
 
-    def _get_clmfile(self): 
+    def _get_clmfile(self):
         if self._clmfileoption==Constants.FELT:
             self._fimex_felt2nc(self._params.FELT_CLMFILE,GlobalParams.IN_CLMFILE,GlobalParams.FELT2NC_CONFIG)
         elif self._clmfileoption==Constants.NC:
@@ -239,12 +239,14 @@ class ModelRun(object):
             nc_ini = netCDF4.Dataset(_ini)
         except:
             print "error finding ini-file"
-            pass
+            #pass
         try:
             nc_rst = netCDF4.Dataset(_rst)
         except:
-            print "error finding rst-file"
-            pass
+            print "error finding rst-file, will use old ini-file..."
+            os.system('cp -av '+_ini+' '+_rst)
+            nc_rst = netCDF4.Dataset(_rst)
+            #pass
         if self._params.NRREC > 0:
             nrrec = self._params.NRREC - 1
         else:
@@ -289,11 +291,11 @@ class ModelRun(object):
 
     def _check_starttime(self):
         try:
-            roms_ini = netCDF4.num2date(netCDF4.Dataset(self._params.RUNPATH+"/ocean_ini.nc").variables['ocean_time'][:], 
+            roms_ini = netCDF4.num2date(netCDF4.Dataset(self._params.RUNPATH+"/ocean_ini.nc").variables['ocean_time'][:],
                                         netCDF4.Dataset(self._params.RUNPATH+"/ocean_ini.nc").variables['ocean_time'].units)
         except:
             roms_ini = netCDF4.num2date(netCDF4.Dataset(self._params.RUNPATH+"/ocean_ini.nc").variables['ocean_time'],
-                                        netCDF4.Dataset(self._params.RUNPATH+"/ocean_ini.nc").variables['ocean_time'].units)            
+                                        netCDF4.Dataset(self._params.RUNPATH+"/ocean_ini.nc").variables['ocean_time'].units)
         if self._params.CICECPU > 0:
             f = open(self._params.CICERUNDIR+'/restart/ice.restart_file', 'r')
             cice_restartfile = f.readline().strip()
@@ -313,4 +315,3 @@ class ModelRun(object):
 #     def _add_forecast_ref_time(self):
 #         os.system('module load nco; ncks -A -v forecast_reference_time '+self._params.ATMFILE+' '+self._params.RUNPATH+'/ocean_his.nc')
 #         print 'added forecast ref time'
-        
