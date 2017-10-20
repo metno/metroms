@@ -92,6 +92,7 @@ class ModelRun(object):
             executable="oceanM"
 
         if architecture==Constants.VILJE:
+            print 'running on vilje:'
             if debugoption==Constants.PROFILE:
 #                os.system("make-profiler-libraries")
 #                os.system("perf-report --mpi=\"SGI MPT (batch)\" --processes="+str(ncpus)+" "+executable+" "+infile)
@@ -102,7 +103,8 @@ class ModelRun(object):
 #                os.environ["MPI_BUFS_PER_PROC"] = str(128)
                 result = os.system("mpiexec_mpt -np "+str(ncpus)+" "+executable+" "+infile)
                 if result != 0: os.system('cat cice_stderr')
-        if architecture==Constants.ALVIN:
+        elif architecture==Constants.ALVIN:
+            print 'running on alvin:'
             if debugoption==Constants.PROFILE:
 #                os.system("make-profiler-libraries")
 #                os.system("perf-report --mpi=\"SGI MPT (batch)\" --processes="+str(ncpus)+" "+executable+" "+infile)
@@ -114,8 +116,9 @@ class ModelRun(object):
                 result = os.system("mpprun -np "+str(ncpus)+" "+executable+" "+infile)
                 if result != 0: os.system('cat cice_stderr')
         else:
-            result = os.system("mpirun -np "+str(ncpus)+" "+executable+" "+infile)
-            if result != 0: os.system('cat cice_stderr')
+            print "error here!"
+            #result = os.system("mpirun -np "+str(ncpus)+" "+executable+" "+infile)
+            #if result != 0: os.system('cat cice_stderr')
 
 
     def _execute_roms_openmp(self,ncpus,infile,debugoption=Constants.NODEBUG):

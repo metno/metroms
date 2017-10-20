@@ -1,8 +1,8 @@
-#Make ini from clm on Alvin
+#Make ini from clm on Vilje
 #USAGE: ./roms_ini_from_clm.sh <climfile> <inifile>
 
-module load netcdf/4.3.2-i1501-hdf5-1.8.14
-module load nco/4.4.7-i1501-netcdf-4.3.2-hdf5-1.8.14
+module load netcdf
+module load nco
 
 ncks -d clim_time,4 ${1} ${2}
 ncrename -O -d clim_time,ocean_time ${2}
