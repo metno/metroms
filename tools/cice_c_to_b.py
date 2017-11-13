@@ -69,7 +69,8 @@ def get_lon_u(ROMSGrid=None):
     
 def get_dims(ROMSGrid=None):
     dims = ROMSGrid.dimensions
-    return dims['xi_rho'].size, dims['eta_rho'].size
+#    return dims['xi_rho'].size, dims['eta_rho'].size
+    return len(dims['xi_rho']), len(dims['eta_rho'])
     
 
 if __name__ == "__main__":
@@ -89,7 +90,7 @@ if __name__ == "__main__":
     uv_mask = get_uv_mask(ROMSGrid)
     angle = get_angle(ROMSGrid)
     
-    new_grid = nc.Dataset('new_cice_grid.nc', 'w', format='NETCDF3_CLASSIC')
+    new_grid = nc.Dataset('new_cice.grid.nc', 'w', format='NETCDF3_CLASSIC')
     dim_xi_t,dim_eta_t = get_dims(ROMSGrid=ROMSGrid)
     xi_t = new_grid.createDimension("xi_t", dim_xi_t)
     eta_t = new_grid.createDimension("eta_t", dim_eta_t)
