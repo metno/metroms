@@ -2,7 +2,7 @@ from netCDF4 import Dataset
 import numpy as np
 import sys
 
-if len(sys.argv) < 3:
+if len(sys.argv) < 4:
     print 'Too few args'
     sys.exit()
 
@@ -29,12 +29,14 @@ LnudgeTgeneric = True            # nudging generic tracers
 
 CorrectForMask = True
 
-NudgeWest  = True
+NudgeWest  = False
 NudgeEast  = False
 NudgeNorth = False
 NudgeSouth = False
 
-VerticalNudge = True
+NudgeWhole = True
+
+VerticalNudge = False
 
 # Set NetCDF variables to process. Nudging in ROMS is:
 #
@@ -105,12 +107,14 @@ IendR = Mr-1
 # nudging scales of inner to outer days.
 
 inner   = 1./360.                   # <inner> days at interior limit
-inner3D = 1./180.                 # nudging in the depth in the interior
-outer   = 1./30.                    # <outer> days at boundary
-width   = 200.                       # <width> points
+inner3D = 1./360.                 # nudging in the depth in the interior
+outer   = 1./360.                    # <outer> days at boundary
+width   = 1000.                       # <width> points
 w_idx   = int(width)
 work    = np.zeros((Nr,Lr,Mr))
 work[:] = inner
+
+print inner, inner3D, outer
 
 if (NudgeWest):
     for i in range(w_idx):                   # Western boundary
@@ -128,6 +132,9 @@ if (NudgeNorth):
     for j in range(w_idx):
     #    work[:,JendR-w_idx+j,:] = work[:,w_idx-j,::-1]
         work[:,JendR+j,:] = np.maximum(work[:,JendR+j,:], outer*(1.+np.cos(np.pi*(np.float64(np.abs(j-width))/width))))
+
+if (NudgeWhole):
+    work[:] = inner
 
 work[:,JendR,:] = work[:,0,:]
 work[:,:,IendR] = work[:,:,0]
@@ -147,7 +154,6 @@ if (VerticalNudge):
 
 if (LnudgeM2CLM):
     nfv['M2_NudgeCoef'][:] = work[0,:]
-    # nfv['M2_NudgeCoef'][:] = M2_NudgeCoef.squeeze()
     nf.sync()
 
 if (LnudgeM3CLM):  

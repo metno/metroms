@@ -1,5 +1,0 @@
-This is a version of the operational Arctic-20km 
-model with open Bering Strait, and no ice model.
-
-Before running python-script, run 
-'export PYTHONPATH=$PYTHONPATH:/disk1/METROMS/apps/common/python/'.

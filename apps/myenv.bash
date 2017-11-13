@@ -17,11 +17,12 @@ if [ "$METROMS_MYHOST" == "metlocal" ]; then
     export METROMS_BASEDIR=/disk1/$USER
     export METROMS_TMPDIR=/disk1/$USER
 elif [ "$METROMS_MYHOST" == "vilje" ]; then
-    export METROMS_BASEDIR=$HOME
-    export METROMS_TMPDIR=/work/$USER
+    export METROMS_BASEDIR=$HOME/metroms
+    export METROMS_TMPDIR=/work/$USER/tmproms/run
+    export METROMS_APPDIR=$HOME/metroms_apps
 else
     echo "Undefined METROMS_MYHOST ", $METROMS_MYHOST
 fi
 
 
-export PYTHONPATH=$PYTHONPATH:$METROMS_BASEDIR/metroms/apps/common/python/
+export PYTHONPATH=$PYTHONPATH:$METROMS_BASEDIR/apps/common/python/

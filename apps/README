@@ -6,7 +6,10 @@ and Ubuntu 12.04. C-shell must be installed for CICE compilation.
 
 Start with seting the METROMS_MYHOST and METROMS_TMPDIR environmental 
 variables by souring the myenv.bash file (or similar method). 
-source ./myenv.bash
+source ./myenv.bash alvin
+
+On the Vilje supercomputer, load modules by sourcing modules.sh.
+source ./modules.sh
 
 1:
 Build MCT by executing './build_mct.sh' in metroms/apps-folder.

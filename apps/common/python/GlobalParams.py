@@ -8,19 +8,20 @@ class GlobalParams(object):
     MYHOST=os.environ.get('METROMS_MYHOST','metlocal')
 
     if MYHOST=='metlocal':
-        METROMSDIR=os.environ.get('METROMS_SRCDIR','/disk1/'+username+'/metroms')
+        METROMSDIR=os.environ.get('METROMS_BASEDIR','/disk1/'+username+'/metroms')
         tmpdir=os.environ.get('METROMS_TMPDIR','/disk1/'+username)
-        RUNDIR=tmpdir+'/tmproms/run'
-    elif MYHOST=='vilje':
+        RUNDIR=tmpdir #+'/run'
+    elif MYHOST=='vilje' or MYHOST=='alvin':
         HOME=os.environ.get('HOME')
         if HOME=='None':
             print "Environment variable HOME not found in configuration on vilje"
             sys.exit(1)
 
-        METROMSDIR=os.environ.get('METROMS_SRCDIR',HOME+'/metroms')
+        METROMSDIR=os.environ.get('METROMS_BASEDIR',HOME+'/metroms')
 
         tmpdir=os.environ.get('METROMS_TMPDIR','/work/'+username)
-        RUNDIR=tmpdir+'/tmproms/run'
+        RUNDIR=tmpdir #+'/run'
+        METROMSAPPDIR=os.environ.get('METROMS_APPDIR',HOME+'/metroms_apps')
     else:
         print 'Environment variable MYHOST not defined (metlocal,vilje,)'
         sys.exit(1)
@@ -33,7 +34,4 @@ class GlobalParams(object):
     ########################################################################
     # Internal files:
     ########################################################################
-    FELT2NC_CONFIG=COMMONORIGPATH+"/felt2nc.xml"
-    IN_CLMFILE="ocean_clm_in.nc"
-    CLMFILE="ocean_clm.nc"
-    INIFILE="ocean_ini.nc"
+

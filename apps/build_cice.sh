@@ -33,47 +33,35 @@ echo "NPX = $NPX, NPY = $NPY"
 #    exit 1
 #fi 
 
-export workingdir=${PWD} 
-cd ../
-metroms_base=${PWD} 
-cd ../
-if [ "$METROMS_TMPDIR" == "" ]; then
-    tup=${PWD}
-else
-    tup=${METROMS_TMPDIR}
-    if [ ! -d $tup ] ; then
-	echo "$tup not defined, set environment variable METROMS_TMPDIR to "
-	echo "override default behaviour"
-	exit 
-    fi
+if [ ! -d ${METROMS_TMPDIR} ] ; then
+    echo "METROMS_TMPDIR not defined, set environment variable METROMS_TMPDIR"
+    exit 
+fi
+if [ ! -d ${METROMS_BASEDIR} ] ; then
+    echo "METROMS_BASEDIR not defined, set environment variable METROMS_TMPDIR"
+    exit 
 fi
 
 # Build CICE
-export CICE_DIR=${tup}/tmproms/run/$ROMS_APPLICATION/cice
+export CICE_DIR=${METROMS_TMPDIR}/run/$ROMS_APPLICATION/cice
 mkdir -p $CICE_DIR/rundir
-cd ${tup}/tmproms/run/$ROMS_APPLICATION
+cd ${METROMS_TMPDIR}/run/$ROMS_APPLICATION
 # Unpack standard source files
 echo $PWD
-tar -xvf ${metroms_base}/static_libs/$CICEVERSION.tar.gz
+tar -xvf ${METROMS_BASEDIR}/static_libs/$CICEVERSION.tar.gz
 cd $CICE_DIR
 
-export MCT_INCDIR=${tup}/tmproms/MCT/include
-export MCT_LIBDIR=${tup}/tmproms/MCT/lib
+export MCT_INCDIR=${METROMS_TMPDIR}/MCT/include
+export MCT_LIBDIR=${METROMS_TMPDIR}/MCT/lib
 
 
 # Copy modified source files
 #mkdir -p ${tup}/tmproms/cice
-cp -a $workingdir/common/modified_src/$CICEVERSION/* $CICE_DIR
-cp -auv $workingdir/common/cice_input_grids/$ROMS_APPLICATION $CICE_DIR/input_templates
+mkdir -p $CICE_DIR/input_templates/$ROMS_APPLICATION/
+cp -a ${METROMS_BASEDIR}/apps/common/modified_src/$CICEVERSION/* $CICE_DIR
+cp -av ${METROMS_APPDIR}/$ROMS_APPLICATION/cice_input_grid/* $CICE_DIR/input_templates/$ROMS_APPLICATION/
 # Remove old binaries
 rm -f $CICE_DIR/rundir/cice
-
-#rm -rf ${tup}/tmproms/cice/rundir/compile
-
-#
-# NB! Compile flags needed on Vilje
-# -O2 -w -convert big_endian -assume byterecl
-#
 
 echo $PWD
 ./comp_ice $ROMS_APPLICATION $NPX $NPY

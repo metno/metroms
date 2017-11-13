@@ -85,27 +85,20 @@ export USE_PARALLEL_IO=on
 # ... and here.
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-workingdir=${PWD} 
-cd ../
-metroms_base=${PWD} 
-cd ../
-if [ "$METROMS_TMPDIR" == "" ]; then
-  tup=${PWD}
-else
-  tup=${METROMS_TMPDIR}
-  if [ ! -d $tup ] ; then
-   echo "$tup not defined, set environment variable METROMS_TMPDIR to "
-   echo "override default behaviour"
-   exit 
- fi
+if [ ! -d ${METROMS_TMPDIR} ] ; then
+    echo "METROMS_TMPDIR not defined, set environment variable METROMS_TMPDIR"
+    exit 
+fi
+if [ ! -d ${METROMS_BASEDIR} ] ; then
+    echo "METROMS_BASEDIR not defined, set environment variable METROMS_TMPDIR"
+    exit 
 fi
 
-tmpdir=tmproms
-
-export MY_ROMS_SRC=${tup}/${tmpdir}/roms_src
+export MY_ROMS_SRC=${METROMS_TMPDIR}/roms_src
 mkdir -p ${MY_ROMS_SRC}
 cd ${MY_ROMS_SRC}
-tar -xf ${metroms_base}/static_libs/${roms_ver}.tar.gz
+tar -xf ${METROMS_BASEDIR}/static_libs/${roms_ver}.tar.gz
+rm -rf User
 
 # JD : Added temporary to have place for a new file
 touch $MY_ROMS_SRC/ROMS/Nonlinear/frazil_ice_prod_mod.F
@@ -122,7 +115,7 @@ touch $MY_ROMS_SRC/ROMS/Modules/mod_ice.F
 
 export COMPILERS=${MY_ROMS_SRC}/Compilers
 
-cd ${workingdir}
+cd ${METROMS_APPDIR}
 
 parallel=1
 clean=1
@@ -151,15 +144,15 @@ cd ${ROMS_APPLICATION}
 
 export NestedGrids=1
 
-export MY_ROOT_DIR=${workingdir}/${ROMS_APPLICATION}/
-export MY_PROJECT_DIR=${workingdir}/${ROMS_APPLICATION}/
-export SCRATCH_DIR=${tup}/${tmpdir}/build
+export MY_ROOT_DIR=${METROMS_APPDIR}/${ROMS_APPLICATION}/
+export MY_PROJECT_DIR=${METROMS_APPDIR}/${ROMS_APPLICATION}/
+export SCRATCH_DIR=${METROMS_TMPDIR}/build
 
 cd ${MY_PROJECT_DIR}
 
 # # NMK - 20151030
 # # Check if we have any common modified source files
-export MODIFIED_SRC_FOLDER=${workingdir}/common/modified_src/${roms_ver}
+export MODIFIED_SRC_FOLDER=${METROMS_BASEDIR}/apps/common/modified_src/${roms_ver}
 if [ -s $MODIFIED_SRC_FOLDER ]; then
   cd $MODIFIED_SRC_FOLDER
   gotModifiedSourceCOMMON=`ls *.F *.h *.mk *.in`
@@ -293,10 +286,10 @@ trap 'rollback; exit 99' 0
 if [ -n "${USE_CICE:+1}" ]; then
 	export USE_MCT=on
 	export MY_CPP_FLAGS="${MY_CPP_FLAGS} -DNO_LBC_ATT -DMODEL_COUPLING -DUSE_MCT -DMCT_COUPLING -DMCT_LIB -DCICE_COUPLING -DCICE_OCEAN"
-  CICE_INCDIR := ${tup}/${tmpdir}/run/${ROMS_APPLICATION}/cice/rundir/compile
-  CICE_LIBDIR := ${tup}/${tmpdir}/run/${ROMS_APPLICATION}/cice/rundir/compile
-      FFLAGS += -I$(CICE_INCDIR)
-        LIBS += -L$(CICE_LIBDIR) -lcice
+#   CICE_INCDIR := ${tup}/${tmpdir}/run/${ROMS_APPLICATION}/cice/rundir/compile
+#   CICE_LIBDIR := ${tup}/${tmpdir}/run/${ROMS_APPLICATION}/cice/rundir/compile
+#       FFLAGS += -I$(CICE_INCDIR)
+#         LIBS += -L$(CICE_LIBDIR) -lcice
 fi
 
 if [ -n "${USE_NETCDF4:+1}" ]; then
@@ -309,7 +302,7 @@ export MY_ANALYTICAL_DIR=${MY_HEADER_DIR}
 
 # Build ROMS
 # Put the binary to execute in the following directory.
-export BINDIR=${tup}/${tmpdir}/run/${ROMS_APPLICATION}
+export BINDIR=${METROMS_TMPDIR}/${ROMS_APPLICATION}
 mkdir -p $BINDIR
 
 cd ${MY_ROMS_SRC}
@@ -326,7 +319,6 @@ fi
 
 if [ -n "${USE_CICE:+1}" ]; then
 	cp ${MODIFIED_SRC_FOLDER}/coupling.dat $BINDIR/
-	#cp ${tup}/${tmpdir}/cice/rundir/ice_in $BINDIR/ice_in_keyword
 fi
 
 # Clean up unpacked static code:
