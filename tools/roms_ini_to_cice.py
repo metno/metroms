@@ -1,5 +1,6 @@
 import netCDF4
 import numpy as np
+import sys
 
 def set_to_val(nc,variable,icemask,val=0.0,n=-999):
     var    = nc.variables[variable]
@@ -10,9 +11,13 @@ def set_to_val(nc,variable,icemask,val=0.0,n=-999):
 
 # Make initialization of new cice-file...
 
-romsfile = '/disk1/CICE_ini/ocean_ini.nc'
-romsgrid = '/disk1/MODELS/bunnmatriser/A20_grd_openBering.nc'
-cicefile = '/disk1/CICE_ini/iced.1997-01-01-00000.nc'
+if len(sys.argv[:]) < 3:
+    print "Usage: python roms_ini_to_cice.py <romsifile> <romsgrid> <ciceofile>"
+    sys.exit()
+
+romsfile = sys.argv[1] #'/disk1/CICE_ini/ocean_ini.nc'
+romsgrid = sys.argv[2] #'/disk1/MODELS/bunnmatriser/A20_grd_openBering.nc'
+cicefile = sys.argv[3] #'/disk1/CICE_ini/iced.1997-01-01-00000.nc'
 
 NCAT = [0, 0.6445072, 1.391433, 2.470179, 4.567288, 1e+08] #upper limits of ice categories
 varlist2d_null = ['uvel','vvel','scale_factor','swvdr','swvdf','swidr','swidf','strocnxT','strocnyT',
