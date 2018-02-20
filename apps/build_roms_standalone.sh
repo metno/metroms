@@ -61,7 +61,7 @@ export USE_MPIF90=on
 
 if [ "${METROMS_MYHOST}" == "metlocal" ]; then
   export FORT=gfortran
-elif [ "${METROMS_MYHOST}" == "vilje" ]; then
+elif [ "${METROMS_MYHOST}" == "vilje" ] || [ "${METROMS_MYHOST}" == "alvin" ] ; then
   export FORT=ifort
 else
   echo " Computer not defined set environment variable METROMS_MYHOST= metlocal, vilje ... "
@@ -90,12 +90,16 @@ if [ ! -d ${METROMS_TMPDIR} ] ; then
     echo "METROMS_TMPDIR not defined, set environment variable METROMS_TMPDIR"
     exit 
 fi
+if [ ! -d ${METROMS_BLDDIR} ] ; then
+    echo "METROMS_BLDDIR not defined, set environment variable METROMS_BLDDIR"
+    exit
+fi
 if [ ! -d ${METROMS_BASEDIR} ] ; then
     echo "METROMS_BASEDIR not defined, set environment variable METROMS_TMPDIR"
     exit 
 fi
 
-export MY_ROMS_SRC=${METROMS_TMPDIR}/roms_src
+export MY_ROMS_SRC=${METROMS_BLDDIR}/roms_src
 mkdir -p ${MY_ROMS_SRC}
 cd ${MY_ROMS_SRC}
 tar -xf ${METROMS_BASEDIR}/static_libs/${roms_ver}.tar.gz
@@ -147,7 +151,7 @@ export NestedGrids=1
 
 export MY_ROOT_DIR=${METROMS_APPDIR}/${ROMS_APPLICATION}/
 export MY_PROJECT_DIR=${METROMS_APPDIR}/${ROMS_APPLICATION}/
-export SCRATCH_DIR=${METROMS_TMPDIR}/build
+export SCRATCH_DIR=${METROMS_BLDDIR}/build
 
 cd ${MY_PROJECT_DIR}
 
