@@ -19,7 +19,7 @@ qair  = nc.variables['Qair']
 tair  = nc.variables['Tair']
 pair  = nc.variables['Pair']
 
-rh = spec2hum(qair[:], tair[:], pair[:]/100)
+rh = spec2hum(qair[:], tair[:], pair[:])
 qair[:] = rh
 nc.sync()
 nc.close()
