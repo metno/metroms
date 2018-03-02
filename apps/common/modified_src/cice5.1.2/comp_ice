@@ -37,7 +37,8 @@ fi
 GRID=GRID
 GRID=$(echo $GRID | tr [:upper:] [:lower:])
 
-case $NRES in 
+case $NRES in
+    'barents-2.5km' ) GRID=739x949;;
     'arctic-20km') GRID=322x242;;
     'arctic-4km') GRID=1602x1202;;
     'col') GRID=5x5;;
@@ -182,10 +183,6 @@ cd $SRCDIR/source
 cd $EXEDIR
 
 if [ $RES == 'arctic-20km' ] || [ $RES == 'arctic-4km' ]; then
-#    [ -e cice.grid.nc ] || cp $SRCDIR/input_templates/$RES/cice_$GRID.grid.nc cice.grid.nc
-#    [ -e cice.kmt.nc ] || cp $SRCDIR/input_templates/$RES/cice_$GRID.kmt.nc cice.kmt.nc
-##    [ -e cice.grid.nc ] || cp $SRCDIR/input_templates/$RES/cice.grid.nc cice.grid.nc
-##    [ -e cice.kmt.nc ] || cp $SRCDIR/input_templates/$RES/cice.kmt.nc cice.kmt.nc
     cp -auv $SRCDIR/input_templates/$RES/cice.grid.nc cice.grid.nc
     cp -auv $SRCDIR/input_templates/$RES/cice.kmt.nc cice.kmt.nc
 else

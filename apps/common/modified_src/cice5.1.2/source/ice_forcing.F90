@@ -2840,6 +2840,7 @@
         fieldname
 
       integer (kind=int_kind) :: &
+          i, j        , & ! horizontal indices
           iblk        , & ! block index
           ilo,ihi,jlo,jhi, & ! beginning and end of physical domain
           recnum, maxrec
@@ -2850,6 +2851,9 @@
       logical (kind=log_kind) :: should_loop, read12
 
       real (kind=dbl_kind) :: &
+          qa_cff1,qa_cff2,qa_cff,    &! coefficients (used to calculate specific humidity)
+          e_sat,              &! saturation vapour pressure (used to calculate specific humidity)
+          vap_p,               &! vapour pressure (used to calculate specific humidity)
           precip_factor, now, sec6hr, &
           sec12hr
 
@@ -2905,7 +2909,7 @@
         field_loc_center, field_type_scalar, &
         should_loop, metroms_ip_tair)
 
-      Tair = Tair + Tffresh
+      !Tair = Tair + Tffresh
 
       fieldname = 'Pair'
       call metroms_read_and_interpolate(fieldname, &
@@ -2914,7 +2918,7 @@
         field_loc_center, field_type_scalar, &
         should_loop, metroms_ip_rhoa)
 
-      rhoa = rhoa / (Tair * 287.058_dbl_kind)
+      !rhoa = rhoa / (Tair * 287.058_dbl_kind)
 
       fieldname = 'Qair'
       call metroms_read_and_interpolate(fieldname, &
@@ -2922,6 +2926,29 @@
         metroms_fname_humid, Qa, Qa_data,&
         field_loc_center, field_type_scalar, &
         should_loop, metroms_ip_humid)
+
+      ! Conversions
+
+      ! Test if humidity is relative or specific
+      if (maxval(Qa) > 10.0) then
+      	 ! Relative humidity to specific humidity
+      	 do iblk=1,nblocks
+            do j=1,ny_block
+	       do i=1,nx_block
+	       	  qa_cff1 = 0.7859_dbl_kind + 0.03477_dbl_kind*Tair(i,j,iblk)
+	    	  qa_cff2 = 1.0_dbl_kind + 0.00412_dbl_kind*Tair(i,j,iblk)
+	    	  vap_p = Qa(i,j,iblk)*10.0_dbl_kind**(qa_cff1/qa_cff2 + 2.0_dbl_kind)
+	    	  Qa(i,j,iblk)=0.622_dbl_kind*vap_p/(rhoa(i,j,iblk) - 0.378_dbl_kind*vap_p)
+	       enddo
+	    enddo
+         enddo	    
+       endif	        
+
+      ! Celsius to kelvin
+      Tair = Tair + Tffresh
+
+      ! Pressure to density
+      rhoa = rhoa / (Tair * 287.058_dbl_kind)
 
       fieldname = 'cloud'
       call metroms_read_and_interpolate(fieldname, &
@@ -3257,7 +3284,10 @@
       real (kind=dbl_kind) :: &
           sec6hr,             &! number of seconds in 6 hours
           sec12hr,            &! number of seconds in 12 hours
-          precip_factor       ! Help
+          precip_factor,      &! Help
+	  qa_cff1,qa_cff2,qa_cff,    &! coefficients (used to calculate specific humidity)
+	  e_sat,              &! saturation vapour pressure (used to calculate specific humidity)
+	  vap_p               ! vapour pressure (used to calculate specific humidity)
 
       character (char_len) :: & 
            fieldname    ! field name in netcdf file
@@ -3428,12 +3458,34 @@
       call interpolate_data (uatm_data, uatm)
       call interpolate_data (vatm_data, vatm)
       call interpolate_data (Tair_data, Tair)
-      Tair = Tair + Tffresh
       ! note here rhoa represents Pair in the original file
       call interpolate_data (rhoa_data, rhoa)
-      rhoa = rhoa / (Tair * 287.058_dbl_kind)
-      call interpolate_data (Qa_data,     Qa)
+      call interpolate_data (Qa_data, Qa)
       call interpolate_data (cldf_data, cldf)
+
+      ! Conversions
+
+      ! Relative humidity to specific humidity
+      do iblk=1,nblocks
+        do j=1,ny_block
+	  do i=1,nx_block
+	    qa_cff1 = 0.7859_dbl_kind + 0.03477_dbl_kind*Tair(i,j,iblk)
+	    qa_cff2 = 1.0_dbl_kind + 0.00412_dbl_kind*Tair(i,j,iblk)
+	    vap_p = Qa(i,j,iblk)*10.0_dbl_kind**(qa_cff1/qa_cff2 + 2.0_dbl_kind)
+	    Qa(i,j,iblk)=0.622_dbl_kind*vap_p/(rhoa(i,j,iblk) - 0.378_dbl_kind*vap_p)
+	  enddo
+	enddo
+      enddo	    
+
+      ! Celsius to kelvin
+      Tair = Tair + Tffresh
+
+      ! Pressure to density
+      rhoa = rhoa / (Tair * 287.058_dbl_kind)
+
+
+
+
 
       !$OMP PARALLEL DO PRIVATE(iblk,i,j,ilo,ihi,jlo,jhi,this_block)
       do iblk = 1, nblocks

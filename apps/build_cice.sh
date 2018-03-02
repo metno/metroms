@@ -43,9 +43,9 @@ if [ ! -d ${METROMS_BASEDIR} ] ; then
 fi
 
 # Build CICE
-export CICE_DIR=${METROMS_TMPDIR}/run/$ROMS_APPLICATION/cice
+export CICE_DIR=${METROMS_TMPDIR}/$ROMS_APPLICATION/cice
 mkdir -p $CICE_DIR/rundir
-cd ${METROMS_TMPDIR}/run/$ROMS_APPLICATION
+cd ${METROMS_TMPDIR}/$ROMS_APPLICATION
 # Unpack standard source files
 echo $PWD
 tar -xvf ${METROMS_BASEDIR}/static_libs/$CICEVERSION.tar.gz
