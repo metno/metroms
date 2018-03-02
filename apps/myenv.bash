@@ -1,25 +1,32 @@
 #!/bin/bash
 
-# if [ $# -le 1 ]
-# then
-#   echo "Usage: $0 [vilje|metlocal]"
-#   echo "Choose architecture..."
-#   exit
-# fi
-
-#export METROMS_MYHOST=metlocal
-export METROMS_MYHOST=vilje
-#export METROMS_MYHOST=$1
-
-#export METROMS_MYARCH=Linux
+export METROMS_MYHOST=$1
+echo "loading $METROMS_MYHOST paths"
 
 if [ "$METROMS_MYHOST" == "metlocal" ]; then
     export METROMS_BASEDIR=/disk1/$USER
     export METROMS_TMPDIR=/disk1/$USER
 elif [ "$METROMS_MYHOST" == "vilje" ]; then
-    export METROMS_BASEDIR=$HOME/metroms
-    export METROMS_TMPDIR=/work/$USER/tmproms/run
-    export METROMS_APPDIR=$HOME/metroms_apps
+    if [ "$USER" == "forecast" ]; then
+	export METROMS_BASEDIR=$HOME/sea/ROMS/metroms
+        export METROMS_TMPDIR=$HOME/run
+	export METROMS_BLDDIR=$METROMS_TMPDIR
+        export METROMS_APPDIR=$HOME/sea/ROMS/metroms_apps
+    else
+	export METROMS_BASEDIR=$HOME/metroms
+	export METROMS_TMPDIR=/work/$USER/tmproms/run
+	export METROMS_BLDDIR=$METROMS_TMPDIR
+	export METROMS_APPDIR=$HOME/metroms_apps
+    fi
+elif [ "$METROMS_MYHOST" == "alvin" ]; then
+    if [ "$USER" == "metno_op" ]; then
+	export METROMS_BASEDIR=$HOME/sea/ROMS/metroms
+	export METROMS_TMPDIR=$HOME/run
+	export METROMS_BLDDIR=$HOME/work/sea/ROMS/metroms
+	export METROMS_APPDIR=$HOME/sea/ROMS/metroms_apps
+    else
+	echo 'not defined yet'
+    fi
 else
     echo "Undefined METROMS_MYHOST ", $METROMS_MYHOST
 fi

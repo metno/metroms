@@ -272,9 +272,9 @@ class ModelRun(object):
                     print "I should not restart from specified nrrec!"
                     if (self._params.START_DATE == netCDF4.num2date(nc_rst.variables['ocean_time'][nrrec2],nc_rst.variables['ocean_time'].units)):
                         nrrec = nrrec2
-                        self._params.NRREC = nrrec
+                        self._params.NRREC = nrrec + 1
                         # Must update keywords!
-                        self._params.change_run_param('IRESTART',str(nrrec))
+                        self._params.change_run_param('IRESTART',str(self._params.NRREC))
                         print "Changes nrrec and keyword IRESTART"
                 if (self._params.START_DATE == netCDF4.num2date(nc_rst.variables['ocean_time'][nrrec],nc_rst.variables['ocean_time'].units)):
                     os.rename(_ini, self._params.RUNPATH+netCDF4.num2date(nc_ini.variables['ocean_time'][0],nc_ini.variables['ocean_time'].units).strftime("/ocean_ini.nc_%Y%m%d-%H%M"))
