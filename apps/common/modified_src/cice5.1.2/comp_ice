@@ -19,8 +19,8 @@ if [ "$METROMS_MYHOST" == "metlocal" ]; then
 elif [ "$METROMS_MYHOST" == "vilje" ]; then
     export SITE=Linux.NTNU.vilje
 #    export WORKDIR=/work/$LOGNAME/
-#elif [ "$METROMS_MYHOST" == "hexagon" ]; then
-#    export SITE=$ARCH.hexagon
+elif [ "$METROMS_MYHOST" == "met_ppi" ]; then
+    export SITE=Linux.MET_PPI
 #    export WORKDIR=/work/$LOGNAME/
 else
     echo $METROMS_MYHOST not implemented

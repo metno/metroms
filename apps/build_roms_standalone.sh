@@ -58,30 +58,28 @@ export roms_ver="roms-trunk"
 
 export USE_MPI=on
 export USE_MPIF90=on
+export USE_OpenMP=
+#export USE_LARGE=on
+export USE_DEBUG=on
+export USE_NETCDF4=on
+#export USE_PARALLEL_IO=on
+export which_MPI=mpich2        # compile with MPICH2 library
 
 if [ "${METROMS_MYHOST}" == "metlocal" ]; then
-  export FORT=gfortran
+    export FORT=gfortran
 elif [ "${METROMS_MYHOST}" == "vilje" ] || [ "${METROMS_MYHOST}" == "alvin" ] ; then
-  export FORT=ifort
+    export FORT=ifort
+elif [ "${METROMS_MYHOST}" == "met_ppi" ] ; then
+    export FORT=ifort
+    export USE_MPI=
+    export USE_MPIF90=
+    export which_MPI=openmpi
 else
   echo " Computer not defined set environment variable METROMS_MYHOST= metlocal, vilje ... "
   echo " Did you perhaps forgot 'source ./myenv.bash' ? "
   exit
 fi
 
-export USE_OpenMP=
-export USE_LARGE=on
-
-export USE_DEBUG=
-
-export USE_NETCDF4=on
-
-#export USE_CICE=on
-
-export USE_PARALLEL_IO=on 
-
-#export USE_MY_LIBS=on
-export         which_MPI=mpich2        # compile with MPICH2 library
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 # ... and here.
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -291,10 +289,6 @@ trap 'rollback; exit 99' 0
 if [ -n "${USE_CICE:+1}" ]; then
 	export USE_MCT=on
 	export MY_CPP_FLAGS="${MY_CPP_FLAGS} -DNO_LBC_ATT -DMODEL_COUPLING -DUSE_MCT -DMCT_COUPLING -DMCT_LIB -DCICE_COUPLING -DCICE_OCEAN"
-#   CICE_INCDIR := ${tup}/${tmpdir}/run/${ROMS_APPLICATION}/cice/rundir/compile
-#   CICE_LIBDIR := ${tup}/${tmpdir}/run/${ROMS_APPLICATION}/cice/rundir/compile
-#       FFLAGS += -I$(CICE_INCDIR)
-#         LIBS += -L$(CICE_LIBDIR) -lcice
 fi
 
 if [ -n "${USE_NETCDF4:+1}" ]; then

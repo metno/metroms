@@ -4,7 +4,7 @@ set -x
 export CICEVERSION=cice5.1.2
 
 NPX=1; NPY=1
-if [ "${METROMS_MYHOST}" == "metlocal" ]; then
+if [ "${METROMS_MYHOST}" == "metlocal" ] || [ "${METROMS_MYHOST}" == "met_ppi" ]; then
     NPX=1  
     NPY=2
 elif [ "${METROMS_MYHOST}" == "vilje" ]; then

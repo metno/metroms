@@ -103,7 +103,6 @@ class ModelRun(object):
 #                os.system("perf-report --mpi=\"SGI MPT (batch)\" --processes="+str(ncpus)+" "+executable+" "+infile)
                 print "Profiling not working yet on "+architecture
                 exit(1)
-
             else:
 #                os.environ["MPI_BUFS_PER_PROC"] = str(128)
                 result = os.system("mpiexec_mpt -np "+str(ncpus)+" "+executable+" "+infile)
@@ -111,14 +110,16 @@ class ModelRun(object):
         elif architecture==Constants.ALVIN:
             print 'running on alvin:'
             if debugoption==Constants.PROFILE:
-#                os.system("make-profiler-libraries")
-#                os.system("perf-report --mpi=\"SGI MPT (batch)\" --processes="+str(ncpus)+" "+executable+" "+infile)
                 print "Profiling not working yet on "+architecture
                 exit(1)
-
+        elif architecture==Constants.MET_PPI:
+            print 'running on MET PPI:'
+            if debugoption==Constants.PROFILE:
+                print "Profiling not working yet on "+architecture
+                exit(1)
             else:
 #                os.environ["MPI_BUFS_PER_PROC"] = str(128)
-                result = os.system("mpprun -np "+str(ncpus)+" "+executable+" "+infile)
+                result = os.system("/modules/xenial/OPENMPI/3.0.0/bin/mpirun  --mca btl openib,self -bind-to core "+executable+" "+infile)
                 if result != 0: os.system('cat cice_stderr')
         else:
             print "error here!"
@@ -221,7 +222,7 @@ class ModelRun(object):
                 print "No valid runoption!"
                 exit(1)
 
-        elif architecture==Constants.VILJE or architecture==Constants.ALVIN:
+        elif architecture==Constants.VILJE or architecture==Constants.ALVIN or architecture==Constants.MET_PPI:
             if runoption==Constants.MPI:
                 self._execute_roms_mpi((int(self._params.XCPU)*int(self._params.YCPU))+
                                        int(self._params.CICECPU),

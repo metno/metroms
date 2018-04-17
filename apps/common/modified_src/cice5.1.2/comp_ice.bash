@@ -12,11 +12,11 @@ source $CASEHOME/cice_baseconf.sh
 ### Set SRCDIR and EXEDIR to your own paths!
 export SRCDIR=$CASEHOME/cice
 
-if [ "$mach" == "vilje" ]; then
-    source /etc/profile.d/modules.sh
-#module load mpt/2.06 netcdf intelcomp
-    module load mpt netcdf intelcomp
-fi
+# if [ "$mach" == "vilje" ]; then
+#     source /etc/profile.d/modules.sh
+# #module load mpt/2.06 netcdf intelcomp
+# #    module load mpt netcdf intelcomp
+# fi
 
 ncomp=4  # Processors used for compilation
 

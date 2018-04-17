@@ -58,29 +58,29 @@ export roms_ver="roms-trunk"
 
 export USE_MPI=on
 export USE_MPIF90=on
+export USE_OpenMP=
+#export USE_LARGE=on
+#export USE_DEBUG=on
+export USE_NETCDF4=on
+#export USE_PARALLEL_IO=on
+export which_MPI=mpich2        # compile with MPICH2 library
+export USE_CICE=on
 
 if [ "${METROMS_MYHOST}" == "metlocal" ]; then
-  export FORT=gfortran
-elif [ "${METROMS_MYHOST}" == "vilje" ]; then
-  export FORT=ifort
+    export FORT=gfortran
+elif [ "${METROMS_MYHOST}" == "vilje" ] || [ "${METROMS_MYHOST}" == "alvin" ] ; then
+    export FORT=ifort
+elif [ "${METROMS_MYHOST}" == "met_ppi" ] ; then
+    export FORT=ifort
+    export USE_MPI=on
+    export USE_MPIF90=on
+    export which_MPI=openmpi
 else
   echo " Computer not defined set environment variable METROMS_MYHOST= metlocal, vilje ... "
   echo " Did you perhaps forgot 'source ./myenv.bash' ? "
   exit
 fi
 
-export USE_OpenMP=
-export USE_LARGE=on
-
-export USE_DEBUG=
-
-export USE_NETCDF4=on
-
-export USE_CICE=on
-
-export USE_PARALLEL_IO=on 
-
-#export USE_MY_LIBS=on
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 # ... and here.
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -89,12 +89,16 @@ if [ ! -d ${METROMS_TMPDIR} ] ; then
     echo "METROMS_TMPDIR not defined, set environment variable METROMS_TMPDIR"
     exit 
 fi
+if [ ! -d ${METROMS_BLDDIR} ] ; then
+    echo "METROMS_BLDDIR not defined, set environment variable METROMS_BLDDIR"
+    exit
+fi
 if [ ! -d ${METROMS_BASEDIR} ] ; then
     echo "METROMS_BASEDIR not defined, set environment variable METROMS_TMPDIR"
     exit 
 fi
 
-export MY_ROMS_SRC=${METROMS_TMPDIR}/roms_src
+export MY_ROMS_SRC=${METROMS_BLDDIR}/roms_src
 mkdir -p ${MY_ROMS_SRC}
 cd ${MY_ROMS_SRC}
 tar -xf ${METROMS_BASEDIR}/static_libs/${roms_ver}.tar.gz
@@ -146,7 +150,7 @@ export NestedGrids=1
 
 export MY_ROOT_DIR=${METROMS_APPDIR}/${ROMS_APPLICATION}/
 export MY_PROJECT_DIR=${METROMS_APPDIR}/${ROMS_APPLICATION}/
-export SCRATCH_DIR=${METROMS_TMPDIR}/build
+export SCRATCH_DIR=${METROMS_BLDDIR}/build
 
 cd ${MY_PROJECT_DIR}
 
@@ -177,81 +181,81 @@ if [ "$gotModifiedSourceAPP" != "" ] || [ "$gotModifiedSourceCOMMON" != "" ]; th
 
         # Check where original resides
         origFile=`find ${MY_ROMS_SRC} -name $ModSrc`
-
+	
         if [ -f "$origFile" ]; then
-
+	    
             # Moving original and copying user-modifed source code
             # first checking if the original already exists with
             # the .orig extension
             if [ ! -f "$origFile.orig" ]; then
-              mv $origFile $origFile.orig
-              echo "Moving $origFile to $origFile.orig"
+		mv $origFile $origFile.orig
+		echo "Moving $origFile to $origFile.orig"
             fi
-
+	    
             # Copying from local source directory to repository
             cp $MODIFIED_SRC_FOLDER/$ModSrc $origFile
             echo "Copying modified_src/$ModSrc to $origFile"
-
+	    
             if [ ! -f USER_MODIFIED_CODE ]; then
-
+		
                 # Touch file to notify that user modified code has been
                 # placed in the repository
                 touch USER_MODIFIED_CODE
-
-              fi
-            else
-
+		
+            fi
+        else
+	    
             # No such file in repository, quit script
             echo "No source code file $ModSrc in repository, exiting."
             exit 3
-
-          fi
-        done
+	    
+        fi
+    done
     # Copy locally modified source to main ROMS directory
     for ModSrc in $gotModifiedSourceAPP; do
 
         # Check where original resides
         origFile=`find ${MY_ROMS_SRC} -name $ModSrc`
-
+	
         if [ -f "$origFile" ]; then
-
+	    
             # Moving original and copying user-modifed source code
             # first checking if the original already exists with
             # the .orig extension
             if [ ! -f "$origFile.orig" ]; then
-              mv $origFile $origFile.orig
-              echo "Moving $origFile to $origFile.orig"
+		mv $origFile $origFile.orig
+		echo "Moving $origFile to $origFile.orig"
             fi
-
+	    
             # Copying from local source directory to repository
             cp modified_src/$ModSrc $origFile
             echo "Copying modified_src/$ModSrc to $origFile"
-
+	    
             if [ ! -f USER_MODIFIED_CODE ]; then
-
+		
                 # Touch file to notify that user modified code has been
                 # placed in the repository
                 touch USER_MODIFIED_CODE
-
-              fi
-            else
-
+		
+            fi
+        else
+	    
             # No such file in repository, quit script
             echo "No source code file $ModSrc in repository, exiting."
             exit 3
-
-          fi
-        done
-      fi
+	    
+        fi
+    done
+fi
 
 # Removing user modified source code in repository
 # KHC - 20110209
 # NMK - 2013
 rollback() {
- cd $MY_ROOT_DIR
-
+    cd $MY_ROOT_DIR
+    
     if [ -f USER_MODIFIED_CODE ]; then
-
+	
     # Find source code files with ".orig"-ending and
     # remove ending
     filelist=`find "$MY_ROMS_SRC" -name *.orig`
@@ -286,10 +290,6 @@ trap 'rollback; exit 99' 0
 if [ -n "${USE_CICE:+1}" ]; then
 	export USE_MCT=on
 	export MY_CPP_FLAGS="${MY_CPP_FLAGS} -DNO_LBC_ATT -DMODEL_COUPLING -DUSE_MCT -DMCT_COUPLING -DMCT_LIB -DCICE_COUPLING -DCICE_OCEAN"
-#   CICE_INCDIR := ${tup}/${tmpdir}/run/${ROMS_APPLICATION}/cice/rundir/compile
-#   CICE_LIBDIR := ${tup}/${tmpdir}/run/${ROMS_APPLICATION}/cice/rundir/compile
-#       FFLAGS += -I$(CICE_INCDIR)
-#         LIBS += -L$(CICE_LIBDIR) -lcice
 fi
 
 if [ -n "${USE_NETCDF4:+1}" ]; then

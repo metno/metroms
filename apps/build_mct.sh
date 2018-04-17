@@ -17,7 +17,7 @@ tar -xvf ${METROMS_BASEDIR}/static_libs/mct-2.9.tar.gz
 export MCT_DIR=${METROMS_TMPDIR}/MCT
 cd $MCT_DIR
 
-if [ ${METROMS_MYHOST} == "metlocal" ]; then
+if [ ${METROMS_MYHOST} == "metlocal" ] || [ "${METROMS_MYHOST}" == "met_ppi" ]; then
     FORT=mpif90
 elif [ ${METROMS_MYHOST} == "vilje" ]; then
     FORT=ifort
