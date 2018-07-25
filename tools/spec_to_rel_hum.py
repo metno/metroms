@@ -21,7 +21,7 @@ pair  = nc.variables['Pair']
 time  = nc.variables['time']
 
 for t in range(len(time[:])):
-    if pair[t,0,0] < 0.1:
+    if qair[t,0,0] < 0.1:
         if pair[t,0,0] > 2000:
             print 'convert from spec to rel percent to frac'
             rh = spec2hum(qair[t,:], tair[t,:], pair[t,:]/100)
