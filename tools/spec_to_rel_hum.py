@@ -18,12 +18,19 @@ nc    = netCDF4.Dataset(ifile, 'r+')
 qair  = nc.variables['Qair']
 tair  = nc.variables['Tair']
 pair  = nc.variables['Pair']
+time  = nc.variables['time']
 
-if pair[0,0,0] > 2000:
-    rh = spec2hum(qair[:], tair[:], pair[:]/100)
-else:
-    rh = spec2hum(qair[:], tair[:], pair[:])
-qair[:] = rh
-nc.sync()
-nc.close()
-
+for t in range(len(time[:])):
+    if pair[t,0,0] < 0.1:
+        if pair[t,0,0] > 2000:
+            print 'convert from spec to rel percent to frac'
+            rh = spec2hum(qair[t,:], tair[t,:], pair[t,:]/100)
+        else:
+            print 'convert from spec to rel'
+            rh = spec2hum(qair[t,:], tair[t,:], pair[t,:])
+        qair[t,:] = rh
+        nc.sync()
+    else:
+        print 'dont need to convert qair'
+#nc.close()
+print 'done'
