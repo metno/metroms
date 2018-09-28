@@ -60,14 +60,14 @@ export USE_MPI=on
 export USE_MPIF90=on
 export USE_OpenMP=
 #export USE_LARGE=on
-export USE_DEBUG=on
+#export USE_DEBUG=on
 export USE_NETCDF4=on
 #export USE_PARALLEL_IO=on
 export which_MPI=mpich2        # compile with MPICH2 library
 
 if [ "${METROMS_MYHOST}" == "metlocal" ]; then
     export FORT=gfortran
-elif [ "${METROMS_MYHOST}" == "vilje" ] || [ "${METROMS_MYHOST}" == "alvin" ] ; then
+elif [ "${METROMS_MYHOST}" == "vilje" ] || [ "${METROMS_MYHOST}" == "alvin" ] || [ "${METROMS_MYHOST}" == "elvis" ] ; then
     export FORT=ifort
 elif [ "${METROMS_MYHOST}" == "met_ppi" ] ; then
     export FORT=ifort

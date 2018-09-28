@@ -107,11 +107,15 @@ class ModelRun(object):
 #                os.environ["MPI_BUFS_PER_PROC"] = str(128)
                 result = os.system("mpiexec_mpt -np "+str(ncpus)+" "+executable+" "+infile)
                 if result != 0: os.system('cat cice_stderr')
-        elif architecture==Constants.ALVIN:
-            print 'running on alvin:'
+        elif architecture==Constants.ALVIN or architecture==Constants.ELVIS:
+            print 'running on alvin or elvis:'
             if debugoption==Constants.PROFILE:
                 print "Profiling not working yet on "+architecture
                 exit(1)
+            else:
+                print "mpprun -np "+str(ncpus)+" "+executable+" "+infile
+                result = os.system("mpprun -np "+str(ncpus)+" "+executable+" "+infile) 
+                if result != 0: os.system('cat cice_stderr')
         elif architecture==Constants.MET_PPI:
             print 'running on MET PPI:'
             if debugoption==Constants.PROFILE:

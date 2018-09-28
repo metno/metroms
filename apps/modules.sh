@@ -10,7 +10,7 @@ elif [ "$METROMS_MYHOST" == "vilje" ]; then
     module load netcdf/4.3.2
     module load hdf5/1.8.14-mpi
     module load python/2.7.9
-elif [ "$METROMS_MYHOST" == "alvin" ]; then
+elif [ "$METROMS_MYHOST" == "alvin" ] || [ "$METROMS_MYHOST" == "elvis" ]; then
     module load intel/15.0.1.133
     module load netcdf/4.3.2-i1501-hdf5-1.8.14
     module load impi/5.0.2.044

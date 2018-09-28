@@ -11,7 +11,7 @@ class GlobalParams(object):
         METROMSDIR=os.environ.get('METROMS_BASEDIR','/disk1/'+username+'/metroms')
         tmpdir=os.environ.get('METROMS_TMPDIR','/disk1/'+username)
         RUNDIR=tmpdir #+'/run'
-    elif MYHOST=='vilje' or MYHOST=='alvin' or MYHOST=='met_ppi':
+    elif MYHOST=='vilje' or MYHOST=='alvin' or MYHOST=='met_ppi' or MYHOST=='elvis':
         HOME=os.environ.get('HOME')
         if HOME=='None':
             print "Environment variable HOME not found in configuration on vilje"
