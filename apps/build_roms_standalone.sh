@@ -54,7 +54,8 @@ fi
 # Setting up things, like compilers etc:
 export ROMS_APPLICATION=$1
 #export roms_ver="roms-3.6"
-export roms_ver="roms-trunk"
+#export roms_ver="roms-trunk"
+export roms_ver="roms_svn"
 
 export USE_MPI=on
 export USE_MPIF90=on
@@ -76,7 +77,7 @@ elif [ "${METROMS_MYHOST}" == "met_ppi" ] ; then
     export which_MPI=openmpi
 else
   echo " Computer not defined set environment variable METROMS_MYHOST= metlocal, vilje ... "
-  echo " Did you perhaps forgot 'source ./myenv.bash' ? "
+  echo " Did you perhaps forget 'source ./myenv.bash' ? "
   exit
 fi
 
@@ -100,15 +101,18 @@ fi
 export MY_ROMS_SRC=${METROMS_BLDDIR}/roms_src
 mkdir -p ${MY_ROMS_SRC}
 cd ${MY_ROMS_SRC}
-tar -xf ${METROMS_BASEDIR}/static_libs/${roms_ver}.tar.gz
-rm -rf User
-
-# JD : Added temporary to have place for a new file
-touch $MY_ROMS_SRC/ROMS/Nonlinear/frazil_ice_prod_mod.F
-# JD end
-
-#SM: Same here, added temporary for new file
-touch $MY_ROMS_SRC/ROMS/Modules/mod_ice.F
+if [ $roms_ver != 'roms_svn' ]; then
+    tar -xf ${METROMS_BASEDIR}/static_libs/${roms_ver}.tar.gz
+    rm -rf User
+    # JD : Added temporary to have place for a new file
+    touch $MY_ROMS_SRC/ROMS/Nonlinear/frazil_ice_prod_mod.F
+    # JD end
+    #SM: Same here, added temporary for new file
+    touch $MY_ROMS_SRC/ROMS/Modules/mod_ice.F
+else
+#    echo 'no checkout today'
+    svn checkout https://www.myroms.org/svn/src/trunk .
+fi
 
 # Set path of the directory containing makefile configuration (*.mk) files.
 # The user has the option to specify a customized version of these files
@@ -153,6 +157,7 @@ export SCRATCH_DIR=${METROMS_BLDDIR}/build
 
 cd ${MY_PROJECT_DIR}
 
+if [ $roms_ver != 'roms_svn' ]; then
 # # NMK - 20151030
 # # Check if we have any common modified source files
 export MODIFIED_SRC_FOLDER=${METROMS_BASEDIR}/apps/common/modified_src/${roms_ver}
@@ -284,6 +289,7 @@ rollback() {
   fi
 }
 trap 'rollback; exit 99' 0
+fi
 
 # 
 if [ -n "${USE_CICE:+1}" ]; then

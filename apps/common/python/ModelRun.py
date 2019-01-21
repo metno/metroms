@@ -226,7 +226,7 @@ class ModelRun(object):
                 print "No valid runoption!"
                 exit(1)
 
-        elif architecture==Constants.VILJE or architecture==Constants.ALVIN or architecture==Constants.MET_PPI:
+        elif architecture==Constants.VILJE or architecture==Constants.ALVIN or architecture==Constants.ELVIS or  architecture==Constants.MET_PPI:
             if runoption==Constants.MPI:
                 self._execute_roms_mpi((int(self._params.XCPU)*int(self._params.YCPU))+
                                        int(self._params.CICECPU),
