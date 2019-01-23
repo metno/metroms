@@ -107,8 +107,8 @@ class ModelRun(object):
 #                os.environ["MPI_BUFS_PER_PROC"] = str(128)
                 result = os.system("mpiexec_mpt -np "+str(ncpus)+" "+executable+" "+infile)
                 if result != 0: os.system('cat cice_stderr')
-        elif architecture==Constants.ALVIN or architecture==Constants.ELVIS:
-            print 'running on alvin or elvis:'
+        elif architecture==Constants.ALVIN or architecture==Constants.ELVIS or architecture==Constants.NEBULA or architecture==Constants.STRATUS:
+            print 'running on NSC HPC:'
             if debugoption==Constants.PROFILE:
                 print "Profiling not working yet on "+architecture
                 exit(1)
@@ -226,7 +226,7 @@ class ModelRun(object):
                 print "No valid runoption!"
                 exit(1)
 
-        elif architecture==Constants.VILJE or architecture==Constants.ALVIN or architecture==Constants.ELVIS or  architecture==Constants.MET_PPI:
+        elif architecture==Constants.VILJE or architecture==Constants.ALVIN or architecture==Constants.ELVIS or architecture==Constants.NEBULA or architecture==Constants.STRATUS or  architecture==Constants.MET_PPI:
             if runoption==Constants.MPI:
                 self._execute_roms_mpi((int(self._params.XCPU)*int(self._params.YCPU))+
                                        int(self._params.CICECPU),

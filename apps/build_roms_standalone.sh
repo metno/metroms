@@ -57,6 +57,7 @@ export ROMS_APPLICATION=$1
 #export roms_ver="roms-trunk"
 export roms_ver="roms_svn"
 
+# Default settings:
 export USE_MPI=on
 export USE_MPIF90=on
 export USE_OpenMP=
@@ -70,6 +71,10 @@ if [ "${METROMS_MYHOST}" == "metlocal" ]; then
     export FORT=gfortran
 elif [ "${METROMS_MYHOST}" == "vilje" ] || [ "${METROMS_MYHOST}" == "alvin" ] || [ "${METROMS_MYHOST}" == "elvis" ] ; then
     export FORT=ifort
+elif [ "${METROMS_MYHOST}" == "nebula" ]; then
+    export FORT=ifort
+    export USE_MPIF90=
+    export USE_MPI=
 elif [ "${METROMS_MYHOST}" == "met_ppi" ] ; then
     export FORT=ifort
     export USE_MPI=
@@ -157,7 +162,7 @@ export SCRATCH_DIR=${METROMS_BLDDIR}/build
 
 cd ${MY_PROJECT_DIR}
 
-if [ $roms_ver != 'roms_svn' ]; then
+#if [ $roms_ver != 'roms_svn' ]; then
 # # NMK - 20151030
 # # Check if we have any common modified source files
 export MODIFIED_SRC_FOLDER=${METROMS_BASEDIR}/apps/common/modified_src/${roms_ver}
@@ -289,7 +294,7 @@ rollback() {
   fi
 }
 trap 'rollback; exit 99' 0
-fi
+#fi # if roms_svn
 
 # 
 if [ -n "${USE_CICE:+1}" ]; then

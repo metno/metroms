@@ -22,6 +22,12 @@ elif [ "$METROMS_MYHOST" == "met_ppi" ]; then
     module load netcdf/4.5.0intel18
     module load OpenMPI/3.0.0intel18
     module load hdf5/1.10.1intel18
+elif [ "$METROMS_MYHOST" == "nebula" ]; then
+#    module load netCDF/4.4.1.1-HDF5-1.8.19-nsc1-intel-2018a-eb
+    module load buildenv-intel/2018a-eb
+    module load netCDF/4.3.2-HDF5-1.8.12-nsc1-intel-2018.u1-bare
+    module load NCO/4.6.3-nsc1
+    module load Python/2.7.14-anaconda-5.0.1-nsc1
 else
     echo "Undefined METROMS_MYHOST ", $METROMS_MYHOST
 fi
