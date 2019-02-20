@@ -54,8 +54,8 @@ fi
 # Setting up things, like compilers etc:
 export ROMS_APPLICATION=$1
 #export roms_ver="roms-3.6"
-#export roms_ver="roms-trunk"
-export roms_ver="roms_svn"
+export roms_ver="roms-trunk"
+#export roms_ver="roms_svn"
 
 # Default settings:
 export USE_MPI=on
@@ -71,10 +71,10 @@ if [ "${METROMS_MYHOST}" == "metlocal" ]; then
     export FORT=gfortran
 elif [ "${METROMS_MYHOST}" == "vilje" ] || [ "${METROMS_MYHOST}" == "alvin" ] || [ "${METROMS_MYHOST}" == "elvis" ] ; then
     export FORT=ifort
-elif [ "${METROMS_MYHOST}" == "nebula" ]; then
+elif [ "${METROMS_MYHOST}" == "nebula" ] || [ "${METROMS_MYHOST}" == "stratus" ]; then
     export FORT=ifort
-    export USE_MPIF90=
-    export USE_MPI=
+    export USE_MPIF90=on
+    export USE_MPI=on
 elif [ "${METROMS_MYHOST}" == "met_ppi" ] ; then
     export FORT=ifort
     export USE_MPI=
@@ -304,7 +304,7 @@ fi
 
 if [ -n "${USE_NETCDF4:+1}" ]; then
  export USE_DAP=on
- export PATH=/usr/bin:$PATH
+ #export PATH=/usr/bin:$PATH
 fi
 
 export MY_HEADER_DIR=${MY_PROJECT_DIR}/include
