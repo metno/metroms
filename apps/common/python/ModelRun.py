@@ -15,10 +15,12 @@ class ModelRun(object):
         self._params=params
         self._clmfileoption=clmoption
         self._atmfileoption=atmoption
-        # Check if delta_t for the models match up:
-        if not params.CICEDELTAT%params.DELTAT == 0:
-            print "delta_t's dont match up!!"
-            sys.exit()
+        # Only check this if CICECPU is larger than 0:
+        if self._params.CICECPU > 0:
+            # Check if delta_t for the models match up:
+            if not params.CICEDELTAT%params.DELTAT == 0:
+                print "delta_t's dont match up!!"
+                sys.exit()
 
     def run_roms(self,runoption=Constants.SERIAL,debugoption=Constants.NODEBUG,
                  architecture=Constants.MET64):
