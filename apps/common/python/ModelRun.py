@@ -374,7 +374,7 @@ class ModelRun(object):
             cice_restartfile = f.readline().strip()
             cice_rst_day = netCDF4.Dataset(cice_restartfile).mday
             print("Params.NRREC = {}".format(self._params.NRREC))
-            if (cice_rst_day == roms_ini[self._params.NRREC].day) :
+            if (cice_rst_day == roms_ini[self._params.NRREC-1].day) : # -1 for fixing index
                 # Dates seem ok
                 pass
             else:
