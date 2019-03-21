@@ -12,11 +12,12 @@ MET32=1
 VILJE=2
 BYVIND=3
 ALVIN=4
-ELVIS=5
-NEBULA=6
-STRATUS=7
-MET_PPI_IBX=8
-MET_PPI_OPATH=9
+MET_PPI=5
+ELVIS=6
+NEBULA=7
+STRATUS=8
+MET_PPI_IBX=9
+MET_PPI_OPATH=10
 ########################################################################
 NC=0
 FELT=1

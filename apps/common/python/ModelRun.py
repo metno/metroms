@@ -274,8 +274,16 @@ class ModelRun(object):
             architecture (int) : What architecture to run METROMS on
                                  (choose an option from the Contants module)
         """
+        # if statement for backwards compatibility (remove in the future)
+        # ---------------------------------------------------------------------------------------------------
+        if architecture == Constants.MET_PPI:
+            print("\nWarning: {0}={1} is deprecated! Use {0}={2} or {0}={3} instead. Defaulting to {2}.".format(
+                  "architecture", "Constants.MET_PPI", "Constants.MET_PPI_IBX", "Constants.MET_PPI_OPATH"))
+            architecture = Constants.MET_PPI_IBX
+        # ---------------------------------------------------------------------------------------------------
+
         # Run the ROMS model:
-        if architecture==Constants.MET64 :
+        if architecture==Constants.MET64:
             if runoption==Constants.MPI:
                 self._execute_roms_mpi((int(self._params.XCPU)*int(self._params.YCPU))+
                                        int(self._params.CICECPU),
