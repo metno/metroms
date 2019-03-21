@@ -7,11 +7,36 @@ import bisect
 import sys
 
 class ModelRun(object):
+    """
+    Class for managing a run with the METROMS model (coupled ROMS-CICE). Contains a selection of
+    methods related to the setup of the run, starting the actual run and post-processing (potentially
+    in the future). The class revolve around the existence of a Params object containing info about
+    the run configuration. Main tasks of the class include
+
+     - verifying the specified model start time with the existing initial/restart files for both
+       ROMS and CICE and handling file logic to setup the appropriate initial/restart files accordingly
+     - replacing keywords in ROMs and CICE input config/parameter files based on the Params object
+     - initiating the METROMS model run on the specified computer architecture (several differet supported)
+       with MPI, OPENMP or a SERIAL run
+     - post-processing (maybe to come in the future)
+     """
     _params=None
     _clmfileoption=None
     _atmfileoption=None
 
     def __init__(self,params,clmoption=Constants.NC,atmoption=Constants.NC):
+        """
+        Constructor function setting defining attributes and makes sure the CICE
+        time step is a multiple of the ROMS time step (to make coupling work).
+
+        Args:
+            params (Params) : An object of the Params class specific to the
+                              METROMS application that is being used
+            clmoption (int) : File type of climatology file
+                              (choose an option from the Constants module)
+            clmoption (int) : File type of atmosphere file
+                              (choose an option from the Constants module)
+        """
         self._params=params
         self._clmfileoption=clmoption
         self._atmfileoption=atmoption
@@ -25,7 +50,17 @@ class ModelRun(object):
     def run_roms(self,runoption=Constants.SERIAL,debugoption=Constants.NODEBUG,
                  architecture=Constants.MET64):
         """
-        About this...
+        Function that changes working directory to the run path (dir with the executable),
+        replaces keywords in the CICE and ROMS in-files (as specified by the self._params
+        attribute object) and finally calls the self._run() function to start the METROMS run.
+
+        Args:
+            runoption (int)    : Either run to run with MPI, OPENMP, SERIAL or DRY run
+                                 (choose an option from the Contants module)
+            debugoption (int)  : Wether or not METROMS is run in debug mode or not,
+                                 (choose an option from the Contants module)
+            architecture (int) : What architecture to run METROMS on
+                                 (choose an option from the Contants module)
         """
         print "Running ROMS in directory: "+self._params.RUNPATH+"\n\n"
         #print (int(self._params.XCPU)*int(self._params.YCPU))+int(self._params.CICECPU)
@@ -94,7 +129,16 @@ class ModelRun(object):
 
     def _execute_roms_mpi(self,ncpus,infile,debugoption=Constants.NODEBUG,architecture=Constants.MET64):
         """
-        Execute the ROMS model itself using MPI.
+        Function that executes the ROMS model itself using MPI. Depending on the specified architecture,
+        the ROMS executable is run using different binaries/commands.
+
+        Args:
+            ncpus (int)        : Total number of CPUs to run with
+            infile (str)       : Filename of the roms.in parameter/config file
+            debugoption (int)  : Wether or not METROMS is run in debug mode or not
+                                 (choose an option from the Contants module)
+            architecture (int) : What architecture to run METROMS on
+                                 (choose an option from the Contants module)
         """
         if debugoption==Constants.DEBUG:
             executable="oceanG"
@@ -112,6 +156,7 @@ class ModelRun(object):
 #                os.environ["MPI_BUFS_PER_PROC"] = str(128)
                 result = os.system("mpiexec_mpt -np "+str(ncpus)+" "+executable+" "+infile)
                 if result != 0: os.system('cat cice_stderr')
+
         elif architecture==Constants.ALVIN or architecture==Constants.ELVIS or architecture==Constants.NEBULA or architecture==Constants.STRATUS:
             print 'running on NSC HPC:'
             if debugoption==Constants.PROFILE:
@@ -119,25 +164,30 @@ class ModelRun(object):
                 exit(1)
             else:
                 print "mpprun -np "+str(ncpus)+" "+executable+" "+infile
-                result = os.system("mpprun -np "+str(ncpus)+" "+executable+" "+infile) 
+                result = os.system("mpprun -np "+str(ncpus)+" "+executable+" "+infile)
                 if result != 0: os.system('cat cice_stderr')
-        elif architecture==Constants.MET_PPI:
+
+        elif architecture==Constants.MET_PPI_IBX:
             print 'running on MET PPI:'
             if debugoption==Constants.PROFILE:
                 print "Profiling not working yet on "+architecture
                 exit(1)
             else:
-#                os.environ["MPI_BUFS_PER_PROC"] = str(128)
-                #result = os.system("/modules/centos7/OPENMPI/4.0.0-intel2018/bin/mpiexec --mca mtl psm2 " + executable + " " + infile)
-                result = os.system("/modules/xenial/OPENMPI/3.0.0intel18/bin/mpiexec  --mca btl openib,self -bind-to core "+executable+" "+infile)
-                #result = os.system("/modules/xenial/OPENMPI/3.0.0intel18/bin/mpirun  --mca btl openib,self -bind-to core "+executable+" "+infile)
-                #result = os.system("/modules/xenial/OPENMPI/3.0.0/bin/mpirun  --mca btl tcp,self "+executable+" "+infile)
-                #runcmd="/modules/xenial/OPENMPI/3.0.0intel18/bin/mpirun -np "+str(ncpus)+" "+executable+" "+infile
-                #print runcmd
-                #result = os.system(runcmd)
+                #os.environ["MPI_BUFS_PER_PROC"] = str(128)
+                result = os.system("/modules/xenial/OPENMPI/3.0.0intel18/bin/mpiexec --mca btl openib,self -bind-to core " + executable + " " + infile)
+                if result != 0: os.system('cat cice_stderr')
+
+        elif architecture==Constants.MET_PPI_OPATH:
+            print 'running on MET PPI:'
+            if debugoption==Constants.PROFILE:
+                print "Profiling not working yet on "+architecture
+                exit(1)
+            else:
+                #os.environ["MPI_BUFS_PER_PROC"] = str(128)
+                result = os.system("/modules/centos7/OPENMPI/3.1.3-intel2018/bin/mpiexec --mca mtl psm2 " + executable + " " + infile)
                 if result != 0: os.system('cat cice_stderr')
         else:
-            print "error here!"
+            print "Unrecognized architecture!"
             #result = os.system("mpirun -np "+str(ncpus)+" "+executable+" "+infile)
             #if result != 0: os.system('cat cice_stderr')
 
@@ -213,6 +263,16 @@ class ModelRun(object):
 
     def _run(self,runoption=Constants.SERIAL,debugoption=Constants.NODEBUG,architecture=Constants.MET64):
         """
+        Function that calls other functions for running METROMS depending on the specified
+        architecture and and runoption.
+
+        Args:
+            runoption (int)    : Either run to run with MPI, OPENMP, SERIAL or DRY run
+                                 (choose an option from the Contants module)
+            debugoption (int)  : Wether or not METROMS is run in debug mode or not
+                                 (choose an option from the Contants module)
+            architecture (int) : What architecture to run METROMS on
+                                 (choose an option from the Contants module)
         """
         # Run the ROMS model:
         if architecture==Constants.MET64 :
@@ -237,7 +297,9 @@ class ModelRun(object):
                 print "No valid runoption!"
                 exit(1)
 
-        elif architecture==Constants.VILJE or architecture==Constants.ALVIN or architecture==Constants.ELVIS or architecture==Constants.NEBULA or architecture==Constants.STRATUS or  architecture==Constants.MET_PPI:
+        elif architecture==Constants.VILJE or architecture==Constants.ALVIN or architecture==Constants.ELVIS or \
+             architecture==Constants.NEBULA or architecture==Constants.STRATUS or architecture==Constants.MET_PPI_IBX or \
+             architecture==Constants.MET_PPI_OPATH:
             if runoption==Constants.MPI:
                 self._execute_roms_mpi((int(self._params.XCPU)*int(self._params.YCPU))+
                                        int(self._params.CICECPU),
