@@ -10,6 +10,7 @@
 #   perhaps be inputed by user in the future.
 
 import os
+import glob
 import netCDF4
 import numpy as np
 import datetime as dt
@@ -332,38 +333,6 @@ class CiceBry(object):
         """Method not implemented for abtstract superclass."""
         raise NotImplementedError("This method should be overwritten by a subclass!")
 
-    def _get_bry_slice(self, slice_type, **kwargs):
-        """
-        Method that gives a tuple of indexes/slices to be used for indexing the clm
-        atm and grid files when extracting data.
-
-        Args:
-            slice_type (str) : Determines what local function to call
-            kwargs (dict)    : Keyword arguments that are passed to the function
-                               specified by <slice_type>.
-        Returns:
-            slices (tuple) : Tuple of indices/slices (be vary of dimension order)
-        """
-        def clm_slice_3d(t_idx, bry):
-            slices = {"W": (t_idx, slice(None), 0), "S": (t_idx, 0, slice(None)),
-                      "E": (t_idx, slice(None), -1), "N": (t_idx, -1, slice(None))}
-            return tuple(slices[bry])
-
-        def clm_slice_4d(t_idx, bry, s_idx):
-            slices = {"W": (t_idx, s_idx, slice(None), 0), "S": (t_idx, s_idx, 0, slice(None)),
-                      "E": (t_idx, s_idx, slice(None), -1), "N": (t_idx, s_idx, -1, slice(None))}
-            return tuple(slices[bry])
-
-        def grid_slice_2d(bry):
-            slices = {"W": (slice(None), 0), "S": (0, slice(None)),
-                      "E": (slice(None), -1), "N": (-1, slice(None))}
-            return tuple(slices[bry])
-
-        if slice_type == "clm_3d": return clm_slice_3d(**kwargs)
-        elif slice_type == "clm_4d": return clm_slice_4d(**kwargs)
-        elif slice_type == "grid_2d": return grid_slice_2d(**kwargs)
-        else: raise ValueError("Invalid slice_type {}".format(slice_type))
-
     def verify_variables(self):
         """Method that checks if the boundary file contains all necessary variables."""
         necessary_vars = [var.name for var in self.load_bry_vars()]
@@ -409,6 +378,7 @@ class CiceBryHax(CiceBry):
         self.atm = None
         self.cice_file = None  # cice restart file attributes that can e.g. be set in self.set_grid()
         self.cice = None
+        self.cice_names = None
 
     def set_grid(self, grid_file):
         """
@@ -443,23 +413,79 @@ class CiceBryHax(CiceBry):
         self.atm_file = atm_file
         self.atm = netCDF4.Dataset(atm_file, mode="r")
 
-    def set_cice_rst(self, cice_file):
+    def set_cice(self, cice_file):
         """Method docstring..."""
         if any(True for s in ["*", "?"] if s in cice_file):
             self.cice_files = sorted(glob.glob(cice_file))
         else:
-            self.cice_file = [cice_file]
+            self.cice_files = [cice_file]
 
-        self.cice = [netCDF4.Dataset(fn, mode="r") for fn in cice_files]
+        self.cice = [netCDF4.Dataset(fn, mode="r") for fn in self.cice_files]
+
+        # mapping between bry names and CICE restart file names
+        self.cice_names = {"alvln": "alvl", "vlvln": "vlvl", "apond": "apnd",
+                           "hpond": "apnd", "ipond": "ipnd"}
+
+    def get_cice_times(self):
+        """
+        Method that extracts the datetimes of the CICE restart files based on
+        filenames. Gives a list of equal length to the number of supplied CICE files.
+
+        Returns:
+            cice_times (ndarray) : 1D-array of datetimes for the restart times on the
+                                   set CICE restart files.
+        """
+        cice_times = list()
+
+        for t in self.cice_files:
+            time_string = t.split(".")[1]
+            date = dt.datetime.strptime(time_string[:10], "%Y-%m-%d")
+            seconds = int(time_string.split("-")[-1].lstrip("0") or "0")
+            t_delta = dt.timedelta(seconds=seconds)
+            cice_times.append(date + t_delta)
+
+        return np.array(cice_times)
+
+    def get_slice(self, slice_type, **kwargs):
+        """
+        Method that gives a tuple of indexes/slices to be used for indexing the clm
+        atm and grid files when extracting data.
+
+        Args:
+            slice_type (str) : Determines what local function to call
+            kwargs (dict)    : Keyword arguments that are passed to the function
+                               specified by <slice_type>.
+        Returns:
+            slices (tuple) : Tuple of indices/slices (be vary of dimension order)
+        """
+        def clm_slice_3d(t_idx, bry):
+            slices = {"W": (t_idx, slice(None), 0), "S": (t_idx, 0, slice(None)),
+                      "E": (t_idx, slice(None), -1), "N": (t_idx, -1, slice(None))}
+            return tuple(slices[bry])
+
+        def clm_slice_4d(t_idx, bry, s_idx):
+            slices = {"W": (t_idx, s_idx, slice(None), 0), "S": (t_idx, s_idx, 0, slice(None)),
+                      "E": (t_idx, s_idx, slice(None), -1), "N": (t_idx, s_idx, -1, slice(None))}
+            return tuple(slices[bry])
+
+        def grid_slice_2d(bry):
+            slices = {"W": (slice(None), 0), "S": (0, slice(None)),
+                      "E": (slice(None), -1), "N": (-1, slice(None))}
+            return tuple(slices[bry])
+
+        if slice_type == "clm_3d": return clm_slice_3d(**kwargs)
+        elif slice_type == "clm_4d": return clm_slice_4d(**kwargs)
+        elif slice_type == "grid_2d": return grid_slice_2d(**kwargs)
+        else: raise ValueError("Invalid slice_type {}".format(slice_type))
 
     def write_bry_data(self):
         """
         Method that implements a hack to use the limited ice data from TOPAZ5 to generate
         data for the CICE boundary file. Relevant available variables from TOPAZ are only
-        aice (ice conc.) and hice (ice thick.). From these, we generate the CICE variables
-        aicen, vicen and vsnon at the boundaries. Ice conc. ice distributed amongst the ice
-        categories (according the pre-defined thickness categories (self.cat_lims)) and so
-        is ice volume. Snow volume is assumed to be 20% that of the ice volume.
+        aice (ice conc.), hice (ice thick.) anf hsnow (snow thick.). From these, we generate
+        the CICE variables aicen, vicen and vsnon at the boundaries. Ice conc. ice distributed
+        amongst the ice categories (according the pre-defined thickness categories (self.cat_lims))
+        and so is ice volume and snow volume.
 
         Additionally, atmosphere (from relevant model at corresponding times) and ocean (from
         clm file) data is used to help specify data for the variablesTsfc, Tinz and Sinz. Tsfc
@@ -485,6 +511,7 @@ class CiceBryHax(CiceBry):
         bry_time = super(CiceBryHax, self).compute_bry_time(self.clm, "clim_time")                         # float array in bry file
         clm_dates = super(CiceBryHax, self).get_time_array(self.clm, "clim_time", return_type=dt.datetime) # date array in clm file
         atm_dates = super(CiceBryHax, self).get_time_array(self.atm, "time")                               # date array in atm file
+        cice_dates = self.get_cice_times()                                                                 # date array for cice files
         t0c_idx, t1c_idx = super(CiceBryHax, self).get_time_endpoints(self.clm, "clim_time")               # start and end indices in clm file
 
         # extract pointers for all releevant variables from climatology and atmopshere files
@@ -497,68 +524,80 @@ class CiceBryHax(CiceBry):
         land_mask = self.grid.variables["mask_rho"]  # grid file land mask
 
         # variables that, due to lack of better data, is set to zero everywhere
-        zero_vars_3d = ["iage_BRY_bry", "apond_BRY_bry", "hpond_BRY_bry", "ipond_BRY_bry",
-                        "fbrine_BRY_bry", "hbrine_BRY_bry", "alvln_BRY_bry", "vlvln_BRY_bry"]
+        zero_vars_3d = ["iage_BRY_bry", "fbrine_BRY_bry", "hbrine_BRY_bry"]
+        cice_vars_3d = ["apond_BRY_bry", "hpond_BRY_bry", "ipond_BRY_bry", "alvln_BRY_bry", "vlvln_BRY_bry"]
 
         # write time-independent data to boundary file
         self.bry.variables["Ice_layers"][:] = list(range(self.dim_sizes[self.dims["z"]]))  # vertical dim variable
         for bry in self.bry_order:
-            grid_slice = self._get_bry_slice("grid_2d", bry=bry)
+            grid_slice = self.get_slice("grid_2d", bry=bry)
             self.bry.variables["TLON_{}".format(bry)][:] = self.grid.variables["lon_rho"][grid_slice]  # longitude
             self.bry.variables["TLAT_{}".format(bry)][:] = self.grid.variables["lat_rho"][grid_slice]  # latitude
 
+        print("Coputing boundary data for:")
         # handle one time index at a time for memory efficiency and write boundary data for all times,
         # all ice categories and all four boundaries
-        for clm_idx in range(t0c_idx, t1c_idx + 1):
-            print("Computing boundary data for {}...".format(clm_dates[clm_idx]))
-            bry_idx = clm_idx - t0c_idx                                 # time index for bry file starts at 0
-            atm_idx = (np.abs(atm_dates - clm_dates[clm_idx])).argmin()  # atm index for corresponding days
-            self.bry.variables["Time"][bry_idx] = bry_time[bry_idx]     # fill time array with current time
+        for clm_tidx in range(t0c_idx, t1c_idx + 1):
+            bry_tidx = clm_tidx - t0c_idx                                    # time index for bry file starts at 0
+            atm_tidx = (np.abs(atm_dates - clm_dates[clm_tidx])).argmin()    # closest time atm index for corresponding days
+            cice_tidx = (np.abs(cice_dates - clm_dates[clm_tidx])).argmin()  # closest time cice index for corresponding days
+            self.bry.variables["Time"][bry_tidx] = bry_time[bry_tidx]      # fill time array with current time
+            print("\tbry time: {},\n\tclm time: {},\n\tatm time: {},\n\tcice time: {}".format(netCDF4.num2date(bry_time[bry_tidx],
+                  self.time_units), clm_dates[clm_tidx], atm_dates[atm_tidx], cice_dates[cice_tidx]))
 
-            # loop over all ice categories and fill from clm and atm data
-            for n in range(len(self.cat_lims[1:])):
-                #print("\tCategory {}".format(n))
+            # loop over all 4 boundaries (W, S, E, N)
+            for bry in self.bry_order:
+                print("\t\tBoundary {}".format(bry))
+                # slices for 3d variables aice, hice and Tsfc
+                cslice = self.get_slice("clm_3d", t_idx=clm_tidx, bry=bry)  # slices for clim variables
+                aslice = self.get_slice("clm_3d", t_idx=atm_tidx, bry=bry)  # slices for atm variables
 
-                # loop over all 4 boundaries (W, S, E, N)
-                for bry in self.bry_order:
-                    #print("\t\tBoundary {}".format(bry))
-                    # slices for 3d variables aice, hice and Tsfc
-                    cslice = self._get_bry_slice("clm_3d", t_idx=clm_idx, bry=bry)  # slices for clim variables
-                    aslice = self._get_bry_slice("clm_3d", t_idx=atm_idx, bry=bry)  # slices for atm variables
-                    bslice = (bry_idx, n, slice(None))                              # slices for bry variables
+                # loop over all ice categories and fill from clm and atm data
+                for n in range(len(self.cat_lims[1:])):
+                    print("\t\t\tCategory {}".format(n))
+                    bslice = (bry_tidx, n, slice(None))         # slices for bry variables (per per category)
+                    cice_slice = tuple([n] + list(cslice)[1:])  # slice for cice forecast data
+
+                    # copy from model forecast for variables the clm file has no useful data for
+                    for var in cice_vars_3d:
+                        bry_name = var.replace("BRY", bry)
+                        cice_name = self.cice_names[var.split("_")[0]]
+                        self.bry.variables[bry_name][bslice] = self.cice[cice_tidx].variables[cice_name][cice_slice]
 
                     # masking out all other ice categories except category n
                     cat_mask = np.logical_and(hice[cslice] > self.cat_lims[n], hice[cslice] < self.cat_lims[n+1])
 
                     # handle ice concentration, ice volume and snow volume (distribute over the categories)
                     self.bry.variables["aicen_{}_bry".format(bry)][bslice] = np.where(cat_mask,
-                        aice[cslice], 0.0)*land_mask[cslice[1:]]                                                # set to clm ice conc.
+                        aice[cslice], 0.0)*land_mask[cslice[1:]]                                 # set to clm ice conc.
                     self.bry.variables["vicen_{}_bry".format(bry)][bslice] = np.where(cat_mask,
-                        hice[cslice]*aice[cslice], 0.0)*land_mask[cslice[1:]]                                   # set to clm ice vol. x conc.
+                        hice[cslice]*aice[cslice], 0.0)*land_mask[cslice[1:]]                    # set to clm ice vol. x conc.
                     self.bry.variables["vsnon_{}_bry".format(bry)][bslice] = np.where(cat_mask,
-                        0.2*self.bry.variables["vicen_{}_bry".format(bry)][bslice], 0.0)*land_mask[cslice[1:]]  # set to 0.2 of ice vol.
+                        hsno[cslice], 0.0)*land_mask[cslice[1:]]                                 # set to clm snow thick
                     self.bry.variables["Tsfc_{}_bry".format(bry)][bslice] = np.where(cat_mask,
-                        tair[aslice], 0.0)*land_mask[cslice[1:]]                                                # set to surface temp from atm
+                        tair[aslice], 0.0)*land_mask[cslice[1:]]                                 # set to surface temp from atm
 
-                    # slices needed for 4d vars Tinz and Sinz
-                    cslice_4d = self._get_bry_slice("clm_4d", t_idx=clm_idx, bry=bry, s_idx=-1)
-                    bslice_4d = (bry_idx, n, slice(None), slice(None))
+                    # copy vertical salinity profile (4d var) from CICE forecast
+                    for zlvl in range(self.dim_sizes[self.dims["z"]]):
+                        bslice_z = (bry_tidx, n, zlvl, slice(None))
+                        cice_name = "sice00{}".format(zlvl+1)        # one sice variable per zlvl
+                        bry_name = "Sinz_{}_bry".format(bry)
+                        self.bry.variables[bry_name][bslice_z] = self.cice[cice_tidx].variables[cice_name][cice_slice]*land_mask[cslice[1:]]
 
-                    # handle vertical profiles of salinity
-                    salt_interp = np.linspace(salt[cslice_4d], 0.2*salt[cslice_4d], self.dim_sizes[self.dims["z"]])  # linear interp from ocean to 0.2*ocean
-                    self.bry.variables["Sinz_{}_bry".format(bry)][bslice_4d] = np.where(cat_mask,
-                        salt_interp, 5.0)*land_mask[cslice[1:]]                                                      # fill category n with vertical salt profile
+                    # slices needed for 4d var Tinz
+                    cslice_4d = self.get_slice("clm_4d", t_idx=clm_tidx, bry=bry, s_idx=-1)
+                    bslice_4d = (bry_tidx, n, slice(None), slice(None))
 
-                    # handle vertical profiles of salinity
+                    # handle vertical profile of temperature
                     snow_mask = self.bry.variables["vsnon_{}_bry".format(bry)][bslice] > 0.01                        # where more than 1cm snow
-                    temp_interp_ice = np.linspace(toce[cslice_4d], tair[aslice], self.dim_sizes[self.dims["z"]])     # linear interp from ocean to atm
-                    temp_interp_sno = np.linspace(toce[cslice_4d], toce[cslice_4d] - 0.2*np.abs(toce[cslice_4d] -\
-                        tair[aslice]), self.dim_sizes[self.dims["z"]])                                               # linear interp from ocean to ocean+0.2*|ocean-atm|
+                    temp_interp_ice = np.linspace(tair[aslice], toce[cslice_4d], self.dim_sizes[self.dims["z"]])     # linear interp from ocean to atm
+                    temp_interp_sno = np.linspace(tair[aslice] + 0.2*np.abs(toce[cslice_4d] -\
+                        tair[aslice]), toce[cslice_4d], self.dim_sizes[self.dims["z"]])                                               # linear interp from ocean to ocean+0.2*|ocean-atm|
                     temp_interp = np.where(snow_mask, temp_interp_sno, temp_interp_ice)
                     self.bry.variables["Tinz_{}_bry".format(bry)][bslice_4d] = np.where(cat_mask,
                         temp_interp, -5.0)*land_mask[cslice[1:]]                                                     # fill category n with vertical temp profile
 
-                    # handle all variables that are set to zero
+                    # handle all variables that should be set to zero
                     for var in zero_vars_3d:
                         self.bry.variables[var.replace("BRY", bry)][bslice] = 0.0
 
