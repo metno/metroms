@@ -76,10 +76,20 @@ elif [ "${METROMS_MYHOST}" == "nebula" ] || [ "${METROMS_MYHOST}" == "stratus" ]
     export USE_MPIF90=on
     export USE_MPI=on
 elif [ "${METROMS_MYHOST}" == "met_ppi" ] ; then
+  echo "Linux distro is `lsb_release -sc`"
+  if [ `lsb_release -sc` == 'xenial' ]; then
     export FORT=ifort
     export USE_MPI=
     export USE_MPIF90=
     export which_MPI=openmpi
+  elif [ `lsb_release -sc` == 'Core' ]; then
+    export FORT=ifort
+    export USE_MPI=on
+    export USE_MPIF90=on
+    export which_MPI=
+  else
+    echo "Undefined linux distro for met_ppi"
+  fi
 else
   echo " Computer not defined set environment variable METROMS_MYHOST= metlocal, vilje ... "
   echo " Did you perhaps forget 'source ./myenv.bash' ? "
@@ -92,7 +102,7 @@ fi
 
 if [ ! -d ${METROMS_TMPDIR} ] ; then
     echo "METROMS_TMPDIR not defined, set environment variable METROMS_TMPDIR"
-    exit 
+    exit
 fi
 if [ ! -d ${METROMS_BLDDIR} ] ; then
     echo "METROMS_BLDDIR not defined, set environment variable METROMS_BLDDIR"
@@ -100,7 +110,7 @@ if [ ! -d ${METROMS_BLDDIR} ] ; then
 fi
 if [ ! -d ${METROMS_BASEDIR} ] ; then
     echo "METROMS_BASEDIR not defined, set environment variable METROMS_TMPDIR"
-    exit 
+    exit
 fi
 
 export MY_ROMS_SRC=${METROMS_BLDDIR}/roms_src
@@ -190,9 +200,9 @@ if [ "$gotModifiedSourceAPP" != "" ] || [ "$gotModifiedSourceCOMMON" != "" ]; th
 
         # Check where original resides
         origFile=`find ${MY_ROMS_SRC} -name $ModSrc`
-	
+
         if [ -f "$origFile" ]; then
-	    
+
             # Moving original and copying user-modifed source code
             # first checking if the original already exists with
             # the .orig extension
@@ -200,24 +210,24 @@ if [ "$gotModifiedSourceAPP" != "" ] || [ "$gotModifiedSourceCOMMON" != "" ]; th
 		mv $origFile $origFile.orig
 		echo "Moving $origFile to $origFile.orig"
             fi
-	    
+
             # Copying from local source directory to repository
             cp $MODIFIED_SRC_FOLDER/$ModSrc $origFile
             echo "Copying modified_src/$ModSrc to $origFile"
-	    
+
             if [ ! -f USER_MODIFIED_CODE ]; then
-		
+
                 # Touch file to notify that user modified code has been
                 # placed in the repository
                 touch USER_MODIFIED_CODE
-		
+
             fi
         else
-	    
+
             # No such file in repository, quit script
             echo "No source code file $ModSrc in repository, exiting."
             exit 3
-	    
+
         fi
     done
     # Copy locally modified source to main ROMS directory
@@ -225,9 +235,9 @@ if [ "$gotModifiedSourceAPP" != "" ] || [ "$gotModifiedSourceCOMMON" != "" ]; th
 
         # Check where original resides
         origFile=`find ${MY_ROMS_SRC} -name $ModSrc`
-	
+
         if [ -f "$origFile" ]; then
-	    
+
             # Moving original and copying user-modifed source code
             # first checking if the original already exists with
             # the .orig extension
@@ -235,24 +245,24 @@ if [ "$gotModifiedSourceAPP" != "" ] || [ "$gotModifiedSourceCOMMON" != "" ]; th
 		mv $origFile $origFile.orig
 		echo "Moving $origFile to $origFile.orig"
             fi
-	    
+
             # Copying from local source directory to repository
             cp modified_src/$ModSrc $origFile
             echo "Copying modified_src/$ModSrc to $origFile"
-	    
+
             if [ ! -f USER_MODIFIED_CODE ]; then
-		
+
                 # Touch file to notify that user modified code has been
                 # placed in the repository
                 touch USER_MODIFIED_CODE
-		
+
             fi
         else
-	    
+
             # No such file in repository, quit script
             echo "No source code file $ModSrc in repository, exiting."
             exit 3
-	    
+
         fi
     done
 fi
@@ -262,9 +272,9 @@ fi
 # NMK - 2013
 rollback() {
     cd $MY_ROOT_DIR
-    
+
     if [ -f USER_MODIFIED_CODE ]; then
-	
+
     # Find source code files with ".orig"-ending and
     # remove ending
     filelist=`find "$MY_ROMS_SRC" -name *.orig`
@@ -287,7 +297,7 @@ rollback() {
     echo "Did not find any .orig-files in the repository, empty file deleted"
 
   fi
-  
+
     # Remove empty file
     rm -f USER_MODIFIED_CODE
 
@@ -296,7 +306,7 @@ rollback() {
 trap 'rollback; exit 99' 0
 #fi # if roms_svn
 
-# 
+#
 if [ -n "${USE_CICE:+1}" ]; then
 	export USE_MCT=on
 	export MY_CPP_FLAGS="${MY_CPP_FLAGS} -DNO_LBC_ATT -DMODEL_COUPLING -DUSE_MCT -DMCT_COUPLING -DMCT_LIB -DCICE_COUPLING -DCICE_OCEAN"

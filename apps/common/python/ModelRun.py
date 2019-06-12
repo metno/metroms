@@ -345,6 +345,9 @@ class ModelRun(object):
             nrrec = self._params.NRREC - 1
         else:
             nrrec = self._params.NRREC
+        print 'Start date is: '+self._params.START_DATE.strftime('%Y%m%d-%H:%M')
+        print 'Ini date is: '+netCDF4.num2date(nc_ini.variables['ocean_time'][nrrec],nc_ini.variables['ocean_time'].units).strftime('%Y%m%d-%H:%M')
+        print 'Rst date is: '+netCDF4.num2date(nc_rst.variables['ocean_time'][nrrec],nc_rst.variables['ocean_time'].units).strftime('%Y%m%d-%H:%M')
         if (self._params.START_DATE == netCDF4.num2date(nc_ini.variables['ocean_time'][nrrec],nc_ini.variables['ocean_time'].units)):
             print "No need to cycle restart-files"
         else:

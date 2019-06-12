@@ -18,10 +18,20 @@ elif [ "$METROMS_MYHOST" == "alvin" ] || [ "$METROMS_MYHOST" == "elvis" ]; then
     module load fimex/0.63.7
     module load python/2.7.9-smhi-1
 elif [ "$METROMS_MYHOST" == "met_ppi" ]; then
+  echo "Linux distro is `lsb_release -sc`"
+  if [ `lsb_release -sc` == 'xenial' ]; then
     module load compiler/intelPE2018
     module load netcdf/4.5.0intel18
     module load OpenMPI/3.0.0intel18
     module load hdf5/1.10.1intel18
+  elif [ `lsb_release -sc` == 'Core' ]; then
+    module load compiler/intelPE2018
+    module load netcdf/4.6.2-intel2018
+    module load openmpi/3.1.3-intel2018
+    module load nco/4.7.9-intel2018
+  else
+    echo "Undefined linux distro for met_ppi"
+  fi
 elif [ "$METROMS_MYHOST" == "nebula" ] || [ "$METROMS_MYHOST" == "stratus" ]; then
     module load buildenv-intel/2018a-eb
     module load netCDF/4.3.2-HDF5-1.8.12-nsc1-intel-2018.u1-bare
