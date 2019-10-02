@@ -7,6 +7,8 @@
 
 import os
 import glob
+import shutil
+import calendar
 import netCDF4
 import numpy as np
 import datetime as dt
@@ -73,6 +75,7 @@ class CiceBry(object):
         # basic attributes for the boundary file
         self.mode = mode
         self.bry_file = bry_file
+        self.data_written_to_bry = False
         self.dims = odict([("nkice", None), ("days", None), ("ice_types", None), ("eta_t", None), ("xi_t", None)])
         self.bry_order = ["E", "N", "S", "W"]
         self.cat_lims = [0, 0.6445072, 1.391433, 2.470179, 4.567288, 1e+08]  # upper limits of ice categories
@@ -220,43 +223,6 @@ class CiceBry(object):
         """Method that generates a BryVar object for each variable necessary to specify
         in the boundary file (most variable names are on the form <name>_{W,S,E,N}_bry)."""
         bry_vars = list()
-        # bry_vars.append(BryVar("Ice_layers", np.int16, ("nkice"),
-        #     odict([("long_name", "vertical ice levels"), ("units", "1")])))
-        # bry_vars += self.omnibry_var("Sinz_BRY_bry", float, ("days", "ice_types", "nkice", "BRY"),
-        #     odict([("long_name", "vertical salinity profile - BRY boundary")]))
-        # bry_vars += self.omnibry_var("TLAT_BRY", float, ("BRY",),
-        #     odict([("long_name", "T grid center latitude - BRY boundary"), ("units", "degrees_north")]))
-        # bry_vars += self.omnibry_var("TLON_BRY", float, ("BRY",),
-        #     odict([("long_name", "T grid center longitude - BRY boundary"), ("units", "degrees_east")]))
-        # bry_vars.append(BryVar("Time", np.int16, ("days"),
-        #     odict([("long_name", "model time"), ("units", "days since 2008-01-01 00:00:00")])))
-        # bry_vars += self.omnibry_var("Tinz_BRY_bry", float, ("days", "ice_types", "nkice", "BRY"),
-        #     odict([("long_name", "vertical temperature profile - BRY boundary")]))
-        # bry_vars += self.omnibry_var("Tsfc_BRY_bry", float, ("days", "ice_types", "BRY"),
-        #     odict([("long_name", "snow/ice surface temperature - BRY boundary")]))
-        # bry_vars += self.omnibry_var("aicen_BRY_bry", float, ("days", "ice_types", "BRY"),
-        #     odict([("long_name", "ice area (aggregate) - BRY boundary")]))
-        # bry_vars += self.omnibry_var("alvln_BRY_bry", float, ("days", "ice_types", "BRY"),
-        #     odict([("long_name", "concentration of level ice - BRY boundary"), ("units", "1")]))
-        # bry_vars += self.omnibry_var("apondn_BRY_bry", float, ("days", "ice_types", "BRY"),
-        #     odict([("long_name", "melt pond fraction - BRY boundary"), ("units", "1")]))
-        # bry_vars += self.omnibry_var("fbrine_BRY_bry", float, ("days", "ice_types", "BRY"),
-        #     odict([("long_name", "ratio of brine tracer height to ice thickness - BRY boundary"), ("units", "1")]))
-        # bry_vars += self.omnibry_var("hbrine_BRY_bry", float, ("days", "ice_types", "BRY"),
-        #     odict([("long_name", "brine surface height above sea ice base - BRY boundary"), ("units", "m")]))
-        # bry_vars += self.omnibry_var("hpondn_BRY_bry", float, ("days", "ice_types", "BRY"),
-        #     odict([("long_name", "mean melt pond depth - BRY boundary"), ("units", "m")]))
-        # bry_vars += self.omnibry_var("iage_BRY_bry", float, ("days", "BRY"),
-        #     odict([("long_name", "ice age - BRY boundary")]))
-        # bry_vars += self.omnibry_var("ipondn_BRY_bry", float, ("days", "ice_types", "BRY"),
-        #     odict([("long_name", "mean melt pond ice thickness - BRY boundary"), ("units", "m")]))
-        # bry_vars += self.omnibry_var("vicen_BRY_bry", float, ("days", "ice_types", "BRY"),
-        #     odict([("long_name", "grid cell mean ice thickness - BRY boundary"), ("units", "m")]))
-        # bry_vars += self.omnibry_var("vlvln_BRY_bry", float, ("days", "ice_types", "BRY"),
-        #     odict([("long_name", "volume per unit of area of level ice - BRY boundary"), ("units", "m")]))
-        # bry_vars += self.omnibry_var("vsnon_BRY_bry", float, ("days", "ice_types", "BRY"),
-        #     odict([("long_name", "grid cell mean snow thickness - BRY boundary"), ("units", "m")]))
-
         bry_vars.append(BryVar("Ice_layers", np.int16, ("nkice"),
             odict([("long_name", "vertical ice levels"), ("units", "1")])))
         bry_vars += self.omnibry_var("Sinz_BRY_bry", float, ("days", "ice_types", "nkice", "BRY"),
@@ -273,19 +239,55 @@ class CiceBry(object):
             odict([("long_name", "snow/ice surface temperature - BRY boundary")]))
         bry_vars += self.omnibry_var("aicen_BRY_bry", float, ("days", "ice_types", "BRY"),
             odict([("long_name", "ice area (aggregate) - BRY boundary")]))
-        bry_vars += self.omnibry_var("alvln_BRY_bry", float, ("days", "ice_types", "BRY"))
-        bry_vars += self.omnibry_var("apondn_BRY_bry", float, ("days", "ice_types", "BRY"))
-        bry_vars += self.omnibry_var("fbrine_BRY_bry", float, ("days", "ice_types", "BRY"))
-        bry_vars += self.omnibry_var("hbrine_BRY_bry", float, ("days", "ice_types", "BRY"))
-        bry_vars += self.omnibry_var("hpondn_BRY_bry", float, ("days", "ice_types", "BRY"))
-        bry_vars += self.omnibry_var("iage_BRY_bry", float, ("days", "BRY"))
-        bry_vars += self.omnibry_var("ipondn_BRY_bry", float, ("days", "ice_types", "BRY"))
+        bry_vars += self.omnibry_var("alvln_BRY_bry", float, ("days", "ice_types", "BRY"),
+            odict([("long_name", "concentration of level ice - BRY boundary"), ("units", "1")]))
+        bry_vars += self.omnibry_var("apondn_BRY_bry", float, ("days", "ice_types", "BRY"),
+            odict([("long_name", "melt pond fraction - BRY boundary"), ("units", "1")]))
+        bry_vars += self.omnibry_var("fbrine_BRY_bry", float, ("days", "ice_types", "BRY"),
+            odict([("long_name", "ratio of brine tracer height to ice thickness - BRY boundary"), ("units", "1")]))
+        bry_vars += self.omnibry_var("hbrine_BRY_bry", float, ("days", "ice_types", "BRY"),
+            odict([("long_name", "brine surface height above sea ice base - BRY boundary"), ("units", "m")]))
+        bry_vars += self.omnibry_var("hpondn_BRY_bry", float, ("days", "ice_types", "BRY"),
+            odict([("long_name", "mean melt pond depth - BRY boundary"), ("units", "m")]))
+        bry_vars += self.omnibry_var("iage_BRY_bry", float, ("days", "BRY"),
+            odict([("long_name", "ice age - BRY boundary")]))
+        bry_vars += self.omnibry_var("ipondn_BRY_bry", float, ("days", "ice_types", "BRY"),
+            odict([("long_name", "mean melt pond ice thickness - BRY boundary"), ("units", "m")]))
         bry_vars += self.omnibry_var("vicen_BRY_bry", float, ("days", "ice_types", "BRY"),
-            odict([("long_name", "grid cell mean ice thickness - BRY boundary")]))
-        bry_vars += self.omnibry_var("vlvln_BRY_bry", float, ("days", "ice_types", "BRY"))
+            odict([("long_name", "grid cell mean ice thickness - BRY boundary"), ("units", "m")]))
+        bry_vars += self.omnibry_var("vlvln_BRY_bry", float, ("days", "ice_types", "BRY"),
+            odict([("long_name", "volume per unit of area of level ice - BRY boundary"), ("units", "m")]))
         bry_vars += self.omnibry_var("vsnon_BRY_bry", float, ("days", "ice_types", "BRY"),
-            odict([("long_name", "grid cell mean snow thickness - BRY boundary")]))
+            odict([("long_name", "grid cell mean snow thickness - BRY boundary"), ("units", "m")]))
 
+        # bry_vars.append(BryVar("Ice_layers", np.int16, ("nkice"),
+        #     odict([("long_name", "vertical ice levels"), ("units", "1")])))
+        # bry_vars += self.omnibry_var("Sinz_BRY_bry", float, ("days", "ice_types", "nkice", "BRY"),
+        #     odict([("long_name", "vertical salinity profile - BRY boundary")]))
+        # bry_vars += self.omnibry_var("TLAT_BRY", float, ("BRY",),
+        #     odict([("long_name", "T grid center latitude - BRY boundary"), ("units", "degrees_north")]))
+        # bry_vars += self.omnibry_var("TLON_BRY", float, ("BRY",),
+        #     odict([("long_name", "T grid center longitude - BRY boundary"), ("units", "degrees_east")]))
+        # bry_vars.append(BryVar("Time", np.int16, ("days"),
+        #     odict([("long_name", "model time"), ("units", "days since 2008-01-01 00:00:00")])))
+        # bry_vars += self.omnibry_var("Tinz_BRY_bry", float, ("days", "ice_types", "nkice", "BRY"),
+        #     odict([("long_name", "vertical temperature profile - BRY boundary")]))
+        # bry_vars += self.omnibry_var("Tsfc_BRY_bry", float, ("days", "ice_types", "BRY"),
+        #     odict([("long_name", "snow/ice surface temperature - BRY boundary")]))
+        # bry_vars += self.omnibry_var("aicen_BRY_bry", float, ("days", "ice_types", "BRY"),
+        #     odict([("long_name", "ice area (aggregate) - BRY boundary")]))
+        # bry_vars += self.omnibry_var("alvln_BRY_bry", float, ("days", "ice_types", "BRY"))
+        # bry_vars += self.omnibry_var("apondn_BRY_bry", float, ("days", "ice_types", "BRY"))
+        # bry_vars += self.omnibry_var("fbrine_BRY_bry", float, ("days", "ice_types", "BRY"))
+        # bry_vars += self.omnibry_var("hbrine_BRY_bry", float, ("days", "ice_types", "BRY"))
+        # bry_vars += self.omnibry_var("hpondn_BRY_bry", float, ("days", "ice_types", "BRY"))
+        # bry_vars += self.omnibry_var("iage_BRY_bry", float, ("days", "BRY"))
+        # bry_vars += self.omnibry_var("ipondn_BRY_bry", float, ("days", "ice_types", "BRY"))
+        # bry_vars += self.omnibry_var("vicen_BRY_bry", float, ("days", "ice_types", "BRY"),
+        #     odict([("long_name", "grid cell mean ice thickness - BRY boundary")]))
+        # bry_vars += self.omnibry_var("vlvln_BRY_bry", float, ("days", "ice_types", "BRY"))
+        # bry_vars += self.omnibry_var("vsnon_BRY_bry", float, ("days", "ice_types", "BRY"),
+        #     odict([("long_name", "grid cell mean snow thickness - BRY boundary")]))
 
         return bry_vars
 
@@ -365,6 +367,62 @@ class CiceBry(object):
         self.write_var_attrs()
         self.write_bry_data()  # has to be implemented in a subclass
 
+    def expand_to_yearly_files(self):
+        """
+        Method that takes the witten boundary file that contains a time dimension spanning
+        only the relevant dates (for which data is computed) and expands the file into yearly
+        files with time entries for the entire year. If the original written boundary data has
+        a time dimension spanning across one or more year transistions, the data will be written
+        to one file per year, e.g. if start date is 20191225 and end date is 20190105, you will
+        get two files, BRY_2018.nc and BRY_2019.nc. (method must be called after self.write_bry_data())
+
+        TODO: (IMPORTANT) Needs to be updated to account for year-to-year transition. In that case,
+        have this method generate one 365/366 file for each year contained in the bry date range.
+        Make it general so it works for both forecasting and hindcasts.
+
+        Args:
+            filename (str) : If supplied, copy written bry file to this filename and
+                             expand into yearly files. Defaults to existing bry file.
+        """
+
+        if not self.data_written_to_bry:
+            raise RuntimeError("Must have called self.write_bry_data() before epxanding to yearly files!")
+
+        print("Expanding {} into a yearly boundary file...".format(self.bry_file))
+        self.close()  # close so can be opened as "r+" below
+        ds = netCDF4.Dataset(self.bry_file, mode="r+")
+
+        days_in_year = 366 if calendar.isleap(self.start_date.year) else 365
+        start_date_idx = (self.start_date - dt.datetime(self.start_date.year, 1, 1)).days
+        end_date_idx = (self.end_date - dt.datetime(self.start_date.year, 1, 1)).days
+        fill_pre_range = dict()
+        fill_in_range = dict()
+        fill_post_range = dict()
+
+        for var_name, var in ds.variables.items():
+            if "days" in var.dimensions and var_name != "Time":
+                fill_pre_range[var_name] = var[0,:]    # use first time entry as fill before start date
+                fill_in_range[var_name] = var[:]  # use all written data for actual date range
+                fill_post_range[var_name] = var[-1,:]  # use last time entry to fill after end date
+
+        for n in range(days_in_year):
+            current_date = dt.datetime(self.start_date.year, 1, 1) + dt.timedelta(days=n)
+            print("Filling date {:>12},   day #{:>4d}".format(dt.datetime.strftime(current_date, "%Y-%m-%d"), n))
+            ds.variables["Time"][n] = n
+
+            for var_name in fill_pre_range.keys():
+                if n < start_date_idx:
+                    ds.variables[var_name][n,:] = fill_pre_range[var_name][:]  # fill with first time entry before date range
+
+                elif start_date_idx <= n <= end_date_idx:
+                    n_offset = n - start_date_idx
+                    ds.variables[var_name][n,:] = fill_in_range[var_name][n_offset,:]  # fill with time-varying data in date range
+
+                elif n > end_date_idx:
+                    ds.variables[var_name][n,:] = fill_post_range[var_name][:]  # fill with last time entry after date range
+
+        ds.close()
+
     def verify_variables(self):
         """Method that checks if the boundary file contains all necessary variables."""
         necessary_vars = [var.name for var in self.load_bry_vars()]
@@ -386,17 +444,21 @@ class CiceBry(object):
         """Method that does a system call to 'ncdump' on the boundary file."""
         os.system("ncdump -h {} > {}".format(self.bry_file, output_file))
 
+    def close(self):
+        """Method that closes the bry file."""
+        self.bry.close()
+
     def __del__(self):
         """Destructor closing files if still open."""
         if hasattr(self, "bry") and self.bry.isopen():
             self.bry.close()
 
-class CiceBryHax(CiceBry):
-    """Class that extends CiceBry and implements a 'hack' for generating boundary data for CICE (for
-    use with Pedro Duarte's boundary method) from the rather lacking TOPAZ5 ice field output. The
-    method used here uses the TOPAZ fields for certain variables (where it makes sense) and uses
-    supplied CICE restart fields (from the same model for which the boundary file is intended for)
-    for the remaining fields.
+class CiceBryTopazCiceHax(CiceBry):
+    """(This class is likely to be removed soon) Class that extends CiceBry and implements a
+    'hack' for generating boundary data for CICE (for use with Pedro Duarte's boundary method)
+    from the rather lacking TOPAZ4 ice field output. The method used here uses the TOPAZ fields
+    for certain variables (where it makes sense) and uses supplied CICE restart fields (from the
+    same model for which the boundary file is intended for) for the remaining fields.
 
     Example usage:
         > ..."""
@@ -416,7 +478,7 @@ class CiceBryHax(CiceBry):
             fmt (str)        : Netcdf format for output boundary file (if mode="w")
             overwrite (bool) : Whether or not to overwrite existing file (if mode="w")
         """
-        super(CiceBryHax, self).__init__(bry_file, mode=mode, fmt=fmt, overwrite=overwrite)
+        super(CiceBryTopazCiceHax, self).__init__(bry_file, mode=mode, fmt=fmt, overwrite=overwrite)
 
         self.grid_file = grid_file
         self.grid = netCDF4.Dataset(grid_file, mode="r")
@@ -522,12 +584,12 @@ class CiceBryHax(CiceBry):
             raise AttributeError("No atm file has been set! Use self.set_atm().")
 
         # get time arrays needed for loop below
-        super(CiceBryHax, self).set_var_attr("Time", "units", self.time_units, update_file=True)           # set new time units for Time var
-        bry_time = super(CiceBryHax, self).compute_bry_time(self.clm, "clim_time")                         # float array in bry file
-        clm_dates = super(CiceBryHax, self).get_time_array(self.clm, "clim_time", return_type=dt.datetime) # date array in clm file
-        atm_dates = super(CiceBryHax, self).get_time_array(self.atm, "time")                               # date array in atm file
+        super(CiceBryTopazCiceHax, self).set_var_attr("Time", "units", self.time_units, update_file=True)           # set new time units for Time var
+        bry_time = super(CiceBryTopazCiceHax, self).compute_bry_time(self.clm, "clim_time")                         # float array in bry file
+        clm_dates = super(CiceBryTopazCiceHax, self).get_time_array(self.clm, "clim_time", return_type=dt.datetime) # date array in clm file
+        atm_dates = super(CiceBryTopazCiceHax, self).get_time_array(self.atm, "time")                               # date array in atm file
         cice_dates = self.get_cice_times()                                                                 # date array for cice files
-        t0c_idx, t1c_idx = super(CiceBryHax, self).get_time_endpoints(self.clm, "clim_time")               # start and end indices in clm file
+        t0c_idx, t1c_idx = super(CiceBryTopazCiceHax, self).get_time_endpoints(self.clm, "clim_time")               # start and end indices in clm file
 
         # extract pointers for all relevant variables from climatology and atmosphere files
         aice = self.clm.variables["aice"]            # clm ice concentration
@@ -637,18 +699,29 @@ class CiceBryHax(CiceBry):
                 if f.isopen():
                     f.close()
 
-        super(CiceBryHax, self).__del__()  # call super destructor to close boundary file
+        super(CiceBryTopazCiceHax, self).__del__()  # call super destructor to close boundary file
 
 class CiceBryTopazHax(CiceBry):
-    """Class that extends CiceBry and implements a 'hack' for generating boundary data for CICE (for
-    use with Pedro Duarte's boundary method) from the rather lacking TOPAZ5 ice field output. The
-    method used here uses the TOPAZ fields for certain variables (where it makes sense) and uses
-    supplied CICE restart fields (from the same model for which the boundary file is intended for)
-    for the remaining fields.
+    """
+    Class that extends CiceBry and implements a 'hack' for generating boundary data for CICE (for
+    use with Pedro Duarte's boundary method) from the rather lacking TOPAZ4 ice field output. The
+    method used here uses the TOPAZ fields to best ability to guess reasonable values for variables
+    required by the CICE boundary method.
 
     Example usage:
-        > ..."""
-    def __init__(self, bry_file, grid_file, clm_file, atm_file,
+        > grid_file = "grid_file.nc"
+        > clm_file = "clm_file.nc"
+        > bry_file = "bry_file.nc"
+        > dim_sizes = {"ice_types": 5, "nkice": 7, "xi_t": 739, "eta_t": 949}
+        > start_date = dt.datetime(2019, 9, 1)
+        > end_date = dt.datetime(2019, 10, 2)
+        > time_units = "days since 2019-01-01 00:00:00"
+        >
+        > bry = cice_bry.CiceBryTopazHax(bry_file, grid_file, clm_file)
+        > bry.generate_bry_file(start_date, end_date, time_units, **dim_sizes)  # superclass call
+        > bry.expand_to_yearly_files()  # superclass call
+    """
+    def __init__(self, bry_file, grid_file, clm_file,
                  mode="w", fmt="NETCDF3_CLASSIC", overwrite=True):
         """
         Constructor setting attributes and opening all input files for reading.
@@ -672,9 +745,6 @@ class CiceBryTopazHax(CiceBry):
 
         self.clm_file = clm_file
         self.clm = netCDF4.Dataset(clm_file, mode="r")
-
-        self.atm_file = atm_file
-        self.atm = netCDF4.Dataset(atm_file, mode="r")
 
     def get_slice(self, slice_type, **kwargs):
         """
@@ -713,41 +783,30 @@ class CiceBryTopazHax(CiceBry):
         Method that implements a hack to use the limited ice data from TOPAZ5 to generate
         data for the CICE boundary file. Relevant available variables from TOPAZ are only
         aice (ice conc.), hice (ice thick.) anf hsnow (snow thick.). From these, we generate
-        the CICE variables aicen, vicen and vsnon at the boundaries. Ice conc. ice distributed
+        the CICE variables aicen, vicen and vsnon at the boundaries by distributing TOPAZ4 data
         amongst the ice categories (according the pre-defined thickness categories (self.cat_lims))
-        and so is ice volume and snow volume.
+        and so is ice volume and snow volume. Tsfcn is set to -5, alvln and vlvln to 1, Tinz is
+        vertically interpolated from -5 at surface to -2 at bottom and Sinz is set to 5 everywhere
 
-        Additionally, atmosphere (from relevant model at corresponding times) and ocean (from
-        clm file) data is used to help specify data for the variablesTsfc, Tinz and Sinz. Tsfc
-        is assumed to be equal to the atmosphere surface temp. Tinz is linearly interpolated
-        from the ocean surface temp to the air temperature (if there is less than 1cm of snow
-        (at the particular grid cell in question)) and to ocean_temp+0.2*|ocean_temp - atm_temp|
-        (if there is more than 1cm of snow). Sinz is linearly interpolated from the ocean surface
-        salinity to 0.2 of the ocean surface salinity.
-
-        Time-independent variables Ice_layers, TLON and TLAT are also as well as Time itself are
-        also set here. All other time-dependent variables that are needed in the boundary file
-        (see self.load_bry_vars()) are set to zero everywhere because of a lack of a better choice.
+        Time-independent variables Ice_layers, TLON and TLAT as well as Time itself are also set
+        here. All other time-dependent variables that are needed in the boundary file (see
+        self.load_bry_vars()) are set to zero everywhere because of a lack of a better choice.
         """
         if self.grid is None:
             raise AttributeError("No grid file has been set! Use self.set_grid().")
         if self.clm is None:
             raise AttributeError("No clm file has been set! Use self.set_clm().")
-        if self.atm is None:
-            raise AttributeError("No atm file has been set! Use self.set_atm().")
 
         # get time arrays needed for loop below
         super(CiceBryTopazHax, self).set_var_attr("Time", "units", self.time_units, update_file=True)           # set new time units for Time var
         bry_time = super(CiceBryTopazHax, self).compute_bry_time(self.clm, "clim_time")                         # float array in bry file
         clm_dates = super(CiceBryTopazHax, self).get_time_array(self.clm, "clim_time", return_type=dt.datetime) # date array in clm file
-        atm_dates = super(CiceBryTopazHax, self).get_time_array(self.atm, "time")                               # date array in atm file
         t0c_idx, t1c_idx = super(CiceBryTopazHax, self).get_time_endpoints(self.clm, "clim_time")               # start and end indices in clm file
 
         # extract pointers for all relevant variables from climatology and atmosphere files
         aice = self.clm.variables["aice"]            # clm ice concentration
         hice = self.clm.variables["hice"]            # clm ice thickness
         hsno = self.clm.variables["snow_thick"]      # clm snow thickness (seems to be zero everywhere all the time(?))
-        tair = self.atm.variables["Tair"]            # atm surface temperature
         toce = self.clm.variables["temp"]            # ocean surface temperature
         salt = self.clm.variables["salt"]            # ocean surface salinity
         land_mask = self.grid.variables["mask_rho"]  # grid file land mask
@@ -758,28 +817,28 @@ class CiceBryTopazHax(CiceBry):
 
         # write time-independent data to boundary file
         self.bry.variables["Ice_layers"][:] = list(range(self.dims["nkice"]))  # vertical dim variable
+
         for bry in self.bry_order:
             grid_slice = self.get_slice("grid_2d", bry=bry)
             self.bry.variables["TLON_{}".format(bry)][:] = self.grid.variables["lon_rho"][grid_slice]  # longitude
             self.bry.variables["TLAT_{}".format(bry)][:] = self.grid.variables["lat_rho"][grid_slice]  # latitude
 
-        print("Computing boundary data for:")
+        print("Computing and writing boundary data for:")
         # handle one time index at a time for memory efficiency and write boundary data for all times,
         # all ice categories and all four boundaries
         for clm_tidx in range(t0c_idx, t1c_idx + 1):
             bry_tidx = clm_tidx - t0c_idx                                    # time index for bry file starts at 0
-            atm_tidx = (np.abs(atm_dates - clm_dates[clm_tidx])).argmin()    # closest time atm index for corresponding days
             ice_mask = np.where(aice[clm_tidx,:,:]*land_mask[:,:] > 0.0, 1, 0)  # to filter out areas with no ice below
             self.bry.variables["Time"][bry_tidx] = bry_time[bry_tidx]      # fill time array with current time
-            print("\tbry time: {},\n\tclm time: {},\n\tatm time: {}".format(netCDF4.num2date(bry_time[bry_tidx],
-                  self.time_units), clm_dates[clm_tidx], atm_dates[atm_tidx]))
+            print("\tbry time: {},\n\tclm time: {}".format(netCDF4.num2date(bry_time[bry_tidx],
+                  self.time_units), clm_dates[clm_tidx]))
 
             # loop over all 4 boundaries (W, S, E, N)
             for bry in self.bry_order:
                 print("\t\tBoundary {}".format(bry))
                 # slices for 3d variables aice, hice and Tsfc
                 cslice = self.get_slice("clm_3d", t_idx=clm_tidx, bry=bry)  # slices for clim variables
-                aslice = self.get_slice("clm_3d", t_idx=atm_tidx, bry=bry)  # slices for atm variables
+                cslice_4d = self.get_slice("clm_4d", t_idx=clm_tidx, s_idx=-1, bry=bry)  # slices for clim variables
 
                 # loop over all ice categories and fill from clm and atm data
                 for n in range(len(self.cat_lims[1:])):
@@ -788,34 +847,47 @@ class CiceBryTopazHax(CiceBry):
                     bslice_3d = (bry_tidx, n, slice(None))      # slices for 3D bry variables (time, cat, xi/eta)
 
                     # masking out all other ice categories except category n
-                    cat_mask = np.logical_and(hice[cslice] > self.cat_lims[n], hice[cslice] < self.cat_lims[n+1])
+                    cat_mask = np.logical_and(hice[cslice] > self.cat_lims[n], hice[cslice] <= self.cat_lims[n+1])
+
+                    # adding temperature mask to accomodate for difference between TOPAZ and barents land mask creating
+                    # ice where there should not be (caused by fimex). Cna maybe remove this when using nearestneighbor
+                    # interpolation in fimex but not tested yet
+                    temp_mask = toce[cslice_4d] < 0.0
+                    cat_mask = np.logical_and(cat_mask, temp_mask)
+
+                    # remove very sparse and thin ice (to avoid model crashes)
+                    aice_mask = aice[cslice] > 0.01
+                    hice_mask = hice[cslice] > 0.01
+                    hsno_mask = hsno[cslice] > 0.005
+                    cat_mask = np.logical_and(cat_mask, aice_mask*hice_mask*hsno_mask)
 
                     # handle ice concentration, ice volume and snow volume (distribute over the categories)
                     self.bry.variables["aicen_{}_bry".format(bry)][bslice_3d] = np.where(cat_mask,
                         aice[cslice], 0.0)*land_mask[cslice[1:]]                                 # set to clm ice conc.
                     self.bry.variables["vicen_{}_bry".format(bry)][bslice_3d] = np.where(cat_mask,
                         hice[cslice]*aice[cslice], 0.0)*land_mask[cslice[1:]]                    # set to clm ice vol. x conc.
-                    self.bry.variables["vsnon_{}_bry".format(bry)][bslice_3d] = 0.0                            # set to clm snow thick
-                    self.bry.variables["Tsfc_{}_bry".format(bry)][bslice_3d] = -5.0*ice_mask[cslice[1:]]                                 # set to surface temp from atm
-                    self.bry.variables["alvln_{}_bry".format(bry)][bslice_3d] = 1.0*ice_mask[cslice[1:]]
-                    self.bry.variables["vlvln_{}_bry".format(bry)][bslice_3d] = 1.0*ice_mask[cslice[1:]]
+                    self.bry.variables["vsnon_{}_bry".format(bry)][bslice_3d] = np.where(cat_mask,
+                        hsno[cslice]*aice[cslice], 0.0)*land_mask[cslice[1:]]                # should get from topaz, but tmp hax
+                    self.bry.variables["Tsfc_{}_bry".format(bry)][bslice_3d] = np.where(cat_mask,
+                        -5.0, 0.0)*land_mask[cslice[1:]]
+                    self.bry.variables["alvln_{}_bry".format(bry)][bslice_3d] = np.where(cat_mask,
+                        1.0, 0.0)*land_mask[cslice[1:]]
+                    self.bry.variables["vlvln_{}_bry".format(bry)][bslice_3d] = np.where(cat_mask,
+                        1.0, 0.0)*land_mask[cslice[1:]]
 
                     # slices needed for 4d var Tinz and Sinz
                     cslice_4d = self.get_slice("clm_4d", t_idx=clm_tidx, bry=bry, s_idx=-1)
                     bslice_4d = (bry_tidx, n, slice(None), slice(None))
 
-                    # handle vertical profile of temperature
-                    #snow_mask = self.bry.variables["vsnon_{}_bry".format(bry)][bslice_3d] > 0.01         # where more than 1cm snow
-                    temp_interp_ice = np.linspace(tair[aslice], toce[cslice_4d], self.dims["nkice"])  # linear interp from ocean to atm
-                    #temp_interp_sno = np.linspace(tair[aslice] + 0.2*np.abs(toce[cslice_4d] -\
-                    #    tair[aslice]), toce[cslice_4d], self.dims["nkice"])                           # linear interp from ocean to ocean+0.2*|ocean-atm|
-                    #temp_interp = np.where(snow_mask, temp_interp_sno, temp_interp_ice)
-                    for zlvl in range(self.dims["nkice"]):
-                        self.bry.variables["Tinz_{}_bry".format(bry)][bry_tidx,n,zlvl,:] = -5.0*ice_mask[cslice[1:]]                                    # fill category n with vertical temp profile
+                    # handle vertical profile of temperature and salinity
+                    temp_interp_ice = np.linspace(-5.0, -2.0, self.dims["nkice"])
 
-                        # handle vertical profile of salinity
-                        salt_interp = np.linspace(0.1*salt[cslice_4d], 0.2*salt[cslice_4d], self.dims["nkice"])
-                        self.bry.variables["Sinz_{}_bry".format(bry)][bry_tidx,n,zlvl,:] = 5.0*ice_mask[cslice[1:]]
+                    tmp_temp = self.bry.variables["Tinz_{}_bry".format(bry)][bry_tidx,n,:,:]
+                    tmp_temp[:,:] = temp_interp_ice[:,None]
+                    tmp_salt = self.bry.variables["Sinz_{}_bry".format(bry)][bry_tidx,n,:,:]
+                    tmp_salt[:,:] = 5.0
+                    self.bry.variables["Tinz_{}_bry".format(bry)][bry_tidx,n,:,:] = tmp_temp[:,:]*cat_mask[None,:]*land_mask[cslice[1:]]
+                    self.bry.variables["Sinz_{}_bry".format(bry)][bslice_4d] = tmp_salt[:,:]*cat_mask[None,:]*land_mask[cslice[1:]]
 
                     # handle all variables that should be set to zero
                     for var in zero_vars_2d:
@@ -823,6 +895,8 @@ class CiceBryTopazHax(CiceBry):
 
                     for var in zero_vars_3d:
                         self.bry.variables[var.replace("BRY", bry)][bslice_3d] = 0.0
+
+        self.data_written_to_bry = True
 
     def __del__(self):
         """Destructor closing files if still open."""
@@ -838,14 +912,16 @@ class CiceBryTopazHax(CiceBry):
         super(CiceBryTopazHax, self).__del__()  # call super destructor to close boundary file
 
 class CiceBryCiceHax(CiceBry):
-    """Class that extends CiceBry and implements a 'hack' for generating boundary data for CICE (for
+    """
+    Class that extends CiceBry and implements a 'hack' for generating boundary data for CICE (for
     use with Pedro Duarte's boundary method) from the rather lacking TOPAZ5 ice field output. The
     method used here uses the TOPAZ fields for certain variables (where it makes sense) and uses
     supplied CICE restart fields (from the same model for which the boundary file is intended for)
     for the remaining fields.
 
     Example usage:
-        > ..."""
+        > ...
+    """
     def __init__(self, bry_file, grid_file, clm_file, atm_file,
                  cice_file, mode="w", fmt="NETCDF3_CLASSIC", overwrite=True):
         """Constructor setting attributes and opening all input files for reading.
