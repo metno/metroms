@@ -850,16 +850,20 @@ class CiceBryTopazHax(CiceBry):
                     cat_mask = np.logical_and(hice[cslice] > self.cat_lims[n], hice[cslice] <= self.cat_lims[n+1])
 
                     # adding temperature mask to accomodate for difference between TOPAZ and barents land mask creating
-                    # ice where there should not be (caused by fimex). Cna maybe remove this when using nearestneighbor
+                    # ice where there should not be (caused by fimex). Can maybe remove this when using nearestneighbor
                     # interpolation in fimex but not tested yet
                     temp_mask = toce[cslice_4d] < 0.0
                     cat_mask = np.logical_and(cat_mask, temp_mask)
 
-                    # remove very sparse and thin ice (to avoid model crashes)
+                    # remove very sparse and thin ice as well as thin snow (to avoid model crashes)
                     aice_mask = aice[cslice] > 0.01
                     hice_mask = hice[cslice] > 0.01
-                    hsno_mask = hsno[cslice] > 0.005
-                    cat_mask = np.logical_and(cat_mask, aice_mask*hice_mask*hsno_mask)
+                    cat_mask = np.logical_and(cat_mask, aice_mask*hice_mask)
+
+                    # don't allow very thin snow and put at least 1cm snow everywhere there's ice
+                    snow_limit = 0.01
+                    hsno_mask = hsno[cslice] > snow_limit
+                    snow_hacked = np.where(hsno_mask, hsno[cslice], snow_limit)
 
                     # handle ice concentration, ice volume and snow volume (distribute over the categories)
                     self.bry.variables["aicen_{}_bry".format(bry)][bslice_3d] = np.where(cat_mask,
@@ -867,7 +871,7 @@ class CiceBryTopazHax(CiceBry):
                     self.bry.variables["vicen_{}_bry".format(bry)][bslice_3d] = np.where(cat_mask,
                         hice[cslice]*aice[cslice], 0.0)*land_mask[cslice[1:]]                    # set to clm ice vol. x conc.
                     self.bry.variables["vsnon_{}_bry".format(bry)][bslice_3d] = np.where(cat_mask,
-                        hsno[cslice]*aice[cslice], 0.0)*land_mask[cslice[1:]]                # should get from topaz, but tmp hax
+                        snow_hacked*aice[cslice], 0.0)*land_mask[cslice[1:]]                # should get from topaz, but tmp hax
                     self.bry.variables["Tsfc_{}_bry".format(bry)][bslice_3d] = np.where(cat_mask,
                         -5.0, 0.0)*land_mask[cslice[1:]]
                     self.bry.variables["alvln_{}_bry".format(bry)][bslice_3d] = np.where(cat_mask,
