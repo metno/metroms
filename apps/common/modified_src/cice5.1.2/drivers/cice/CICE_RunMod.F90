@@ -206,7 +206,10 @@
 
          call ice_timer_stop(timer_thermo) ! thermodynamics
          call ice_timer_stop(timer_column) ! column physics
-
+         
+         ! restore again before dynamics (by Nick and Jostein, MET)
+         if (restore_ice) call ice_HaloRestore
+         
       !-----------------------------------------------------------------
       ! dynamics, transport, ridging
       !-----------------------------------------------------------------
