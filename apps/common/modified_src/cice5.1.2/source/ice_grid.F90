@@ -1260,6 +1260,9 @@
          enddo
       enddo
       !$OMP END PARALLEL DO
+      
+      call ice_HaloExtrapolate(hm, distrb_info, &
+                               ew_boundary_type, ns_boundary_type)
 
       !-----------------------------------------------------------------
       ! lat, lon, angle
@@ -1276,48 +1279,66 @@
       call gridbox_verts(work_g1,latt_bounds)       
       call scatter_global(ULAT, work_g1, master_task, distrb_info, &
                           field_loc_NEcorner, field_type_scalar)
+      call ice_HaloExtrapolate(ULAT, distrb_info, &
+                               ew_boundary_type, ns_boundary_type)
 
       fieldname='ulon'
       call ice_read_global_nc2(fid_grid,fieldname,work_g1,diag) ! ULON
       call gridbox_verts(work_g1,lont_bounds)       
       call scatter_global(ULON, work_g1, master_task, distrb_info, &
                           field_loc_NEcorner, field_type_scalar)
-
+      call ice_HaloExtrapolate(ULON, distrb_info, &
+                               ew_boundary_type, ns_boundary_type)
+                               
       fieldname='angle'
       call ice_read_global_nc2(fid_grid,fieldname,work_g1,diag) ! ANGLE    
       call scatter_global(ANGLE, work_g1, master_task, distrb_info, &
                           field_loc_NEcorner, field_type_angle)
-
+      call ice_HaloExtrapolate(ANGLE, distrb_info, &
+                               ew_boundary_type, ns_boundary_type)
+                               
       fieldname='HTN'
       call ice_read_global_nc2(fid_grid,fieldname,work_g1,diag)    
       call scatter_global(HTN, work_g1, master_task, distrb_info, &
                           field_loc_Nface, field_type_scalar)
-
+      call ice_HaloExtrapolate(HTN, distrb_info, &
+                               ew_boundary_type, ns_boundary_type)
+                               
       fieldname='HTE'
       call ice_read_global_nc2(fid_grid,fieldname,work_g1,diag)    
       call scatter_global(HTE, work_g1, master_task, distrb_info, &
                           field_loc_Eface, field_type_scalar)
-
+      call ice_HaloExtrapolate(HTE, distrb_info, &
+                               ew_boundary_type, ns_boundary_type)
+                               
       fieldname='dxt'
       call ice_read_global_nc2(fid_grid,fieldname,work_g1,diag)    
       call scatter_global(dxt, work_g1, master_task, distrb_info, &
                           field_loc_center, field_type_scalar)
-
+      call ice_HaloExtrapolate(dxt, distrb_info, &
+                               ew_boundary_type, ns_boundary_type)
+                               
       fieldname='dyt'
       call ice_read_global_nc2(fid_grid,fieldname,work_g1,diag)    
       call scatter_global(dyt, work_g1, master_task, distrb_info, &
                           field_loc_center, field_type_scalar)
-
+      call ice_HaloExtrapolate(dyt, distrb_info, &
+                               ew_boundary_type, ns_boundary_type)
+                               
       fieldname='dxu'
       call ice_read_global_nc2(fid_grid,fieldname,work_g1,diag)    
       call scatter_global(dxu, work_g1, master_task, distrb_info, &
                           field_loc_NEcorner, field_type_scalar)
-
+      call ice_HaloExtrapolate(dxu, distrb_info, &
+                               ew_boundary_type, ns_boundary_type)
+                               
       fieldname='dyu'
       call ice_read_global_nc2(fid_grid,fieldname,work_g1,diag)
       call scatter_global(dyu, work_g1, master_task, distrb_info, &
                           field_loc_NEcorner, field_type_scalar)
-
+      call ice_HaloExtrapolate(dyu, distrb_info, &
+                               ew_boundary_type, ns_boundary_type)
+                               
       ! fix units
       ULAT   = ULAT   / rad_to_deg
       ULON   = ULON   / rad_to_deg
