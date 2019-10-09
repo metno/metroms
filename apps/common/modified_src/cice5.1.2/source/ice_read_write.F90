@@ -17,7 +17,7 @@
       use ice_communicate, only: my_task, master_task
       use ice_broadcast, only: broadcast_scalar
       use ice_domain, only: distrb_info
-      use ice_domain_size, only: max_blocks, nx_global, ny_global, ncat
+      use ice_domain_size, only: max_blocks, nx_global, ny_global, ncat, nilyr
       use ice_blocks, only: nx_block, ny_block, nghost
       use ice_exit, only: abort_ice
 
@@ -41,7 +41,10 @@
                 ice_write_nc,       &
                 ice_write_ext,      &
                 ice_close_nc,       &
-                ice_read_nc2
+                ice_read_nc2,       &
+                ice_read_nc_bry_2D, &
+                ice_read_nc_bry_3D, &
+                ice_read_nc_bry_4D
 
       interface ice_write
         module procedure ice_write_xyt,  &
@@ -57,7 +60,11 @@
         module procedure ice_read_nc_xy,  &
                          ice_read_nc_xyz, &
                          ice_read_nc_point, &
-                         ice_read_nc_z
+                         ice_read_nc_z, &
+                         ice_read_nc_bry_2D, &
+                         ice_read_nc_bry_3D, &
+                         ice_read_nc_bry_4D
+
       end interface
 
       interface ice_write_nc
@@ -1547,9 +1554,609 @@
       work = c0 ! to satisfy intent(out) attribute
 #endif
       end subroutine ice_read_nc_xyz
-
 !=======================================================================
+! Read a netCDF sea-ice boundary file and scatter to processors.
+! If the optional variables field_loc and field_type are present,
+! the ghost cells are filled using values from the global array.
+! This prevents them from being filled with zeroes in land cells
+! (subroutine ice_HaloUpdate need not be called).
+!
+! Adapted by Pedro Duarte, NPI from ice_read_nc_xyz
 
+      subroutine ice_read_nc_bry_2D(fid,  nrec,  varname1, varname2, &
+                                 varname3, varname4, work,  diag, &
+                                 field_loc, field_type, restart_ext)
+
+      use ice_fileunits, only: nu_diag
+      use ice_gather_scatter, only: scatter_global, scatter_global_ext
+      use ice_blocks, only: block
+      
+      integer (kind=int_kind), intent(in) :: &
+           fid           , & ! file id
+           nrec              ! record number 
+
+      character (len=*), intent(in) :: & 
+           varname1, &       ! field names in netcdf file
+           varname2, &  
+           varname3, &  
+           varname4  
+
+      logical (kind=log_kind), intent(in) :: &
+           diag              ! if true, write diagnostic output
+
+      real (kind=dbl_kind), dimension(nx_block,ny_block,max_blocks), &
+           intent(out) :: &
+           work              ! output array (real, 8-byte)
+
+      logical (kind=log_kind), optional, intent(in) :: &
+           restart_ext       ! if true, read extended grid
+
+      integer (kind=int_kind), optional, intent(in) :: &
+           field_loc, &      ! location of field on staggered grid
+           field_type        ! type of field (scalar, vector, angle)
+
+      ! local variables
+#ifdef ncdf
+! netCDF file diagnostics:
+      integer (kind=int_kind) :: & 
+         varid,           & ! variable id
+         status,          & ! status output from netcdf routines
+         ndim, nvar,      & ! sizes of netcdf file
+         id,              & ! dimension index
+         i,j,             & ! horizontal indices
+         dimlen             ! size of dimension
+
+      real (kind=dbl_kind) :: &
+         amin, amax, asum   ! min, max values and sum of input array
+
+      character (char_len) :: &
+         dimname            ! dimension name            
+
+      real (kind=dbl_kind), dimension(:,:), allocatable :: &
+         work_g1
+
+      integer (kind=int_kind) :: nx, ny
+       
+      type (block) :: &
+         this_block  ! block info for current block
+
+      nx = nx_global
+      ny = ny_global
+
+      if (present(restart_ext)) then
+         if (restart_ext) then
+            nx = nx_global + 2*nghost
+            ny = ny_global + 2*nghost
+         endif
+      endif
+
+      if (my_task == master_task) then
+         allocate(work_g1(nx,ny))
+         do i = 1, nx
+            do j = 1, ny
+               work_g1(i,j) = c0;
+            enddo
+         enddo    
+      else
+         allocate(work_g1(1,1))   ! to save memory
+         work_g1(1,1) = c0;
+      endif
+
+      if (my_task == master_task) then
+         !write(nu_diag,*) 'Beginning reading boundaries'
+         !work_g1(:,:,:) = c0; !Array initialized to zero and below 
+         !boundaries are filled with values read from boundary files 
+         !obtaining a square array with zeros all over except along the 
+         !boundaries
+        !-------------------------------------------------------------
+        ! Find out ID of required variable and read array
+        !-------------------------------------------------------------
+         !Northern boundary 
+         status = nf90_inq_varid(fid, trim(varname1), varid) 
+         if (status /= nf90_noerr) then
+           call abort_ice ( & 
+               'ice_read_nc_bry_2D: Cannot find variable '//trim(varname1) )
+         endif        
+         status = nf90_get_var( fid, varid, work_g1(1:nx,ny), &
+               start=(/1,nrec/), & 
+               count=(/nx,1/) )
+         !Southern boundary 
+         status = nf90_inq_varid(fid, trim(varname2), varid)
+         if (status /= nf90_noerr) then
+           call abort_ice ( & 
+               'ice_read_nc_bry_2D: Cannot find variable '//trim(varname2) )
+         endif         
+         status = nf90_get_var( fid, varid, work_g1(1:nx,1), &
+               start=(/1,nrec/), & 
+               count=(/nx,1/) )
+         !Western boundary
+         status = nf90_inq_varid(fid, trim(varname3), varid) 
+         if (status /= nf90_noerr) then
+           call abort_ice ( & 
+               'ice_read_nc_bry_2D: Cannot find variable '//trim(varname3) )
+         endif        
+         status = nf90_get_var( fid, varid, work_g1(1,1:ny), &
+               start=(/1,nrec/), & 
+               count=(/ny,1/) )
+         !Eastern boundary
+         status = nf90_inq_varid(fid, trim(varname4), varid)
+         if (status /= nf90_noerr) then
+           call abort_ice ( & 
+               'ice_read_nc_bry_2D: Cannot find variable '//trim(varname4) )
+         endif         
+         status = nf90_get_var( fid, varid, work_g1(nx,1:ny), &
+               start=(/1,nrec/), & 
+               count=(/ny,1/) ) 
+       !--------------------------------------------------------------
+       ! Read global array 
+       !--------------------------------------------------------------
+          
+
+
+      endif                     ! my_task = master_task
+
+    !-------------------------------------------------------------------
+    ! optional diagnostics
+    !-------------------------------------------------------------------
+
+      if (my_task==master_task .and. diag) then 
+      !if (my_task==master_task) then
+         write(nu_diag,*) & 
+            'ice_read_nc_bry_2D, fid= ',fid, ', nrec = ',nrec
+          status = nf90_inquire(fid, nDimensions=ndim, nVariables=nvar)
+          write(nu_diag,*) 'ndim= ',ndim,', nvar= ',nvar
+          do id=1,ndim
+            status = nf90_inquire_dimension(fid,id,name=dimname,len=dimlen)
+            write(nu_diag,*) 'Dim name = ',trim(dimname),', size = ',dimlen
+         enddo   
+         amin = minval(work_g1(:,:))
+         amax = maxval(work_g1(:,:), mask = work_g1(:,:) /= spval_dbl)
+         asum = sum   (work_g1(:,:), mask = work_g1(:,:) /= spval_dbl)
+         write(nu_diag,*) varname1,',',varname2,',',varname3,',',varname4
+         write(nu_diag,*) ' min, max, sum =', amin, amax, asum
+         write(nu_diag,*) work_g1(1,1),work_g1(nx,1),&
+                             work_g1(1,ny),work_g1(nx,ny)
+      endif
+
+    !-------------------------------------------------------------------
+    ! Scatter data to individual processors.
+    ! NOTE: Ghost cells are not updated unless field_loc is present.
+    !-------------------------------------------------------------------
+
+      if (present(restart_ext)) then
+         if (restart_ext) then
+            call scatter_global_ext(work(:,:,:), work_g1(:,:), &
+                                       master_task, distrb_info)
+         endif
+      else
+         if (present(field_loc)) then
+            call scatter_global(work(:,:,:), work_g1(:,:), master_task, &
+                    distrb_info, field_loc, field_type)
+         else
+            call scatter_global(work(:,:,:), work_g1(:,:), master_task, &
+                    distrb_info, field_loc_noupdate, field_type_noupdate)
+         endif
+      endif
+      deallocate(work_g1)
+#else
+      work = c0 ! to satisfy intent(out) attribute
+#endif
+      end subroutine ice_read_nc_bry_2D
+!=======================================================================
+! Read a netCDF sea-ice boundary file and scatter to processors.
+! If the optional variables field_loc and field_type are present,
+! the ghost cells are filled using values from the global array.
+! This prevents them from being filled with zeroes in land cells
+! (subroutine ice_HaloUpdate need not be called).
+!
+! Adapted by Pedro Duarte, NPI from ice_read_nc_xyz
+
+      subroutine ice_read_nc_bry_3D(fid,  nrec,  varname1, varname2, &
+                                 varname3, varname4, work,  diag, &
+                                 field_loc, field_type, restart_ext)
+ 
+      use ice_fileunits, only: nu_diag
+      use ice_gather_scatter, only: scatter_global, scatter_global_ext
+      use ice_blocks, only: block
+      
+      integer (kind=int_kind), intent(in) :: &
+           fid           , & ! file id
+           nrec              ! record number 
+
+      character (len=*), intent(in) :: & 
+           varname1, &       ! field names in netcdf file
+           varname2, &  
+           varname3, &  
+           varname4  
+
+      logical (kind=log_kind), intent(in) :: &
+           diag              ! if true, write diagnostic output
+
+      real (kind=dbl_kind), dimension(nx_block,ny_block,ncat,max_blocks), &
+           intent(out) :: &
+           work              ! output array (real, 8-byte)
+
+      logical (kind=log_kind), optional, intent(in) :: &
+           restart_ext       ! if true, read extended grid
+
+      integer (kind=int_kind), optional, intent(in) :: &
+           field_loc, &      ! location of field on staggered grid
+           field_type        ! type of field (scalar, vector, angle)
+
+      ! local variables
+#ifdef ncdf
+! netCDF file diagnostics:
+      integer (kind=int_kind) :: & 
+         varid         , & ! variable id
+         status,          & ! status output from netcdf routines
+         ndim, nvar,      & ! sizes of netcdf file
+         id,              & ! dimension index
+         i,j            , & ! horizontal indices
+         n,               & ! ncat index
+         dimlen             ! size of dimension
+
+      real (kind=dbl_kind) :: &
+         amin, amax, asum   ! min, max values and sum of input array
+
+      character (char_len) :: &
+         dimname            ! dimension name            
+
+      real (kind=dbl_kind), dimension(:,:,:), allocatable :: &
+         work_g1
+
+      integer (kind=int_kind) :: nx, ny
+       
+      type (block) :: &
+         this_block  ! block info for current block
+
+      nx = nx_global
+      ny = ny_global
+
+      if (present(restart_ext)) then
+         if (restart_ext) then
+            nx = nx_global + 2*nghost
+            ny = ny_global + 2*nghost
+         endif
+      endif
+
+      if (my_task == master_task) then
+         allocate(work_g1(nx,ny,ncat))
+         do i = 1, nx
+            do j = 1, ny
+               do n = 1, ncat
+                  work_g1(i,j,n) = c0;
+               enddo
+            enddo
+         enddo    
+      else
+         allocate(work_g1(1,1,ncat))   ! to save memory
+         do n = 1, ncat
+            work_g1(1,1,n) = c0;
+         enddo
+      endif
+
+      if (my_task == master_task) then
+         !write(nu_diag,*) 'Beginning reading boundaries'
+         !work_g1(:,:,:) = c0; !Array initialized to zero and below 
+         !boundaries are filled with values read from boundary files 
+         !obtaining a square array with zeros all over except along the 
+         !boundaries
+        !-------------------------------------------------------------
+        ! Find out ID of required variable and read array
+        !-------------------------------------------------------------
+         !Northern boundary 
+         status = nf90_inq_varid(fid, trim(varname1), varid) 
+         if (status /= nf90_noerr) then
+           call abort_ice ( & 
+               'ice_read_nc_bry_3D: Cannot find variable '//trim(varname1) )
+         endif        
+         status = nf90_get_var( fid, varid, work_g1(1:nx,ny,1:ncat), &
+               start=(/1,1,nrec/), & 
+               count=(/nx,ncat,1/) )
+         !Southern boundary 
+         status = nf90_inq_varid(fid, trim(varname2), varid)
+         if (status /= nf90_noerr) then
+           call abort_ice ( & 
+               'ice_read_nc_bry_3D: Cannot find variable '//trim(varname2) )
+         endif         
+         status = nf90_get_var( fid, varid, work_g1(1:nx,1,1:ncat), &
+               start=(/1,1,nrec/), & 
+               count=(/nx,ncat,1/) )
+         !Western boundary
+         status = nf90_inq_varid(fid, trim(varname3), varid) 
+         if (status /= nf90_noerr) then
+           call abort_ice ( & 
+               'ice_read_nc_bry_3D: Cannot find variable '//trim(varname3) )
+         endif        
+         status = nf90_get_var( fid, varid, work_g1(1,1:ny,1:ncat), &
+               start=(/1,1,nrec/), & 
+               count=(/ny,ncat,1/) )
+         !Eastern boundary
+         status = nf90_inq_varid(fid, trim(varname4), varid)
+         if (status /= nf90_noerr) then
+           call abort_ice ( & 
+               'ice_read_nc_bry_3D: Cannot find variable '//trim(varname4) )
+         endif         
+         status = nf90_get_var( fid, varid, work_g1(nx,1:ny,1:ncat), &
+               start=(/1,1,nrec/), & 
+               count=(/ny,ncat,1/) ) 
+       !--------------------------------------------------------------
+       ! Read global array 
+       !--------------------------------------------------------------
+          
+
+
+      endif                     ! my_task = master_task
+
+    !-------------------------------------------------------------------
+    ! optional diagnostics
+    !-------------------------------------------------------------------
+
+      if (my_task==master_task .and. diag) then 
+      !if (my_task==master_task) then 
+         write(nu_diag,*) & 
+            'ice_read_nc_bry_3D, fid= ',fid, ', nrec = ',nrec
+          status = nf90_inquire(fid, nDimensions=ndim, nVariables=nvar)
+          write(nu_diag,*) 'ndim= ',ndim,', nvar= ',nvar
+          do id=1,ndim
+            status = nf90_inquire_dimension(fid,id,name=dimname,len=dimlen)
+            write(nu_diag,*) 'Dim name = ',trim(dimname),', size = ',dimlen
+         enddo
+         do n=1,ncat
+            amin = minval(work_g1(:,:,n))
+            amax = maxval(work_g1(:,:,n), mask = work_g1(:,:,n) /= spval_dbl)
+            asum = sum   (work_g1(:,:,n), mask = work_g1(:,:,n) /= spval_dbl)
+            write(nu_diag,*) varname1,',',varname2,',',varname3,',',varname4
+            write(nu_diag,*) ' min, max, sum =', amin, amax, asum
+            write(nu_diag,*) work_g1(1,1,n),work_g1(nx,2,n),&
+                             work_g1(2,ny,n),work_g1(nx,ny,n)
+         enddo
+      endif
+
+    !-------------------------------------------------------------------
+    ! Scatter data to individual processors.
+    ! NOTE: Ghost cells are not updated unless field_loc is present.
+    !-------------------------------------------------------------------
+
+      if (present(restart_ext)) then
+         if (restart_ext) then
+            do n=1,ncat
+               call scatter_global_ext(work(:,:,n,:), work_g1(:,:,n), &
+                                       master_task, distrb_info)
+            enddo
+         endif
+      else
+         if (present(field_loc)) then
+            do n=1,ncat
+               call scatter_global(work(:,:,n,:), work_g1(:,:,n), master_task, &
+                    distrb_info, field_loc, field_type)
+            enddo
+         else
+            do n=1,ncat
+               call scatter_global(work(:,:,n,:), work_g1(:,:,n), master_task, &
+                    distrb_info, field_loc_noupdate, field_type_noupdate)
+            enddo
+         endif
+      endif
+      deallocate(work_g1)
+#else
+      work = c0 ! to satisfy intent(out) attribute
+#endif
+      end subroutine ice_read_nc_bry_3D
+!=======================================================================
+! Read a netCDF sea-ice boundary file and scatter to processors.
+! If the optional variables field_loc and field_type are present,
+! the ghost cells are filled using values from the global array.
+! This prevents them from being filled with zeroes in land cells
+! (subroutine ice_HaloUpdate need not be called).
+!
+! Adapted by Pedro Duarte, NPI from ice_read_nc_xyz
+
+      subroutine ice_read_nc_bry_4D(fid,  nrec,  varname1, varname2, &
+                                 varname3, varname4, work,  diag, &
+                                 field_loc, field_type, restart_ext)
+
+      use ice_fileunits, only: nu_diag
+      use ice_gather_scatter, only: scatter_global, scatter_global_ext
+      use ice_blocks, only: block
+      
+      integer (kind=int_kind), intent(in) :: &
+           fid           , & ! file id
+           nrec              ! record number 
+
+      character (len=*), intent(in) :: & 
+           varname1, &       ! field names in netcdf file
+           varname2, &  
+           varname3, &  
+           varname4  
+
+      logical (kind=log_kind), intent(in) :: &
+           diag              ! if true, write diagnostic output
+
+      real (kind=dbl_kind), dimension(nx_block,ny_block,nilyr,ncat,max_blocks), &
+           intent(out) :: &
+           work              ! output array (real, 8-byte)
+
+      logical (kind=log_kind), optional, intent(in) :: &
+           restart_ext       ! if true, read extended grid
+
+      integer (kind=int_kind), optional, intent(in) :: &
+           field_loc, &      ! location of field on staggered grid
+           field_type        ! type of field (scalar, vector, angle)
+
+      ! local variables
+#ifdef ncdf
+! netCDF file diagnostics:
+      integer (kind=int_kind) :: & 
+         varid,           & ! variable id
+         status,          & ! status output from netcdf routines
+         ndim, nvar,      & ! sizes of netcdf file
+         id,              & ! dimension index
+         i,j,             & ! horizontal indices
+         k,               & ! vertical indice
+         n,               & ! ncat index
+         dimlen             ! size of dimension
+
+      real (kind=dbl_kind) :: &
+         amin, amax, asum   ! min, max values and sum of input array
+
+      character (char_len) :: &
+         dimname            ! dimension name            
+
+      real (kind=dbl_kind), dimension(:,:,:,:), allocatable :: &
+         work_g1
+
+      integer (kind=int_kind) :: nx, ny
+       
+      type (block) :: &
+         this_block  ! block info for current block
+
+      nx = nx_global
+      ny = ny_global
+
+      if (present(restart_ext)) then
+         if (restart_ext) then
+            nx = nx_global + 2*nghost
+            ny = ny_global + 2*nghost
+         endif
+      endif
+
+      if (my_task == master_task) then
+         allocate(work_g1(nx,ny,nilyr,ncat))
+         do i = 1, nx
+            do j = 1, ny
+               do k = 1, nilyr 
+                  do n = 1, ncat
+                     work_g1(i,j,k,n) = c0;
+                  enddo
+               enddo
+            enddo
+         enddo    
+      else
+         allocate(work_g1(1,1,1,ncat))   ! to save memory
+         do n = 1, ncat
+            work_g1(1,1,1,n) = c0;
+         enddo
+      endif
+
+      if (my_task == master_task) then
+         !write(nu_diag,*) 'Beginning reading boundaries'
+         !work_g1(:,:,:) = c0; !Array initialized to zero and below 
+         !boundaries are filled with values read from boundary files 
+         !obtaining a square array with zeros all over except along the 
+         !boundaries
+        !-------------------------------------------------------------
+        ! Find out ID of required variable and read array
+        !-------------------------------------------------------------
+         !Northern boundary 
+         status = nf90_inq_varid(fid, trim(varname1), varid) 
+         if (status /= nf90_noerr) then
+           call abort_ice ( & 
+               'ice_read_nc_bry_4D: Cannot find variable '//trim(varname1) )
+         endif        
+         status = nf90_get_var( fid, varid, work_g1(1:nx,ny,1:nilyr,1:ncat), &
+               start=(/1,1,1,nrec/), & 
+               count=(/nx,nilyr,ncat,1/) )
+         !Southern boundary 
+         status = nf90_inq_varid(fid, trim(varname2), varid)
+         if (status /= nf90_noerr) then
+           call abort_ice ( & 
+               'ice_read_nc_bry_4D: Cannot find variable '//trim(varname2) )
+         endif         
+         status = nf90_get_var( fid, varid, work_g1(1:nx,1,1:nilyr,1:ncat), &
+               start=(/1,1,1,nrec/), & 
+               count=(/nx,nilyr,ncat,1/) )
+         !Western boundary
+         status = nf90_inq_varid(fid, trim(varname3), varid) 
+         if (status /= nf90_noerr) then
+           call abort_ice ( & 
+               'ice_read_nc_bry_4D: Cannot find variable '//trim(varname3) )
+         endif        
+         status = nf90_get_var( fid, varid, work_g1(1,1:ny,1:nilyr,1:ncat), &
+               start=(/1,1,1,nrec/), & 
+               count=(/ny,nilyr,ncat,1/) )
+         !Eastern boundary
+         status = nf90_inq_varid(fid, trim(varname4), varid)
+         if (status /= nf90_noerr) then
+           call abort_ice ( & 
+               'ice_read_nc_bry_4D: Cannot find variable '//trim(varname4) )
+         endif         
+         status = nf90_get_var( fid, varid, work_g1(nx,1:ny,1:nilyr,1:ncat), &
+               start=(/1,1,1,nrec/), & 
+               count=(/ny,nilyr,ncat,1/) ) 
+       !--------------------------------------------------------------
+       ! Read global array 
+       !--------------------------------------------------------------
+          
+
+
+      endif                     ! my_task = master_task
+
+    !-------------------------------------------------------------------
+    ! optional diagnostics
+    !-------------------------------------------------------------------
+
+      if (my_task==master_task .and. diag) then 
+      !if (my_task==master_task) then
+         write(nu_diag,*) & 
+            'ice_read_nc_bry_4D, fid= ',fid, ', nrec = ',nrec
+          status = nf90_inquire(fid, nDimensions=ndim, nVariables=nvar)
+          write(nu_diag,*) 'ndim= ',ndim,', nvar= ',nvar
+          do id=1,ndim
+            status = nf90_inquire_dimension(fid,id,name=dimname,len=dimlen)
+            write(nu_diag,*) 'Dim name = ',trim(dimname),', size = ',dimlen
+         enddo
+         !do n=1,ncat
+         do k=1,nilyr
+            !amin = minval(work_g1(:,:,k,n))
+            !amax = maxval(work_g1(:,:,k,n), mask = work_g1(:,:,k,n) /= spval_dbl)
+            !asum = sum   (work_g1(:,:,k,n), mask = work_g1(:,:,k,n) /= spval_dbl)
+            write(nu_diag,*) varname1,',',varname2,',',varname3,',',varname4
+            write(nu_diag,*) ' min, max, sum =', amin, amax, asum
+            !write(nu_diag,*) work_g1(1,1,k,n),work_g1(nx,1,k,n),&
+            !                 work_g1(2,ny,k,n),work_g1(nx,ny,k,n)
+            write(nu_diag,*)  work_g1(2,ny,k,2)
+         enddo
+         !enddo
+      endif
+
+    !-------------------------------------------------------------------
+    ! Scatter data to individual processors.
+    ! NOTE: Ghost cells are not updated unless field_loc is present.
+    !-------------------------------------------------------------------
+
+      if (present(restart_ext)) then
+         if (restart_ext) then
+            do n=1,ncat
+            do k=1,nilyr
+               call scatter_global_ext(work(:,:,k,n,:), work_g1(:,:,k,n), &
+                                       master_task, distrb_info)
+            enddo 
+            enddo
+         endif
+      else
+         if (present(field_loc)) then
+            do n=1,ncat
+            do k=1,nilyr
+               call scatter_global(work(:,:,k,n,:), work_g1(:,:,k,n), master_task, &
+                    distrb_info, field_loc, field_type)
+            enddo
+            enddo
+         else
+            do n=1,ncat
+            do k=1,nilyr
+               call scatter_global(work(:,:,k,n,:), work_g1(:,:,k,n), master_task, &
+                    distrb_info, field_loc_noupdate, field_type_noupdate)
+            enddo
+            enddo 
+         endif
+      endif
+      deallocate(work_g1)
+#else
+      work = c0 ! to satisfy intent(out) attribute
+#endif
+      end subroutine ice_read_nc_bry_4D
+!=======================================================================
 ! Read a netCDF file
 ! Adapted by Alison McLaren, Met Office from ice_read
 
