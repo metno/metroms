@@ -16,7 +16,8 @@
           apondn_bry, hpondn_bry, ipondn_bry,iage_bry
       use ice_state, only: aicen, vicen, vsnon, trcrn, ntrcr, bound_state, &
                            aice_init, aice0, aice, vice, vsno, trcr, &
-                           trcr_depend, tr_pond_lvl, nbtrcr
+                           trcr_depend, tr_pond_lvl, nbtrcr, uvel, vvel, &
+                           divu, shear, strength
       use ice_timers, only: ice_timer_start, ice_timer_stop, timer_bound
       use ice_domain, only:sea_ice_time_bry
 
@@ -546,6 +547,15 @@
       use ice_therm_shared, only: ktherm
       use ice_therm_mushy, only: enthalpy_mush
       use ice_flux, only: Tmltz,Tf
+      
+      ! added due to calling cleanup_itd below
+      use ice_flux, only: fpond, fresh, fhocn, faero_ocn, fsalt
+      use ice_itd, only: cleanup_itd
+      use ice_state, only: ntrcr, aicen, trcrn, vicen, vsnon, aice0, &
+          trcr_depend, aice, tr_aero, tr_pond_topo, nbtrcr
+      use ice_therm_shared, only: heat_capacity
+      use ice_zbgc_shared, only: flux_bio, first_ice
+      use ice_exit, only: abort_ice
 !-----------------------------------------------------------------------
 !
 !  local variables
@@ -564,6 +574,14 @@
    real (dbl_kind) :: &
      ctime, &               ! dt/trest
      slope,Ti
+   
+   logical (kind=log_kind) :: &
+         l_stop          ! if true, abort model
+
+   integer (kind=int_kind) :: &
+      istop, jstop    ! indices of grid cell where model aborts
+
+   l_stop = .false.
 
    call ice_timer_start(timer_bound)
 
@@ -647,39 +665,78 @@
                        cp_ice * min(c0,trcrn_rest(i,j,nt_Tsfc,n,iblk)))
                   enddo
                endif
-               aicen(i,j,n,iblk) = aicen(i,j,n,iblk) &
-                  + (aicen_rest(i,j,n,iblk)-aicen(i,j,n,iblk))*ctime
-               vicen(i,j,n,iblk) = vicen(i,j,n,iblk) &
-                  + (vicen_rest(i,j,n,iblk)-vicen(i,j,n,iblk))*ctime
-               vsnon(i,j,n,iblk) = vsnon(i,j,n,iblk) &
-                  + (vsnon_rest(i,j,n,iblk)-vsnon(i,j,n,iblk))*ctime
+               aicen(i,j,n,iblk) = aicen(ilo,j,n,iblk) &
+                  + (aicen_rest(i,j,n,iblk)-aicen(ilo,j,n,iblk))*ctime
+               vicen(i,j,n,iblk) = vicen(ilo,j,n,iblk) &
+                  + (vicen_rest(i,j,n,iblk)-vicen(ilo,j,n,iblk))*ctime
+               vsnon(i,j,n,iblk) = vsnon(ilo,j,n,iblk) &
+                  + (vsnon_rest(i,j,n,iblk)-vsnon(ilo,j,n,iblk))*ctime
+               
+               ! Also restoring dynamic variables to the neighbouring
+               ! physical cell (added by Nick and Jostein, MET Norway).
+               ! Should perhaps be _rest variables for these in future.
+               uvel(i,j,iblk) = uvel(ilo,j,iblk)
+               vvel(i,j,iblk) = vvel(ilo,j,iblk)
+               divu(i,j,iblk) = divu(ilo,j,iblk)
+               shear(i,j,iblk) = shear(ilo,j,iblk)
+               strength(i,j,iblk) = strength(ilo,j,iblk)
                do nt = 1, ntrcr-nbtrcr 
                   if  ((sea_ice_time_bry).and.((nt == nt_qice).or. &
                      (nt == nt_sice))) then
                      do k = 1,nilyr
                         trcrn(i,j,nt+k-1,n,iblk) = &
-                              trcrn(i,j,nt+k-1,n,iblk) &
+                              trcrn(ilo,j,nt+k-1,n,iblk) &
                               + (trcrn_rest(i,j,nt+k-1,n,iblk)- &
-                                 trcrn(i,j,nt+k-1,n,iblk)) &
+                                 trcrn(ilo,j,nt+k-1,n,iblk)) &
                               *ctime
                      enddo
                   else if ((sea_ice_time_bry).and.(nt == nt_qsno)) then  
                      do k = 1,nslyr
                         trcrn(i,j,nt+k-1,n,iblk) = &
-                              trcrn(i,j,nt+k-1,n,iblk) &
+                              trcrn(ilo,j,nt+k-1,n,iblk) &
                               + (trcrn_rest(i,j,nt+k-1,n,iblk)- &
-                                 trcrn(i,j,nt+k-1,n,iblk)) &
+                                 trcrn(ilo,j,nt+k-1,n,iblk)) &
                               *ctime
                      enddo 
                   else 
-                        trcrn(i,j,nt,n,iblk) = trcrn(i,j,nt,n,iblk) &
-                        + (trcrn_rest(i,j,nt,n,iblk)-trcrn(i,j,nt,n,iblk))&
+                        trcrn(i,j,nt,n,iblk) = trcrn(ilo,j,nt,n,iblk) &
+                        + (trcrn_rest(i,j,nt,n,iblk)-trcrn(ilo,j,nt,n,iblk))&
                         *ctime
-                  endif 
+                  endif
+                  
                enddo
             enddo
             enddo
             enddo
+            
+            call cleanup_itd (nx_block,             ny_block,             &
+                               1, ilo,             1, ny_block,             &
+                               dt,                   ntrcr,                &
+                               aicen   (:,:,:,iblk),                       &
+                               trcrn (:,:,1:ntrcr,:,iblk),                 &
+                               vicen   (:,:,:,iblk), vsnon (:,:,  :,iblk), &
+                               aice0   (:,:,  iblk), aice      (:,:,iblk), &
+                               trcr_depend(1:ntrcr), fpond     (:,:,iblk), &
+                               fresh   (:,:,  iblk), fsalt     (:,:,iblk), &
+                               fhocn   (:,:,  iblk),                       &
+                               faero_ocn(:,:,:,iblk),tr_aero,              &
+                               tr_pond_topo,         heat_capacity,        &
+                               nbtrcr,               first_ice(:,:,:,iblk),&
+                               flux_bio(:,:,1:nbtrcr,iblk),                &
+                               l_stop,                                     &
+                               istop,                jstop)
+            
+            if (l_stop) then
+                write (nu_diag,*) ' my_task, iblk =', &
+                                   my_task, iblk
+                write (nu_diag,*) 'Global block:', this_block%block_id
+                if (istop > 0 .and. jstop > 0) &
+                     write(nu_diag,*) 'Global i and j:', &
+                                      this_block%i_glob(istop), &
+                                      this_block%j_glob(jstop) 
+                call abort_ice ('ice: ITD cleanup error in ice_HaloRestore')
+            endif
+                               
          endif
       endif
 
@@ -750,39 +807,77 @@
                        cp_ice * min(c0,trcrn_rest(i,j,nt_Tsfc,n,iblk))) 
                   enddo
                endif
-               aicen(i,j,n,iblk) = aicen(i,j,n,iblk) &
-                  + (aicen_rest(i,j,n,iblk)-aicen(i,j,n,iblk))*ctime
-               vicen(i,j,n,iblk) = vicen(i,j,n,iblk) &
-                  + (vicen_rest(i,j,n,iblk)-vicen(i,j,n,iblk))*ctime
-               vsnon(i,j,n,iblk) = vsnon(i,j,n,iblk) &
-                  + (vsnon_rest(i,j,n,iblk)-vsnon(i,j,n,iblk))*ctime
+               aicen(i,j,n,iblk) = aicen(ihi,j,n,iblk) &
+                  + (aicen_rest(i,j,n,iblk)-aicen(ihi,j,n,iblk))*ctime
+               vicen(i,j,n,iblk) = vicen(ihi,j,n,iblk) &
+                  + (vicen_rest(i,j,n,iblk)-vicen(ihi,j,n,iblk))*ctime
+               vsnon(i,j,n,iblk) = vsnon(ihi,j,n,iblk) &
+                  + (vsnon_rest(i,j,n,iblk)-vsnon(ihi,j,n,iblk))*ctime
+               
+               ! Also restoring dynamic variables to the neighbouring
+               ! physical cell (added by Nick and Jostein, MET Norway).
+               ! Should perhaps be _rest variables for these in future.
+               uvel(i,j,iblk) = uvel(ihi,j,iblk)
+               vvel(i,j,iblk) = vvel(ihi,j,iblk)
+               divu(i,j,iblk) = divu(ihi,j,iblk)
+               shear(i,j,iblk) = shear(ihi,j,iblk)
+               strength(i,j,iblk) = strength(ihi,j,iblk)
                do nt = 1, ntrcr-nbtrcr
                   if  ((sea_ice_time_bry).and.((nt == nt_qice).or. &
                       (nt == nt_sice))) then
                      do k = 1,nilyr
                            trcrn(i,j,nt+k-1,n,iblk) = &
-                              trcrn(i,j,nt+k-1,n,iblk) &
+                              trcrn(ihi,j,nt+k-1,n,iblk) &
                               + (trcrn_rest(i,j,nt+k-1,n,iblk)- &
-                                 trcrn(i,j,nt+k-1,n,iblk)) &
+                                 trcrn(ihi,j,nt+k-1,n,iblk)) &
                               *ctime
                      enddo
                   else if  ((sea_ice_time_bry).and.(nt == nt_qsno)) then
                      do k = 1,nslyr
                            trcrn(i,j,nt+k-1,n,iblk) = &
-                              trcrn(i,j,nt+k-1,n,iblk) &
+                              trcrn(ihi,j,nt+k-1,n,iblk) &
                               + (trcrn_rest(i,j,nt+k-1,n,iblk)- &
-                                 trcrn(i,j,nt+k-1,n,iblk)) &
+                                 trcrn(ihi,j,nt+k-1,n,iblk)) &
                               *ctime
                      enddo 
                   else 
-                     trcrn(i,j,nt,n,iblk) = trcrn(i,j,nt,n,iblk) &
-                        + (trcrn_rest(i,j,nt,n,iblk)-trcrn(i,j,nt,n,iblk))&
+                     trcrn(i,j,nt,n,iblk) = trcrn(ihi,j,nt,n,iblk) &
+                        + (trcrn_rest(i,j,nt,n,iblk)-trcrn(ihi,j,nt,n,iblk))&
                         *ctime
                   endif 
                enddo
             enddo
             enddo
             enddo
+            
+            call cleanup_itd (nx_block,             ny_block,             &
+                               ihi, ibc,             1, ny_block,             &
+                               dt,                   ntrcr,                &
+                               aicen   (:,:,:,iblk),                       &
+                               trcrn (:,:,1:ntrcr,:,iblk),                 &
+                               vicen   (:,:,:,iblk), vsnon (:,:,  :,iblk), &
+                               aice0   (:,:,  iblk), aice      (:,:,iblk), &
+                               trcr_depend(1:ntrcr), fpond     (:,:,iblk), &
+                               fresh   (:,:,  iblk), fsalt     (:,:,iblk), &
+                               fhocn   (:,:,  iblk),                       &
+                               faero_ocn(:,:,:,iblk),tr_aero,              &
+                               tr_pond_topo,         heat_capacity,        &
+                               nbtrcr,               first_ice(:,:,:,iblk),&
+                               flux_bio(:,:,1:nbtrcr,iblk),                &
+                               l_stop,                                     &
+                               istop,                jstop)
+            
+            if (l_stop) then
+                write (nu_diag,*) ' my_task, iblk =', &
+                                   my_task, iblk
+                write (nu_diag,*) 'Global block:', this_block%block_id
+                if (istop > 0 .and. jstop > 0) &
+                     write(nu_diag,*) 'Global i and j:', &
+                                      this_block%i_glob(istop), &
+                                      this_block%j_glob(jstop) 
+                call abort_ice ('ice: ITD cleanup error in ice_HaloRestore')
+            endif
+            
          endif
       endif
 
@@ -830,39 +925,77 @@
                            cp_ice * min(c0,trcrn_rest(i,j,nt_Tsfc,n,iblk))) 
                   enddo
                endif  
-               aicen(i,j,n,iblk) = aicen(i,j,n,iblk) &
-                  + (aicen_rest(i,j,n,iblk)-aicen(i,j,n,iblk))*ctime
-               vicen(i,j,n,iblk) = vicen(i,j,n,iblk) &
-                  + (vicen_rest(i,j,n,iblk)-vicen(i,j,n,iblk))*ctime
-               vsnon(i,j,n,iblk) = vsnon(i,j,n,iblk) &
-                  + (vsnon_rest(i,j,n,iblk)-vsnon(i,j,n,iblk))*ctime
+               aicen(i,j,n,iblk) = aicen(i,jlo,n,iblk) &
+                  + (aicen_rest(i,j,n,iblk)-aicen(i,jlo,n,iblk))*ctime
+               vicen(i,j,n,iblk) = vicen(i,jlo,n,iblk) &
+                  + (vicen_rest(i,j,n,iblk)-vicen(i,jlo,n,iblk))*ctime
+               vsnon(i,j,n,iblk) = vsnon(i,jlo,n,iblk) &
+                  + (vsnon_rest(i,j,n,iblk)-vsnon(i,jlo,n,iblk))*ctime
+               
+               ! Also restoring dynamic variables to the neighbouring
+               ! physical cell (added by Nick and Jostein, MET Norway).
+               ! Should perhaps be _rest variables for these in future.
+               uvel(i,j,iblk) = uvel(i,jlo,iblk)
+               vvel(i,j,iblk) = vvel(i,jlo,iblk)
+               divu(i,j,iblk) = divu(i,jlo,iblk)
+               shear(i,j,iblk) = shear(i,jlo,iblk)
+               strength(i,j,iblk) = strength(i,jlo,iblk)
                do nt = 1, ntrcr-nbtrcr
                   if  ((sea_ice_time_bry).and.((nt == nt_qice).or. &
                       (nt == nt_sice))) then
                      do k = 1,nilyr
                            trcrn(i,j,nt+k-1,n,iblk) = &
-                              trcrn(i,j,nt+k-1,n,iblk) &
+                              trcrn(i,jlo,nt+k-1,n,iblk) &
                               + (trcrn_rest(i,j,nt+k-1,n,iblk)- &
-                                 trcrn(i,j,nt+k-1,n,iblk)) &
+                                 trcrn(i,jlo,nt+k-1,n,iblk)) &
                               *ctime
                      enddo
                   else if ((sea_ice_time_bry).and.(nt == nt_qsno)) then
                      do k = 1,nslyr
                            trcrn(i,j,nt+k-1,n,iblk) = &
-                              trcrn(i,j,nt+k-1,n,iblk) &
+                              trcrn(i,jlo,nt+k-1,n,iblk) &
                               + (trcrn_rest(i,j,nt+k-1,n,iblk)- &
-                                 trcrn(i,j,nt+k-1,n,iblk)) &
+                                 trcrn(i,jlo,nt+k-1,n,iblk)) &
                               *ctime
                      enddo 
                   else 
-                     trcrn(i,j,nt,n,iblk) = trcrn(i,j,nt,n,iblk) &
-                        + (trcrn_rest(i,j,nt,n,iblk)-trcrn(i,j,nt,n,iblk))&
+                     trcrn(i,j,nt,n,iblk) = trcrn(i,jlo,nt,n,iblk) &
+                        + (trcrn_rest(i,j,nt,n,iblk)-trcrn(i,jlo,nt,n,iblk))&
                         *ctime
                   endif 
                enddo
             enddo
             enddo
             enddo
+            
+            call cleanup_itd (nx_block,             ny_block,             &
+                               1, nx_block,             1, jlo,             &
+                               dt,                   ntrcr,                &
+                               aicen   (:,:,:,iblk),                       &
+                               trcrn (:,:,1:ntrcr,:,iblk),                 &
+                               vicen   (:,:,:,iblk), vsnon (:,:,  :,iblk), &
+                               aice0   (:,:,  iblk), aice      (:,:,iblk), &
+                               trcr_depend(1:ntrcr), fpond     (:,:,iblk), &
+                               fresh   (:,:,  iblk), fsalt     (:,:,iblk), &
+                               fhocn   (:,:,  iblk),                       &
+                               faero_ocn(:,:,:,iblk),tr_aero,              &
+                               tr_pond_topo,         heat_capacity,        &
+                               nbtrcr,               first_ice(:,:,:,iblk),&
+                               flux_bio(:,:,1:nbtrcr,iblk),                &
+                               l_stop,                                     &
+                               istop,                jstop)
+            
+            if (l_stop) then
+                write (nu_diag,*) ' my_task, iblk =', &
+                                   my_task, iblk
+                write (nu_diag,*) 'Global block:', this_block%block_id
+                if (istop > 0 .and. jstop > 0) &
+                     write(nu_diag,*) 'Global i and j:', &
+                                      this_block%i_glob(istop), &
+                                      this_block%j_glob(jstop) 
+                call abort_ice ('ice: ITD cleanup error in ice_HaloRestore')
+            endif
+            
          endif
       endif
 
@@ -938,12 +1071,21 @@
                   !write (nu_diag,*)'Tinz_bry =',Tinz_bry(i,ibc,:,n,iblk) 
                   !write (nu_diag,*)'Sinz_bry =',Sinz_bry(i,ibc,:,n,iblk)          
                 !endif
-               aicen(i,j,n,iblk) = aicen(i,j,n,iblk) &
-                  + (aicen_rest(i,j,n,iblk)-aicen(i,j,n,iblk))*ctime
-               vicen(i,j,n,iblk) = vicen(i,j,n,iblk) &                  
-                  + (vicen_rest(i,j,n,iblk)-vicen(i,j,n,iblk))*ctime
-               vsnon(i,j,n,iblk) = vsnon(i,j,n,iblk) &
-                  + (vsnon_rest(i,j,n,iblk)-vsnon(i,j,n,iblk))*ctime
+               aicen(i,j,n,iblk) = aicen(i,jhi,n,iblk) &
+                  + (aicen_rest(i,j,n,iblk)-aicen(i,jhi,n,iblk))*ctime
+               vicen(i,j,n,iblk) = vicen(i,jhi,n,iblk) &                  
+                  + (vicen_rest(i,j,n,iblk)-vicen(i,jhi,n,iblk))*ctime
+               vsnon(i,j,n,iblk) = vsnon(i,jhi,n,iblk) &
+                  + (vsnon_rest(i,j,n,iblk)-vsnon(i,jhi,n,iblk))*ctime
+               
+               ! Also restoring dynamic variables to the neighbouring
+               ! physical cell (added by Nick and Jostein, MET Norway).
+               ! Should perhaps be _rest variables for these in future.
+               uvel(i,j,iblk) = uvel(i,jhi,iblk)
+               vvel(i,j,iblk) = vvel(i,jhi,iblk)
+               divu(i,j,iblk) = divu(i,jhi,iblk)
+               shear(i,j,iblk) = shear(i,jhi,iblk)
+               strength(i,j,iblk) = strength(i,jhi,iblk)
                !if ((i == nx_block).and.(n == 2)) then
                !    write (nu_diag,*)'aicen =', aicen(i,ibc,n,iblk) 
                !    write (nu_diag,*)'vicen =', vicen(i,ibc,n,iblk)
@@ -955,34 +1097,65 @@
                       (nt == nt_sice))) then
                      do k = 1,nilyr
                            trcrn(i,j,nt+k-1,n,iblk) = &
-                              trcrn(i,j,nt+k-1,n,iblk) &
+                              trcrn(i,jhi,nt+k-1,n,iblk) &
                               + (trcrn_rest(i,j,nt+k-1,n,iblk)- &
-                                 trcrn(i,j,nt+k-1,n,iblk)) &
+                                 trcrn(i,jhi,nt+k-1,n,iblk)) &
                               *ctime
                      enddo
                   else if ((sea_ice_time_bry).and.(nt == nt_qsno)) then
                      do k = 1,nslyr
                            trcrn(i,j,nt+k-1,n,iblk) = &
-                              trcrn(i,j,nt+k-1,n,iblk) &
+                              trcrn(i,jhi,nt+k-1,n,iblk) &
                               + (trcrn_rest(i,j,nt+k-1,n,iblk)- &
-                                 trcrn(i,j,nt+k-1,n,iblk)) &
+                                 trcrn(i,jhi,nt+k-1,n,iblk)) &
                               *ctime
                      enddo 
                   else 
-                     trcrn(i,j,nt,n,iblk) = trcrn(i,j,nt,n,iblk) &
-                        + (trcrn_rest(i,j,nt,n,iblk)-trcrn(i,j,nt,n,iblk))&
+                     trcrn(i,j,nt,n,iblk) = trcrn(i,jhi,nt,n,iblk) &
+                        + (trcrn_rest(i,j,nt,n,iblk)-trcrn(i,jhi,nt,n,iblk))&
                         *ctime
                   endif 
                enddo
             enddo
             enddo
             enddo
+            
+            call cleanup_itd (nx_block,             ny_block,             &
+                               1, nx_block,             jhi, ibc,             &
+                               dt,                   ntrcr,                &
+                               aicen   (:,:,:,iblk),                       &
+                               trcrn (:,:,1:ntrcr,:,iblk),                 &
+                               vicen   (:,:,:,iblk), vsnon (:,:,  :,iblk), &
+                               aice0   (:,:,  iblk), aice      (:,:,iblk), &
+                               trcr_depend(1:ntrcr), fpond     (:,:,iblk), &
+                               fresh   (:,:,  iblk), fsalt     (:,:,iblk), &
+                               fhocn   (:,:,  iblk),                       &
+                               faero_ocn(:,:,:,iblk),tr_aero,              &
+                               tr_pond_topo,         heat_capacity,        &
+                               nbtrcr,               first_ice(:,:,:,iblk),&
+                               flux_bio(:,:,1:nbtrcr,iblk),                &
+                               l_stop,                                     &
+                               istop,                jstop)
+            
+            if (l_stop) then
+                write (nu_diag,*) ' my_task, iblk =', &
+                                   my_task, iblk
+                write (nu_diag,*) 'Global block:', this_block%block_id
+                if (istop > 0 .and. jstop > 0) &
+                     write(nu_diag,*) 'Global i and j:', &
+                                      this_block%i_glob(istop), &
+                                      this_block%j_glob(jstop) 
+                call abort_ice ('ice: ITD cleanup error in ice_HaloRestore')
+            endif
+            
          endif
       endif
 
    enddo ! iblk
    !$OMP END PARALLEL DO
-
+   
+   call bound_state (aicen, trcrn, vicen, vsnon)
+   
    call ice_timer_stop(timer_bound)
 
  end subroutine ice_HaloRestore
