@@ -26,8 +26,11 @@ elif [ "$METROMS_MYHOST" == "met_ppi" ]; then
     module load hdf5/1.10.1intel18
   elif [ `lsb_release -sc` == 'Core' ]; then
     module load compiler/intelPE2018
-    module load netcdf/4.6.2-intel2018
-    module load openmpi/3.1.3-intel2018
+    module load hdf5/1.10.5-intel2018
+    module load netcdf/4.7.0-intel2018
+    module load openmpi/3.1.4-intel2018
+    # module load netcdf/4.6.2-intel2018
+    # module load openmpi/3.1.3-intel2018
     module load nco/4.7.9-intel2018
   else
     echo "Undefined linux distro for met_ppi"

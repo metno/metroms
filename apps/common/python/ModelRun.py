@@ -184,7 +184,8 @@ class ModelRun(object):
                 exit(1)
             else:
                 #os.environ["MPI_BUFS_PER_PROC"] = str(128)
-                result = os.system("/modules/centos7/OPENMPI/3.1.3-intel2018/bin/mpiexec --mca mtl psm2 " + executable + " " + infile)
+                result = os.system("/modules/centos7/OPENMPI/3.1.4-intel2018/bin/mpirun --mca mtl psm2 --mca plm_base_verbose 10 --mca btl_base_verbose 30 " + executable + " " + infile)
+                # result = os.system("/modules/centos7/OPENMPI/3.1.3-intel2018/bin/mpiexec --mca mtl psm2 " + executable + " " + infile)
                 if result != 0: os.system('cat cice_stderr')
         else:
             print "Unrecognized architecture!"
