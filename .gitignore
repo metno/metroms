@@ -4,3 +4,4 @@
 .project
 .pydevproject
 my_*.py
+apps/common/modified_src/roms-trunk/Linux-ifort.mk
