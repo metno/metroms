@@ -41,7 +41,7 @@ endif
 ifeq ($(IO_TYPE), netcdf)
    CPPDEFS :=  $(CPPDEFS) -Dncdf
    INCLDIR := $(INCLDIR) -I/modules/centos7/netcdf/4.6.2-intel2018/include
-   SLIBS   :=  $(SLIBS) -L/modules/centos7/netcdf/4.6.2-intel2018/lib -lnetcdff -L/modules/centos7//netcdf/4.6.2-intel2018/lib -L/modules/centos7/hdf5/1.10.4/lib -L/modules/centos7/compiler/parallel_studio/2018/compilers_and_libraries/linux/lib -lnetcdf -lnetcdf
+   SLIBS   :=  $(SLIBS) -L/modules/centos7/netcdf/4.7.0-intel2018/lib -lnetcdff -L/modules/centos7/netcdf/4.7.0-intel2018/lib -L/modules/centos7/hdf5/1.10.5-intel2018/lib -L/modules/centos7/compiler/parallel_studio/2018/compilers_and_libraries/linux/lib -lnetcdf -lnetcdf -lhdf5_hl -lhdf5 -lsz -lz -lcurl -lm
 endif
 
 ifeq ($(compile_threaded), true) 
