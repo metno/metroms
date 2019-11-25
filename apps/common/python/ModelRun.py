@@ -47,8 +47,7 @@ class ModelRun(object):
                 print "delta_t's dont match up!!"
                 sys.exit()
 
-    def run_roms(self,runoption=Constants.SERIAL,debugoption=Constants.NODEBUG,
-                 architecture=Constants.MET64):
+    def run_roms(self,runoption,debugoption,architecture):
         """
         Function that changes working directory to the run path (dir with the executable),
         replaces keywords in the CICE and ROMS in-files (as specified by the self._params
@@ -63,7 +62,6 @@ class ModelRun(object):
                                  (choose an option from the Contants module)
         """
         print "Running ROMS in directory: "+self._params.RUNPATH+"\n\n"
-        #print (int(self._params.XCPU)*int(self._params.YCPU))+int(self._params.CICECPU)
         os.chdir(self._params.RUNPATH)
         # Prepare roms input-file, replace keywords:
         if self._params.CICECPU > 0:
@@ -75,10 +73,11 @@ class ModelRun(object):
         print "running roms for this timespan:"
         print self._params.START_DATE, self._params.END_DATE
         print self._params.FCLEN
-        self._run(runoption,debugoption,architecture)
-        # Should check output-files to verify a successful run?
-        # Output to std.out that model has finished:
-        print "\nROMS run finished"
+        result = self._run(runoption,debugoption,architecture)
+        if result == 0:
+            print "\nROMS run finished"
+        else:
+            raise RuntimeError("Error with ROMS run!")
 
     def preprocess(self):
         """
@@ -91,12 +90,6 @@ class ModelRun(object):
 
             if self._params.CICECPU > 0:
                 self._verify_cice_rst_file()
-
-    def postprocess(self):
-        """
-        """
-        os.chdir(self._params.RUNPATH)
-        #self._add_forecast_ref_time()
 
 ########################################################################
 # PRIVATE METHODS:
@@ -125,9 +118,8 @@ class ModelRun(object):
             newlines = newlines.replace(key,value)
         with open(self._params.CICEINFILE, 'w') as f:
             f.write(newlines)
-        #os.system('cp -a '+self._params.CICEINFILE+' '+self._params.RUNPATH+'/') #should not need to do this
 
-    def _execute_roms_mpi(self,ncpus,infile,debugoption=Constants.NODEBUG,architecture=Constants.MET64):
+    def _execute_roms_mpi(self,ncpus,infile,debugoption,architecture):
         """
         Function that executes the ROMS model itself using MPI. Depending on the specified architecture,
         the ROMS executable is run using different binaries/commands.
@@ -139,130 +131,59 @@ class ModelRun(object):
                                  (choose an option from the Contants module)
             architecture (int) : What architecture to run METROMS on
                                  (choose an option from the Contants module)
+        Returns:
+            result (int) : 0 if all good, some other value if error with run or user choices
         """
         if debugoption==Constants.DEBUG:
             executable="oceanG"
         else:
             executable="oceanM"
 
-        if architecture==Constants.VILJE:
-            print 'running on vilje:'
-            if debugoption==Constants.PROFILE:
-#                os.system("make-profiler-libraries")
-#                os.system("perf-report --mpi=\"SGI MPT (batch)\" --processes="+str(ncpus)+" "+executable+" "+infile)
-                print "Profiling not working yet on "+architecture
-                exit(1)
-            else:
-#                os.environ["MPI_BUFS_PER_PROC"] = str(128)
-                result = os.system("mpiexec_mpt -np "+str(ncpus)+" "+executable+" "+infile)
-                if result != 0: os.system('cat cice_stderr')
-
-        elif architecture==Constants.ALVIN or architecture==Constants.ELVIS or architecture==Constants.NEBULA or architecture==Constants.STRATUS:
+        if architecture==Constants.NEBULA or architecture==Constants.STRATUS:
             print 'running on NSC HPC:'
             if debugoption==Constants.PROFILE:
                 print "Profiling not working yet on "+architecture
-                exit(1)
+                result = 1
             else:
                 print "mpprun -np "+str(ncpus)+" "+executable+" "+infile
                 result = os.system("mpprun -np "+str(ncpus)+" "+executable+" "+infile)
-                if result != 0: os.system('cat cice_stderr')
-
-        elif architecture==Constants.MET_PPI_IBX:
-            print 'running on MET PPI:'
-            if debugoption==Constants.PROFILE:
-                print "Profiling not working yet on "+architecture
-                exit(1)
-            else:
-                #os.environ["MPI_BUFS_PER_PROC"] = str(128)
-                result = os.system("/modules/xenial/OPENMPI/3.0.0intel18/bin/mpiexec --mca btl openib,self -bind-to core " + executable + " " + infile)
-                if result != 0: os.system('cat cice_stderr')
 
         elif architecture==Constants.MET_PPI_OPATH:
             print 'running on MET PPI:'
             if debugoption==Constants.PROFILE:
                 print "Profiling not working yet on "+architecture
-                exit(1)
+                result = 1
             else:
-                #os.environ["MPI_BUFS_PER_PROC"] = str(128)
-                result = os.system("/modules/centos7/OPENMPI/3.1.4-intel2018/bin/mpirun --mca mtl psm2 --mca plm_base_verbose 10 --mca btl_base_verbose 30 " + executable + " " + infile)
-                # result = os.system("/modules/centos7/OPENMPI/3.1.3-intel2018/bin/mpiexec --mca mtl psm2 " + executable + " " + infile)
-                if result != 0: os.system('cat cice_stderr')
+                #result = os.system("/modules/centos7/OPENMPI/3.1.4-intel2018/bin/mpirun --mca mtl psm2 --mca plm_base_verbose 10 --mca btl_base_verbose 30 " + executable + " " + infile)
+                result = os.system("/modules/centos7/OPENMPI/3.1.3-intel2018/bin/mpiexec --mca mtl psm2 " + executable + " " + infile)
         else:
             print "Unrecognized architecture!"
-            #result = os.system("mpirun -np "+str(ncpus)+" "+executable+" "+infile)
-            #if result != 0: os.system('cat cice_stderr')
+            result = 1
 
+        return result
 
-    def _execute_roms_openmp(self,ncpus,infile,debugoption=Constants.NODEBUG):
+    def _execute_roms_openmp(self,ncpus,infile,debugoption):
         """
         Execute the ROMS model itself using OpenMP.
+
+        Returns:
+            result (int) : 0 if all good, some other value if error with run
         """
         executable="oceanO" if debugoption==Constants.NODEBUG else "oceanG"
         os.environ['OMP_NUM_THREADS'] = str(ncpus)
-        os.system("./"+executable+" < "+infile)
+        result = os.system("./"+executable+" < "+infile)
 
-    def _execute_roms_serial(self,infile,debugoption=Constants.NODEBUG):
+    def _execute_roms_serial(self,infile,debugoption):
         """
         Execute the ROMS model itself in serial mode.
+
+        Returns:
+            result (int) : 0 if all good, 1 if some error with run
         """
         executable="oceanS" if debugoption==Constants.NODEBUG else "oceanG"
-        os.system("./"+executable+" < "+infile)
+        result = os.system("./"+executable+" < "+infile)
 
-    def _fimex_hor_interp(self,ncfilein,ncfileout):
-        """
-        """
-        #Denne funksjonen maa ha info om input og ouput grid
-        #og configfiler..?
-        print "fimex_hor_interp"
-
-    def _fimex_felt2nc(self,infile,outfile,configfile):
-        """
-        """
-        #fimex --input.file=fil.flt --input.type=felt --output.file=fil.nc --input.config=config.cfg
-        print "fimex_felt2nc"
-
-    def _verticalinterp(self,ncfilein,ncfileout):
-        """
-        """
-        print "verticalinterp"
-
-    def _bry_from_clm(self,clmfile,bryfile):
-        print "bry_from_clm"
-
-    def _ini_from_clm(self,clmfile,inifile):
-        print "ini_from_clm"
-
-    def _tpxo2romstide(self,grdfile,tpxofilein,tidefileout):
-        """
-        Create tide.nc-file from any TPXO nc-file.
-        """
-        print "tpxo2romstide"
-
-    def _dew2spec(self,ncfile):
-        print "dew2spec"
-
-    def _make_atm_force(self):  #tHIS METHOD CAN VARY BETWEEN MODELS...
-        print "make_atm_force start"
-        self._fimex_felt2nc(None,None,None)
-        self._dew2spec(None)
-        print "make_atm_force end"
-
-    def _make_OBC(self):
-        self._verticalinterp(self._get_clmfile(),GlobalParams.CLMFILE)
-        self._bry_from_clm(GlobalParams.CLMFILE,None)
-        self._ini_from_clm(GlobalParams.CLMFILE,None)
-
-    def _get_clmfile(self):
-        if self._clmfileoption==Constants.FELT:
-            self._fimex_felt2nc(self._params.FELT_CLMFILE,GlobalParams.IN_CLMFILE,GlobalParams.FELT2NC_CONFIG)
-        elif self._clmfileoption==Constants.NC:
-            self._fimex_hor_interp(None, None)
-        else:
-            print "Illegal clmfileoption."
-            exit(1)
-        return GlobalParams.IN_CLMFILE
-
-    def _run(self,runoption=Constants.SERIAL,debugoption=Constants.NODEBUG,architecture=Constants.MET64):
+    def _run(self,runoption,debugoption,architecture):
         """
         Function that calls other functions for running METROMS depending on the specified
         architecture and and runoption.
@@ -274,57 +195,51 @@ class ModelRun(object):
                                  (choose an option from the Contants module)
             architecture (int) : What architecture to run METROMS on
                                  (choose an option from the Contants module)
+        Returns:
+            result (int) : 0 if all good, some other value if error with run or user choices
         """
-        # if statement for backwards compatibility (remove in the future)
-        # ---------------------------------------------------------------------------------------------------
-        if architecture == Constants.MET_PPI:
-            print("\nWarning: {0}={1} is deprecated! Use {0}={2} or {0}={3} instead. Defaulting to {2}.".format(
-                  "architecture", "Constants.MET_PPI", "Constants.MET_PPI_IBX", "Constants.MET_PPI_OPATH"))
-            architecture = Constants.MET_PPI_IBX
-        # ---------------------------------------------------------------------------------------------------
-
         # Run the ROMS model:
         if architecture==Constants.MET64:
             if runoption==Constants.MPI:
-                self._execute_roms_mpi((int(self._params.XCPU)*int(self._params.YCPU))+
+                result = self._execute_roms_mpi((int(self._params.XCPU)*int(self._params.YCPU))+
                                        int(self._params.CICECPU),
                                        self._params.ROMSINFILE,debugoption,architecture)
             elif runoption==Constants.OPENMP:
                 if self._params.CICECPU != 0:
                     print "MetROMS is currently not handling CICE coupling in OpenMP"
-                    exit(1)
-                self._execute_roms_openmp(int(self._params.XCPU)*int(self._params.XCPU),
-                                          self._params.ROMSINFILE,debugoption)
+                    result = 1
+                else:
+                    result = self._execute_roms_openmp(int(self._params.XCPU)*int(self._params.XCPU),
+                                              self._params.ROMSINFILE,debugoption)
             elif runoption==Constants.SERIAL:
                 if self._params.CICECPU != 0:
                     print "MetROMS is currently not handling CICE coupling in serial"
-                    exit(1)
-                self._execute_roms_serial(self._params.ROMSINFILE,debugoption)
+                    result = 1
+                else:
+                    result = self._execute_roms_serial(self._params.ROMSINFILE,debugoption)
             elif runoption==Constants.DRY:
                 print "Dry-run ok"
+                result = 0
             else:
                 print "No valid runoption!"
-                exit(1)
+                result = 1
 
-        elif architecture==Constants.VILJE or architecture==Constants.ALVIN or architecture==Constants.ELVIS or \
-             architecture==Constants.NEBULA or architecture==Constants.STRATUS or architecture==Constants.MET_PPI_IBX or \
+        elif architecture==Constants.NEBULA or architecture==Constants.STRATUS or \
              architecture==Constants.MET_PPI_OPATH:
             if runoption==Constants.MPI:
-                self._execute_roms_mpi((int(self._params.XCPU)*int(self._params.YCPU))+
+                result = self._execute_roms_mpi((int(self._params.XCPU)*int(self._params.YCPU))+
                                        int(self._params.CICECPU),
                                        self._params.ROMSINFILE,debugoption,architecture)
             elif runoption==Constants.DRY:
-                pass
+                result = 0
             else:
                 print "No valid runoption!"
-                exit(1)
-
-        elif architecture in (Constants.MET32,Constants.BYVIND):
-            print "Currently unsupported architecture..."
-            exit(1)
+                result = 1
         else:
             print "Unsupported architecture..."
-            exit(1)
+            result = 1
+
+        return result
 
     def _cycle_rst_ini(self, backup=True):
         #Cycle ocean_rst.nc to ocean_ini.nc
@@ -334,14 +249,14 @@ class ModelRun(object):
             nc_ini = netCDF4.Dataset(_ini)
         except:
             print "error finding ini-file"
-            #pass
         try:
             nc_rst = netCDF4.Dataset(_rst)
+            if len(nc_rst.variables["ocean_time"]) == 0:
+                raise ValueError("No time entries on rst file!")
         except:
             print "error finding rst-file, will use old ini-file..."
             os.system('cp -av '+_ini+' '+_rst)
             nc_rst = netCDF4.Dataset(_rst)
-            #pass
         if self._params.NRREC > 0:
             nrrec = self._params.NRREC - 1
         else:
@@ -372,7 +287,7 @@ class ModelRun(object):
                     print "Cycled restart files"
                 elif (self._params.START_DATE == netCDF4.num2date(nc_ini.variables['ocean_time'][nrrec],nc_ini.variables['ocean_time'].units)):
                     print "No need to cycle restart-files"
-                    # If model hasn't been run last day:
+                # If model hasn't been run last day:
                 else:
                     self._params.START_DATE = netCDF4.num2date(nc_rst.variables['ocean_time'][nrrec],nc_rst.variables['ocean_time'].units)
                     self._params.FCLEN = (self._params.END_DATE-self._params.START_DATE).total_seconds()
@@ -459,7 +374,3 @@ class ModelRun(object):
                     print "ROMS: "+str(roms_ini[self._params.NRREC].day)
                     print "CICE: "+str(cice_rst_day)
                     exit(1)
-
-#     def _add_forecast_ref_time(self):
-#         os.system('module load nco; ncks -A -v forecast_reference_time '+self._params.ATMFILE+' '+self._params.RUNPATH+'/ocean_his.nc')
-#         print 'added forecast ref time'
