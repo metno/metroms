@@ -252,9 +252,11 @@ class ModelRun(object):
         try:
             nc_rst = netCDF4.Dataset(_rst)
             if len(nc_rst.variables["ocean_time"]) == 0:
+                nc_rst.close()
                 raise ValueError("No time entries on rst file!")
-        except:
-            print "error finding rst-file, will use old ini-file..."
+        except Exception as e:
+            print e
+            print "error finding/with rst-file, will use old ini-file..."
             os.system('cp -av '+_ini+' '+_rst)
             nc_rst = netCDF4.Dataset(_rst)
         if self._params.NRREC > 0:
