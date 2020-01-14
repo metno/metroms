@@ -18,11 +18,18 @@ if [ $# -lt 1 ]
   echo "<xcpu> <ycpu> are optional arguments"
   exit
 fi
-export ROMS_APPLICATION=$1
+
 
 if [ $# -ge 3 ]; then
+    export ROMS_APPLICATION=$1
     NPX=$2
     NPY=$3
+elif [ $# -eq 2 ]; then
+    NPX=$1
+    NPY=$2
+    export ROMS_APPLICATION=$app
+elif [ $# -eq 1 ]; then
+    export ROMS_APPLICATION=$1
 fi
 
 echo "NPX = $NPX, NPY = $NPY"
@@ -51,15 +58,14 @@ echo $PWD
 tar -xvf ${METROMS_BASEDIR}/static_libs/$CICEVERSION.tar.gz
 cd $CICE_DIR
 
-export MCT_INCDIR=${METROMS_TMPDIR}/MCT/include
-export MCT_LIBDIR=${METROMS_TMPDIR}/MCT/lib
-
+export MCT_INCDIR=${MCT_DIR}/include
+export MCT_LIBDIR=${MCT_DIR}/lib
 
 # Copy modified source files
 #mkdir -p ${tup}/tmproms/cice
-mkdir -p $CICE_DIR/input_templates/$ROMS_APPLICATION/
-cp -a ${METROMS_BASEDIR}/apps/common/modified_src/$CICEVERSION/* $CICE_DIR
-cp -av ${METROMS_APPDIR}/$ROMS_APPLICATION/cice_input_grid/* $CICE_DIR/input_templates/$ROMS_APPLICATION/
+mkdir -p $CICE_DIR/input_templates
+cp -af ${METROMS_BASEDIR}/apps/common/modified_src/$CICEVERSION/* $CICE_DIR
+cp -av ${METROMS_APPDIR}/$ROMS_APPLICATION/cice_input_grid/ice_in.$CICEVERSION $CICE_DIR/input_templates/
 # Remove old binaries
 rm -f $CICE_DIR/rundir/cice
 

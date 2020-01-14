@@ -13,20 +13,6 @@ NRES=$1
 #export SRCDIR=$CASEHOME/cice
 export SRCDIR=$CICE_DIR
 
-if [ "$METROMS_MYHOST" == "metlocal" ]; then
-    export SITE=Linux.Ubuntu
-#    export WORKDIR=/disk1/$LOGNAME/work
-elif [ "$METROMS_MYHOST" == "vilje" ]; then
-    export SITE=Linux.NTNU.vilje
-#    export WORKDIR=/work/$LOGNAME/
-elif [ "$METROMS_MYHOST" == "met_ppi" ]; then
-    export SITE=Linux.MET_PPI
-#    export WORKDIR=/work/$LOGNAME/
-else
-    echo $METROMS_MYHOST not implemented
-    exit
-fi
-
 ncomp=4  # Processors used for compilation
 
 
@@ -50,7 +36,7 @@ esac
 if [ $GRID == "grid" ]; then echo $NRES not implemented; exit; fi
 
 
-if [ $casename == 'CASE''NAME' ]; then
+if [ "$casename" == 'CASE''NAME' ]; then
     casename=test.$NRES
 fi
 
@@ -178,26 +164,7 @@ export HSTDIR=$EXEDIR/history           ; [ -d $HSTDIR ] ||  mkdir -p $HSTDIR
 
 #export ARCH=$ARCH.$SITE
 
-cd $SRCDIR/source
-
 cd $EXEDIR
-
-if [ $RES == 'arctic-20km' ] || [ $RES == 'arctic-4km' ]; then
-    cp -auv $SRCDIR/input_templates/$RES/cice.grid.nc cice.grid.nc
-    cp -auv $SRCDIR/input_templates/$RES/cice.kmt.nc cice.kmt.nc
-else
-    if [ ! $RES == 'col' ]; then
-	cp -auv $SRCDIR/input_templates/$RES/global_$RES.grid.nc grid.nc
-	cp -auv $SRCDIR/input_templates/$RES/global_$RES.kmt.nc kmt.nc
-    fi
-fi
-
-cd $RSTDIR
-
-if [ ! $RES == 'arctic-20km' ] || [ $RES == 'arctic-4km' ];   then
-    cp $SRCDIR/input_templates/$RES/iced_$RES* .
-    [ -e ice.restart_file ] || cp $SRCDIR/input_templates/$RES/ice.restart_file .
-fi
 
 ### Calculate processor tiling
 ((ntask=NPX*NPY)); NTASK=$ntask
@@ -242,7 +209,7 @@ fi
 
 cd $EXEDIR
 #cat $SRCDIR/input_templates/$RES/ice_in.$vers | sed -e s/NTASK/$NTASK/ | sed -e s/RESTART/$restart/ > ice_in
-sed "s#<cicedir>#$SYSTEM_USERDIR#;s#<ntask>#$NTASK#" $SRCDIR/input_templates/$RES/ice_in.$CICEVERSION > $EXEDIR/ice_in
+sed "s#<cicedir>#$SYSTEM_USERDIR#;s#<ntask>#$NTASK#" $SRCDIR/input_templates/ice_in.$CICEVERSION > $EXEDIR/ice_in
 
 #ln -sf $CICEDATADIR data
 
@@ -293,7 +260,7 @@ if [ $comp -eq 1 ]; then
     $MAKE -j $ncomp VPFILE=Filepath EXEC=$EXEDIR/cice \
         NXGLOB=$NXGLOB NYGLOB=$NYGLOB \
         BLCKX=$BLCKX BLCKY=$BLCKY MXBLCKS=$MXBLCKS \
-	-f  $CBLD/Makefile MACFILE=$CBLD/Macros.$SITE || exit 2
+	-f  $CBLD/Makefile MACFILE=$CBLD/Macros.Linux.$SITE || exit 2
 fi
 
 cd ..
