@@ -17,15 +17,6 @@ tar -xvf ${METROMS_BASEDIR}/static_libs/mct-2.9.tar.gz
 export MCT_DIR=${METROMS_TMPDIR}/MCT
 cd $MCT_DIR
 
-if [ ${METROMS_MYHOST} == "metlocal" ] || [ "${METROMS_MYHOST}" == "met_ppi" ]; then
-    FORT=mpif90
-elif [ ${METROMS_MYHOST} == "vilje" ]; then
-    FORT=ifort
-else
-    echo " Computer not defined set environment variable METROMS_MYHOST= metlocal, vilje .."
-    exit
-fi
-
 ./configure FC=$FORT --prefix=$MCT_DIR
 make install
 make clean
