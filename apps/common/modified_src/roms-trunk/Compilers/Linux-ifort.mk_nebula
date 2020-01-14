@@ -28,8 +28,8 @@
 # First the defaults
 #
                FC := ifort
-           FFLAGS := -mcmodel=large
-              CPP := /usr/bin/cpp
+           FFLAGS := -mcmodel=large 
+              CPP := cpp
          CPPFLAGS := -P -traditional
                CC := icc
               CXX := icc
@@ -51,12 +51,15 @@
 #
 
 ifdef USE_NETCDF4
-    NETCDF_INCDIR ?= /software/sse/manual/netcdf/4.3.2/include
-    NETCDF_LIBDIR ?= /software/sse/manual/netcdf/4.3.2/lib
-             LIBS := -L$(NETCDF_LIBDIR) -lnetcdff -lnetcdf
+        NC_CONFIG ?= nc-config
+    NC_INCDIR := $(shell $(NC_CONFIG) --includedir)
+        NF_CONFIG ?= nf-config
+    NETCDF_INCDIR := $(shell $(NF_CONFIG) --includedir)
+           FFLAGS += -I$(NETCDF_INCDIR) -I$(NC_INCDIR)
+             LIBS := $(shell $(NF_CONFIG) --flibs)
 else
-    NETCDF_INCDIR ?= /software/sse/manual/netcdf/4.3.2/include
-    NETCDF_LIBDIR ?= /software/sse/manual/netcdf/4.3.2/lib
+    NETCDF_INCDIR ?= /sw/sdev/Modules/netcdf/netcdf-4.1.3/include
+    NETCDF_LIBDIR ?= /sw/sdev/Modules/netcdf/netcdf-4.1.3/lib
              LIBS := -L$(NETCDF_LIBDIR) -lnetcdff -lnetcdf
 endif
 
@@ -72,7 +75,7 @@ endif
 ifdef USE_MPI
          CPPFLAGS += -DMPI
  ifdef USE_MPIF90
-               FC := mpiifort
+               FC := mpif90
  else
              LIBS += -lmpi #-lfmpi
  endif
@@ -89,22 +92,20 @@ ifdef USE_DEBUG
            CFLAGS += -g
          CXXFLAGS += -g
 else
-           FFLAGS += -ip -O3 
-#           FFLAGS += -ip -O3 -g
+#           FFLAGS += -ip -O3 
+           FFLAGS += -ip -O3 -g
            CFLAGS += -O3
          CXXFLAGS += -O3
 endif
 
 ifdef USE_MCT
-       MCT_INCDIR ?= $(MY_ROMS_SRC)/../MCT/include
-       MCT_LIBDIR ?= $(MY_ROMS_SRC)/../MCT/lib
            FFLAGS += -I$(MCT_INCDIR)
              LIBS += -L$(MCT_LIBDIR) -lmct -lmpeu
 endif
 
 ifdef USE_CICE
-       CICE_INCDIR := $(MY_ROMS_SRC)/../${ROMS_APPLICATION}/cice/rundir/compile
-       CICE_LIBDIR := $(MY_ROMS_SRC)/../${ROMS_APPLICATION}/cice/rundir/compile
+       CICE_INCDIR := $(MY_CICE_SRC)/rundir/compile
+       CICE_LIBDIR := $(MY_CICE_SRC)/rundir/compile
            FFLAGS += -I$(CICE_INCDIR)
              LIBS += -L$(CICE_LIBDIR) -lcice
 endif
