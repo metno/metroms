@@ -12,12 +12,12 @@ CFLAGS     := -c -O2
 ifeq ($(COMMDIR), mpi)
    FC         := mpif90
 else
-   FC         := ifort
+   FC         := $(FORT)
 endif
 FIXEDFLAGS := -132
 FREEFLAGS  := 
 # Should use this together with ROMS? 
-FFLAGS     :=  -ip -O3 -ftz -xCORE-AVX2 -shared-intel -r8 -convert big_endian -IPF_fp_relaxed -assume noold_maxminloc -mcmodel large
+FFLAGS     :=  -xHost #-mcmodel=large -Nmpi
 MOD_SUFFIX := mod
 LD         := $(FC)
 LDFLAGS    := $(FFLAGS) -v
@@ -40,8 +40,9 @@ endif
 
 ifeq ($(IO_TYPE), netcdf)
    CPPDEFS :=  $(CPPDEFS) -Dncdf
-   INCLDIR := $(INCLDIR) -I/modules/xenial/NETCDF/4.6.0intel18/include
-   SLIBS   := $(SLIBS) -L/modules/xenial/NETCDF/4.6.0intel18/lib -lnetcdff -L/modules/xenial/hdf5/1.10.1/lib -lnetcdf
+   NC_CONFIG := nc-config
+   INCLDIR += $(shell $(NC_CONFIG) --fflags)
+   SLIBS   += $(shell $(NC_CONFIG) --flibs)
 endif
 
 ifeq ($(compile_threaded), true) 

@@ -27,12 +27,12 @@
 #
 # First the defaults
 #
-               FC := /modules/xenial/compiler/parallel_studio/2018/compilers_and_libraries/linux/bin/intel64/ifort
-           FFLAGS := -O3 -ftz -xCORE-AVX2 -shared-intel -r8 -convert big_endian -IPF_fp_relaxed -assume noold_maxminloc -mcmodel=large
+               FC := $(FORT)
+           FFLAGS := -xHost #-mcmodel=large -Nmpi
               CPP := /usr/bin/cpp
          CPPFLAGS := -P -traditional
-               CC := /modules/xenial/compiler/parallel_studio/2018/compilers_and_libraries/linux/bin/intel64/icc
-              CXX := /modules/xenial/compiler/parallel_studio/2018/compilers_and_libraries/linux/bin/intel64/icpc
+               CC := icc
+              CXX := icc
            CFLAGS :=
          CXXFLAGS :=
           LDFLAGS :=
@@ -51,11 +51,9 @@
 #
 
 ifdef USE_NETCDF4
-    NETCDF_INCDIR ?= /modules/xenial/NETCDF/4.5.0intel18/include
-             LIBS := -L/modules/xenial/NETCDF/4.5.0intel18/lib -lnetcdff -L/modules/xenial/hdf5/1.10.1intel18/lib -lnetcdf
-else
-    NETCDF_INCDIR ?= /modules/xenial/NETCDF/4.5.0intel18/include
-             LIBS := -L/modules/xenial/NETCDF/4.5.0intel18/lib -lnetcdff -L/modules/xenial/hdf5/1.10.1intel18/lib -lnetcdf
+        NC_CONFIG ?= nc-config
+    NETCDF_INCDIR ?= $(shell $(NC_CONFIG) --prefix)/include
+             LIBS := $(shell $(NC_CONFIG) --flibs)
 endif
 
 ifdef USE_ARPACK
@@ -72,8 +70,7 @@ ifdef USE_MPI
  ifdef USE_MPIF90
                FC := mpif90
  else
-             LIBS += -L/modules/xenial/OPENMPI/3.0.0intel18/lib -lmpi_mpifh -lmpi
-           FFLAGS += -I/modules/xenial/OPENMPI/3.0.0intel18/include 
+             LIBS += -lmpi #-lfmpi 
  endif
 endif
 
@@ -88,22 +85,19 @@ ifdef USE_DEBUG
            CFLAGS += -g
          CXXFLAGS += -g
 else
-#           FFLAGS += -ip -O3 
-           FFLAGS += -ip -O3
+#          FFLAGS += -O3
            CFLAGS += -O3
          CXXFLAGS += -O3
 endif
 
 ifdef USE_MCT
-       MCT_INCDIR ?= $(MY_ROMS_SRC)/../MCT/include
-       MCT_LIBDIR ?= $(MY_ROMS_SRC)/../MCT/lib
            FFLAGS += -I$(MCT_INCDIR)
              LIBS += -L$(MCT_LIBDIR) -lmct -lmpeu
 endif
 
 ifdef USE_CICE
-       CICE_INCDIR := $(MY_ROMS_SRC)/../${ROMS_APPLICATION}/cice/rundir/compile
-       CICE_LIBDIR := $(MY_ROMS_SRC)/../${ROMS_APPLICATION}/cice/rundir/compile
+       CICE_INCDIR := $(MY_CICE_SRC)/rundir/compile
+       CICE_LIBDIR := $(MY_CICE_SRC)/rundir/compile
            FFLAGS += -I$(CICE_INCDIR)
              LIBS += -L$(CICE_LIBDIR) -lcice
 endif

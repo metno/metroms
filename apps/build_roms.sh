@@ -141,7 +141,6 @@ export MODIFIED_SRC_FOLDER=${METROMS_BASEDIR}/apps/common/modified_src/${roms_ve
 
 ## KW 20200113
 cp -a ${MODIFIED_SRC_FOLDER}/* ${MY_ROMS_SRC}
-cp ${MODIFIED_SRC_FOLDER}/coupling.dat $BINDIR/
 cp ${COMPILERS}/Linux-${FORT}.mk_$SITE ${COMPILERS}/Linux-${FORT}.mk
 
 export MCT_INCDIR=${MCT_DIR}/include
@@ -154,7 +153,7 @@ fi
 
 if [ -n "${USE_NETCDF4:+1}" ]; then
  export USE_DAP=on
- export PATH=/usr/bin:$PATH
+# export PATH=/usr/bin:$PATH
 fi
 
 export MY_HEADER_DIR=${MY_PROJECT_DIR}/include
@@ -167,6 +166,7 @@ if [ "$METROMS_MYHOST" == "nebula" ]; then
     export BINDIR=$RUNDIR
 fi
 mkdir -p $BINDIR
+cp ${MODIFIED_SRC_FOLDER}/coupling.dat $BINDIR/
 
 cd ${MY_ROMS_SRC}
 if [ $clean -eq 1 ]; then
