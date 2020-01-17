@@ -89,12 +89,6 @@ export PYTHONPATH=$PYTHONPATH:$METROMS_PYTHON
 if [ "$METROMS_MYHOST" == "metlocal" ]; then
     export FORT=gfortran
     export SITE=Ubuntu
-elif [ "$METROMS_MYHOST" == "met_ppi" ]; then
-    export FORT=ifort
-    export SITE=MET_PPI
-elif [ "$METROMS_MYHOST" == "vilje" ]; then
-    export FORT=ifort
-    export SITE=NTNU.vilje
 else
     export FORT=ifort
     export SITE=$METROMS_MYHOST
