@@ -42,8 +42,12 @@
 
 set -x
 
-if [ $# -lt 1 ]
-  then
+if [ $# -lt 1 ]; then
+   export ROMS_APPLICATION=$app
+   export NCPUS="-j 4"
+elif [ $# -eq 1 ] || [ $# -eq 3 ]; then
+   export ROMS_APPLICATION=$1
+else
   echo "Usage: $0 modelname -j 4"
   echo "Or specify more kernels than 4 for compilation if you have them available"
   exit
@@ -54,7 +58,6 @@ fi
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 #
 # Setting up things, like compilers etc:
-export ROMS_APPLICATION=$1
 #export roms_ver="roms-3.6"
 export roms_ver="roms-trunk"
 
@@ -161,10 +164,8 @@ export MY_ANALYTICAL_DIR=${MY_HEADER_DIR}
 
 # Build ROMS
 # Put the binary to execute in the following directory.
-export BINDIR=${METROMS_TMPDIR}/${ROMS_APPLICATION}
-if [ "$METROMS_MYHOST" == "nebula" ]; then
-    export BINDIR=$RUNDIR
-fi
+#export BINDIR=${METROMS_TMPDIR}/${ROMS_APPLICATION}
+export BINDIR=$RUNDIR
 mkdir -p $BINDIR
 cp ${MODIFIED_SRC_FOLDER}/coupling.dat $BINDIR/
 

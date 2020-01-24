@@ -209,7 +209,7 @@ fi
 
 cd $EXEDIR
 #cat $SRCDIR/input_templates/$RES/ice_in.$vers | sed -e s/NTASK/$NTASK/ | sed -e s/RESTART/$restart/ > ice_in
-sed "s#<cicedir>#$SYSTEM_USERDIR#;s#<ntask>#$NTASK#" $SRCDIR/input_templates/ice_in.$CICEVERSION > $EXEDIR/ice_in
+#sed "s#<cicedir>#$SYSTEM_USERDIR#;s#<ntask>#$NTASK#" $SRCDIR/input_templates/ice_in.$CICEVERSION > $EXEDIR/ice_in
 
 #ln -sf $CICEDATADIR data
 

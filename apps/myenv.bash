@@ -10,6 +10,7 @@ if [ $# -eq 2 ]; then
 elif [ $# -eq 1 ]; then
    export METROMS_MYHOST=$1
    echo "loading $METROMS_MYHOST paths"
+   export app=barents-2.5km
 else
    echo "Undefined METROMS_MYHOST/APPLICATION !!! "
    return
@@ -61,12 +62,6 @@ elif [ "$METROMS_MYHOST" == "nebula" ] ; then
     export METROMS_TMPDIR=/nobackup/forsk/$USER/metroms_run
     export METROMS_BLDDIR=$METROMS_TMPDIR
     export METROMS_APPDIR=$HOME/metroms_apps
-    export WORKDIR=$METROMS_TMPDIR/..
-    export FORCDIR=$WORKDIR/Forcing/$app
-    export INITDIR=$WORKDIR/Initial/$app
-    export DATADIR=$WORKDIR/Data/$app
-    export RUNDIR=$METROMS_TMPDIR/$app/run
-    mkdir -p $RUNDIR
 elif [ "$METROMS_MYHOST" == "stratus" ]; then
     if [ "$USER" == "metno_op" ]; then
 	export METROMS_BASEDIR=$HOME/sea/ROMS/metroms
@@ -78,6 +73,20 @@ elif [ "$METROMS_MYHOST" == "stratus" ]; then
     fi
 else
     echo "Undefined METROMS_MYHOST ", $METROMS_MYHOST
+fi
+
+if [ "$METROMS_MYHOST" == "nebula" ] ; then
+    export WORKDIR=$METROMS_TMPDIR/..
+    export FORCDIR=$WORKDIR/Forcing/$app
+    export INITDIR=$WORKDIR/Initial/$app
+    export DATADIR=$WORKDIR/Data/$app
+    export RUNDIR=$METROMS_TMPDIR/$app/run
+else
+    export WORKDIR=$METROMS_TMPDIR/$app
+    export FORCDIR=$WORKDIR/Forcing
+    export INITDIR=$WORKDIR/Initial
+    export DATADIR=$WORKDIR/Data
+    export RUNDIR=$WORKDIR/run
 fi
 
 export ROMSGRD=$METROMS_APPDIR/grid

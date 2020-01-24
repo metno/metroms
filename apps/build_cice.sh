@@ -12,14 +12,6 @@ elif [ "${METROMS_MYHOST}" == "vilje" ]; then
     NPY=2
 fi
 
-if [ $# -lt 1 ]
-  then
-  echo "Usage: $0 modelname <xcpu> <ycpu>"
-  echo "<xcpu> <ycpu> are optional arguments"
-  exit
-fi
-
-
 if [ $# -ge 3 ]; then
     export ROMS_APPLICATION=$1
     NPX=$2
@@ -28,8 +20,10 @@ elif [ $# -eq 2 ]; then
     NPX=$1
     NPY=$2
     export ROMS_APPLICATION=$app
-elif [ $# -eq 1 ]; then
-    export ROMS_APPLICATION=$1
+else
+    echo "Usage: $0 modelname <xcpu> <ycpu>"
+    echo "<xcpu> <ycpu> are optional arguments"
+    exit
 fi
 
 echo "NPX = $NPX, NPY = $NPY"
@@ -65,7 +59,8 @@ export MCT_LIBDIR=${MCT_DIR}/lib
 #mkdir -p ${tup}/tmproms/cice
 mkdir -p $CICE_DIR/input_templates
 cp -af ${METROMS_BASEDIR}/apps/common/modified_src/$CICEVERSION/* $CICE_DIR
-cp -av ${METROMS_APPDIR}/$ROMS_APPLICATION/cice_input_grid/ice_in.$CICEVERSION $CICE_DIR/input_templates/
+#cp -av ${METROMS_APPDIR}/$ROMS_APPLICATION/cice_input_grid/ice_in.$CICEVERSION $CICE_DIR/input_templates/
+
 # Remove old binaries
 rm -f $CICE_DIR/rundir/cice
 
