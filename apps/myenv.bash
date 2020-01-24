@@ -89,8 +89,9 @@ else
     export RUNDIR=$WORKDIR/run
 fi
 
-export ROMSGRD=$METROMS_APPDIR/grid
-export CICEGRD=$METROMS_APPDIR/cice_input_grid
+export APPDIR=$METROMS_APPDIR/$app
+export ROMSGRD=$APPDIR/grid
+export CICEGRD=$APPDIR/cice_input_grid
 export MCT_DIR=$METROMS_TMPDIR/MCT
 export METROMS_PYTHON=$METROMS_BASEDIR/apps/common/python
 export PYTHONPATH=$PYTHONPATH:$METROMS_PYTHON

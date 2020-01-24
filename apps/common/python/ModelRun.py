@@ -1,4 +1,5 @@
 import os
+import shutil
 import netCDF4
 import Constants
 from GlobalParams import *
@@ -83,7 +84,17 @@ class ModelRun(object):
         """
         Contains collection of preprocessors common for all models.
         """
+        cicerstdir=self._params.CICERUNDIR+'/restart'
+        if not os.path.exists(cicerstdir):
+           os.makedirs(self._params.ROMSRUNDIR)
+           os.makedirs(self._params.CICERUNDIR+'/history')
+           os.makedirs(cicerstdir)
+
         os.chdir(self._params.RUNPATH)
+        shutil.copy(self._params.INITDIR+'/ice.restart_file',cicerstdir)
+        frst = open(cicerstdir+'/ice.restart_file').readline()
+        shutil.copy(frst,cicerstdir)
+
         if (self._params.RESTART == True):
             print "Model is restarting from previuos solution..."
             self._cycle_rst_ini()
