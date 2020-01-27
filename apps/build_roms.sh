@@ -90,6 +90,7 @@ fi
 
 export MY_CICE_SRC=${METROMS_TMPDIR}/$ROMS_APPLICATION/cice
 export MY_ROMS_SRC=${METROMS_BLDDIR}/$ROMS_APPLICATION/roms_src
+rm -r ${MY_ROMS_SRC}
 mkdir -p ${MY_ROMS_SRC}
 cd ${MY_ROMS_SRC}
 tar -xf ${METROMS_BASEDIR}/static_libs/${roms_ver}.tar.gz
@@ -164,8 +165,7 @@ export MY_ANALYTICAL_DIR=${MY_HEADER_DIR}
 
 # Build ROMS
 # Put the binary to execute in the following directory.
-#export BINDIR=${METROMS_TMPDIR}/${ROMS_APPLICATION}
-export BINDIR=$RUNDIR
+export BINDIR=${METROMS_TMPDIR}/${ROMS_APPLICATION}
 mkdir -p $BINDIR
 cp ${MODIFIED_SRC_FOLDER}/coupling.dat $BINDIR/
 

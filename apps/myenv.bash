@@ -75,19 +75,10 @@ else
     echo "Undefined METROMS_MYHOST ", $METROMS_MYHOST
 fi
 
-if [ "$METROMS_MYHOST" == "nebula" ] ; then
-    export WORKDIR=$METROMS_TMPDIR/..
-    export FORCDIR=$WORKDIR/Forcing/$app
-    export INITDIR=$WORKDIR/Initial/$app
-    export DATADIR=$WORKDIR/Data/$app
-    export RUNDIR=$METROMS_TMPDIR/$app/run
-else
-    export WORKDIR=$METROMS_TMPDIR/$app
-    export FORCDIR=$WORKDIR/Forcing
-    export INITDIR=$WORKDIR/Initial
-    export DATADIR=$WORKDIR/Data
-    export RUNDIR=$WORKDIR/run
-fi
+export WORKDIR=$METROMS_TMPDIR
+export FORCDIR=$WORKDIR/Forcing/$app
+export INITDIR=$WORKDIR/Initial/$app
+export DATADIR=$WORKDIR/Data/$app
 
 export APPDIR=$METROMS_APPDIR/$app
 export ROMSGRD=$APPDIR/grid
