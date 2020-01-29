@@ -79,6 +79,8 @@ export WORKDIR=$METROMS_TMPDIR
 export FORCDIR=$WORKDIR/Forcing/$app
 export INITDIR=$WORKDIR/Initial/$app
 export DATADIR=$WORKDIR/Data/$app
+export RUNDIR=$METROMS_TMPDIR/$app/run
+mkdir -p $RUNDIR
 
 export APPDIR=$METROMS_APPDIR/$app
 export ROMSGRD=$APPDIR/grid

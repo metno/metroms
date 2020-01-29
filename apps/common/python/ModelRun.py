@@ -6,6 +6,7 @@ from GlobalParams import *
 from datetime import datetime, timedelta
 import bisect
 import sys
+import subprocess as sp
 
 class ModelRun(object):
     """
@@ -96,9 +97,7 @@ class ModelRun(object):
         shutil.copy(self._params.TMPDIR+'/oceanM','.')
         shutil.copy(self._params.TMPDIR+'/coupling.dat','.')
         shutil.copy(self._params.INITDIR+'/ice.restart_file',cicerstdir)
-        #frst = open(cicerstdir+'/ice.restart_file').readline()
-        #shutil.copy(frst,cicerstdir)
-
+        
         if (self._params.RESTART == True):
             print "Model is restarting from previuos solution..."
             self._cycle_rst_ini()
