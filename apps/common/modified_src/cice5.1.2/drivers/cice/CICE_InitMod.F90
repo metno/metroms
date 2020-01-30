@@ -80,6 +80,7 @@
       use ice_transport_driver, only: init_transport
       use ice_zbgc, only: init_zbgc
       use ice_zbgc_shared, only: skl_bgc
+      use ice_da, only: da_ice, init_da
 #ifdef popcice
       use drv_forcing, only: sst_sss
 #endif
@@ -120,6 +121,7 @@
 
       call init_forcing_ocn(dt) ! initialize sss and sst from data
       call init_state           ! initialize the ice state
+      if (da_ice) call init_da  ! define data assimilation varialbes
       call init_transport       ! initialize horizontal transport
       
 
