@@ -91,6 +91,8 @@
                                  dSdt_slow_mode, phi_c_slow_mode, &
                                  phi_i_mushy
       use ice_restoring, only: restore_ice
+      use ice_da, only: da_ice, da_sic, da_sit, da_sno, da_method, &
+                        da_data_dir
 #ifdef CCSMCOUPLED
       use shr_file_mod, only: shr_file_setIO
 #endif
@@ -169,6 +171,10 @@
         tr_pond_lvl, restart_pond_lvl, &
         tr_pond_topo, restart_pond_topo, &
         tr_aero, restart_aero
+
+      namelist /da_nml/  &
+        da_ice, da_sic, da_sit, da_sno, &
+        da_method, da_data_dir
 
       !-----------------------------------------------------------------
       ! default values
@@ -322,6 +328,14 @@
       dSdt_slow_mode    = -1.5e-7_dbl_kind ! slow mode drainage strength (m s-1 K-1)
       phi_c_slow_mode   =    0.05_dbl_kind ! critical liquid fraction porosity cutoff
       phi_i_mushy       =    0.85_dbl_kind ! liquid fraction of congelation ice
+
+      ! sea ice data assimilation initial settings
+      da_ice      = .true.
+      da_sic      = .true.
+      da_sit      = .false.
+      da_sno      = .false.
+      da_method   = 'coin'
+      da_data_dir = '.'
 
       !-----------------------------------------------------------------
       ! read from input file
