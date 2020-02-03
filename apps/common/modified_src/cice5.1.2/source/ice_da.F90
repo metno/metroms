@@ -9,9 +9,9 @@
       module ice_da
 
       use ice_kinds_mod
-      use ice_constants, only: c0, c1, p1, p5, p01, secday, puny, &
+      use ice_constants, only: c0, c1, c5, p1, p5, p01, puny, &
                    Tsmelt, Tffresh, rhoi, cp_ice, cp_ocn, Lfresh, &
-                   field_loc_center, field_type_scalar
+                   secday, field_loc_center, field_type_scalar
       use ice_blocks, only: nx_block, ny_block
       use ice_domain_size, only: ncat, nilyr, max_blocks, max_ntrcr
       use ice_communicate, only: my_task, master_task
@@ -368,14 +368,15 @@ subroutine da_coin    (nx_block,            ny_block,      &
                         if (ktherm == 2) then
                            ! enthalpy
                            trcrn(i,j,nt_qice+k-1,n) = &
-                              enthalpy_mush(Ti, salinz(i,j,k))
+                              enthalpy_mush(Ti, c5)
                         else
                            trcrn(i,j,nt_qice+k-1,n) = &
                              - (rhoi * (cp_ice*(Tmltz(i,j,k)-Ti) &
                              + Lfresh*(c1-Tmltz(i,j,k)/Ti) &
                              - cp_ocn*Tmltz(i,j,k)))
                         endif
-                       trcrn(i,j,nt_sice+k-1,n) = salinz(i,j,k)
+                      ! trcrn(i,j,nt_sice+k-1,n) = salinz(i,j,k)
+                       trcrn(i,j,nt_sice+k-1,n) = c5
                      enddo
                   enddo
                endif
