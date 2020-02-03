@@ -9,8 +9,8 @@
       module ice_da
 
       use ice_kinds_mod
-      use ice_constants, only: c0, c1, p1, p01, secday, puny, &
-                   Tsmelt, Tffresh, rhoi, cp_ice, Lfresh, &
+      use ice_constants, only: c0, c1, p1, p5, p01, secday, puny, &
+                   Tsmelt, Tffresh, rhoi, cp_ice, cp_ocn, Lfresh, &
                    field_loc_center, field_type_scalar
       use ice_blocks, only: nx_block, ny_block
       use ice_domain_size, only: ncat, nilyr, max_blocks, max_ntrcr
@@ -193,6 +193,8 @@
                         iblock,              jblock,        &
                         Tf(:,:,       iblk),                &
                         Tair(:,:,     iblk),                &
+                        Tmltz(:,:,:,  iblk),                &
+                        salinz(:,:,:, iblk),                &
                         tmask(:,:,    iblk),                &
                         aice(:,:,     iblk),                &
                         aice_obs(:,:, iblk),                &
@@ -240,6 +242,7 @@ subroutine da_coin    (nx_block,            ny_block,      &
                        iglob,               jglob,         &
                        iblock,              jblock,        &
                        Tf,                  Tair,          &
+                       Tmltz,               salinz,        &
                        tmask,               aice,          &
                        aice_obs,            aice_obs_err,  &
                        aicen,     vicen,    vsnon,         &
@@ -248,6 +251,8 @@ subroutine da_coin    (nx_block,            ny_block,      &
       use ice_blocks, only: nblocks_x, nblocks_y
       use ice_state, only: nt_Tsfc, nt_qice, nt_qsno, nt_sice, &
                            nt_fbri, tr_brine
+      use ice_therm_mushy, only: enthalpy_mush
+      use ice_therm_shared, only: ktherm
 
       integer (kind=int_kind), intent(in) :: &
          nx_block, ny_block, & ! block dimensions
@@ -260,12 +265,17 @@ subroutine da_coin    (nx_block,            ny_block,      &
          ntrcr                 ! number of tracers in use
 
       logical (kind=log_kind), dimension (nx_block,ny_block), &
-         intent(inout) :: &
+         intent(inout) ::    &
          tmask                 ! true for ice/ocean cells
 
+      real (kind=dbl_kind), dimension(nx_block,ny_block,nilyr+1), & 
+         intent(in) :: &
+         salinz           ,  & ! initial salinity  profile (ppt)   
+         Tmltz                 ! initial melting temperature (^oC)
+
       real (kind=dbl_kind), dimension (nx_block,ny_block), intent(in) :: &
-         Tair    , & ! air temperature  (K)
-         Tf          ! freezing temperature (C) 
+         Tair              , & ! air temperature  (K)
+         Tf                    ! freezing temperature (C) 
 
       real (kind=dbl_kind), dimension (nx_block,ny_block), &
          intent(in) :: &
@@ -276,8 +286,8 @@ subroutine da_coin    (nx_block,            ny_block,      &
       real (kind=dbl_kind), dimension (nx_block,ny_block,ncat), &
          intent(inout) :: &
          aicen , & ! concentration of ice
-         vicen , & ! volume per unit area of ice          (m)
-         vsnon     ! volume per unit area of snow         (m)
+         vicen , & ! volume per unit area of ice  (m)
+         vsnon     ! volume per unit area of snow (m)
 
       real (kind=dbl_kind), dimension (nx_block,ny_block,ntrcr,ncat), &
          intent(inout) :: &
@@ -333,14 +343,10 @@ subroutine da_coin    (nx_block,            ny_block,      &
             if (aice(i,j) >= p1) then
                radd = c1 + weight * (aice_obs(i,j)/aice(i,j) - c1)
 
-               aicen(i,j,1:n) = aicen(i,j,1:n) * radd
-               vicen(i,j,1:n) = vicen(i,j,1:n) * radd
-               vsnon(i,j,1:n) = vsnon(i,j,1:n) * radd
-
-               do it=1, ntrcr
-                  if ((it .ne. nt_Tsfc) .and. (it .ne. nt_fbri)) then
-                     trcrn(i,j,it,1:n) = trcrn(i,j,it,1:n) * radd
-                  endif                   
+               do n=1,ncat
+                  aicen(i,j,n) = aicen(i,j,n) * radd
+                  vicen(i,j,n) = vicen(i,j,n) * radd
+                  vsnon(i,j,n) = vsnon(i,j,n) * radd
                enddo
             else
                if (tmask(i,j)) then
@@ -349,7 +355,7 @@ subroutine da_coin    (nx_block,            ny_block,      &
                   vicen(i,j,1) = vicen(i,j,1) - radd * mod_err * p1
 !                  vsnon(i,j,1) = vsnon(i,j,1) - radd * mod_err * p01
 
-                  do it=1, ntrcr
+                  do it=1, max_ntrcr
                      if ((it .ne. nt_Tsfc) .and. (it .ne. nt_fbri)) then
                         trcrn(i,j,it,1) = trcrn(i,j,it,1) * radd
                      endif
@@ -362,9 +368,23 @@ subroutine da_coin    (nx_block,            ny_block,      &
                         if (tr_brine) trcrn(i,j,nt_fbri,n) = c1
 
                         do k=1,nilyr
-                          ! enthalpy
-                          Ti = min(c0, trcrn(i,j,nt_Tsfc,n))
-                          trcrn(i,j,nt_qice+k-1,n) = -rhoi*(Lfresh - cp_ice*Ti)
+                          ! assume linear temp profile and compute enthalpy
+                          slope = Tf(i,j) - trcrn(i,j,nt_Tsfc,n)
+                          Ti = trcrn(i,j,nt_Tsfc,n) &
+                             + slope*(real(k,kind=dbl_kind)-p5) &
+                                /real(nilyr,kind=dbl_kind)
+
+                          if (ktherm == 2) then
+                             ! enthalpy
+                             trcrn(i,j,nt_qice+k-1,n) = &
+                               enthalpy_mush(Ti, salinz(i,j,k))
+                          else
+                             trcrn(i,j,nt_qice+k-1,n) = &
+                                -(rhoi * (cp_ice*(Tmltz(i,j,k)-Ti) &
+                                + Lfresh*(c1-Tmltz(i,j,k)/Ti) &
+                                - cp_ocn*Tmltz(i,j,k)))
+                          endif
+                          trcrn(i,j,nt_sice+k-1,n) = salinz(i,j,k)
                         enddo
                      endif
                   enddo
