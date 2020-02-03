@@ -63,9 +63,9 @@
       use ice_forcing, only: &
           ycycle,          fyear_init,    dbug, &
           atm_data_type,   atm_data_dir,  precip_units, &
-          atm_data_format, ocn_data_format, &
+          atm_data_format, ocn_data_format, atm_an_step, atm_fc_step, &
           sss_data_type,   sst_data_type, ocn_data_dir, &
-          oceanmixed_file, restore_sst,   trestore, sea_ice_bry_dir
+          oceanmixed_file, restore_sst,   trestore
       use ice_grid, only: grid_file, gridcpl_file, kmt_file, grid_type, grid_format
       use ice_lvl, only: restart_lvl
       use ice_mechred, only: kstrength, krdg_partic, krdg_redist, mu_rdg, Cf
@@ -92,7 +92,7 @@
                                  phi_i_mushy
       use ice_restoring, only: restore_ice
       use ice_da, only: da_ice, da_sic, da_sit, da_sno, da_method, &
-                        da_data_dir
+                        da_data_dir, Tobs
 #ifdef CCSMCOUPLED
       use shr_file_mod, only: shr_file_setIO
 #endif
@@ -157,11 +157,11 @@
         atmbndy,        fyear_init,      ycycle,        atm_data_format,&
         atm_data_type,  atm_data_dir,    calc_strair,   calc_Tsfc,      &
         precip_units,   update_ocn_f,    l_mpond_fresh, ustar_min,      &
-        fbot_xfer_type,                                                 &
+        fbot_xfer_type, atm_an_step,     atm_fc_step,                   &
         oceanmixed_ice, ocn_data_format, sss_data_type, sst_data_type,  &
         ocn_data_dir,   oceanmixed_file, restore_sst,   trestore,       &
         restore_ice,    formdrag,        highfreq,      natmiter,       &
-        tfrz_option, sea_ice_bry_dir
+        tfrz_option
 
       namelist /tracer_nml/   &
         tr_iage, restart_age, &
@@ -174,7 +174,7 @@
 
       namelist /da_nml/  &
         da_ice, da_sic, da_sit, da_sno, &
-        da_method, da_data_dir
+        da_method, da_data_dir, Tobs
 
       !-----------------------------------------------------------------
       ! default values
@@ -276,6 +276,8 @@
       atm_data_format = 'bin'     ! file format ('bin'=binary or 'nc'=netcdf)
       atm_data_type   = 'default'
       atm_data_dir    = ' '
+      atm_an_step     = 6
+      atm_fc_step     = 12
       calc_strair     = .true.    ! calculate wind stress
       formdrag        = .false.   ! calculate form drag
       highfreq        = .false.   ! calculate high frequency RASM coupling
@@ -292,7 +294,6 @@
       restore_sst     = .false.   ! restore sst if true
       trestore        = 90        ! restoring timescale, days (0 instantaneous)
       restore_ice     = .false.   ! restore ice state on grid edges if true
-      sea_ice_bry_dir = ' '
       dbug      = .false.         ! true writes diagnostics for input forcing
 
       latpnt(1) =  90._dbl_kind   ! latitude of diagnostic point 1 (deg)
@@ -329,13 +330,13 @@
       phi_c_slow_mode   =    0.05_dbl_kind ! critical liquid fraction porosity cutoff
       phi_i_mushy       =    0.85_dbl_kind ! liquid fraction of congelation ice
 
-      ! sea ice data assimilation initial settings
       da_ice      = .true.
       da_sic      = .true.
       da_sit      = .false.
       da_sno      = .false.
       da_method   = 'coin'
       da_data_dir = '.'
+      Tobs        = 86400.0_dbl_kind
 
       !-----------------------------------------------------------------
       ! read from input file
@@ -380,6 +381,9 @@
                write(ice_stdout,*) 'Reading forcing_nml'
                read(nu_nml, nml=forcing_nml,iostat=nml_error)
                if (nml_error /= 0) exit
+               write(ice_stdout,*) 'Reading da_nml'
+               read(nu_nml, nml=da_nml,iostat=nml_error)
+               if (nml_error /= 0) exit
          end do
          if (nml_error == 0) close(nu_nml)
       endif
@@ -398,9 +402,9 @@
       ! runid and runtype are obtained from the driver, not from the namelist
 
       if (my_task == master_task) then
-         history_file  = trim(runid) // ".cice" // trim(inst_suffix) //".h"
-         restart_file  = trim(runid) // ".cice" // trim(inst_suffix) //".r"
-         incond_file   = trim(runid) // ".cice" // trim(inst_suffix) //".i"
+         history_file  = trim(runid)//'.cice' // trim(inst_suffix)//'.h'
+         restart_file  = trim(runid)//'.cice' // trim(inst_suffix)//'.r'
+         incond_file   = trim(runid)//'.cice' // trim(inst_suffix)//'.i'
          inquire(file='ice_modelio.nml'//trim(inst_suffix),exist=exists)
          if (exists) then
             call get_fileUnit(nu_diag)
@@ -513,7 +517,8 @@
 
       if (rpcesm + rplvl + rptopo > c1 + puny) then
          if (my_task == master_task) then
-            write (nu_diag,*) 'WARNING: Must use only one melt pond scheme'
+            write (nu_diag,*) 'WARNING: Must use only one melt &
+                             & pond scheme'
             call abort_ice('ice: multiple melt pond schemes')
          endif
       endif
@@ -753,7 +758,6 @@
       call broadcast_scalar(restore_sst,        master_task)
       call broadcast_scalar(trestore,           master_task)
       call broadcast_scalar(restore_ice,        master_task)
-      call broadcast_scalar(sea_ice_bry_dir,    master_task)
       call broadcast_scalar(dbug,               master_task)
       call broadcast_array (latpnt(1:2),        master_task)
       call broadcast_array (lonpnt(1:2),        master_task)
@@ -765,6 +769,7 @@
       call broadcast_scalar(da_sno,             master_task)
       call broadcast_scalar(da_method,          master_task)
       call broadcast_scalar(da_data_dir,        master_task)
+      call broadcast_scalar(Tobs,               master_task)
 
       if (dbug) & ! else only master_task writes to file
       call broadcast_scalar(nu_diag,            master_task)
