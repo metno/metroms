@@ -17,8 +17,6 @@
       use ice_fileunits, only: nu_diag
       use ice_grid, only: tmask
       use ice_forcing, only: dbug
-      use ice_state, only: aicen, vicen, vsnon, trcrn, ntrcr, bound_state, &
-                           aice_init, aice0, aice, vice, vsno, trcr, trcr_depend
       use ice_timers, only: ice_timer_start, ice_timer_stop, timer_da
       use ice_calendar, only: istep, idate, new_day, yday, dt
       use ice_read_write, only: ice_open_nc, ice_read_nc, ice_close_nc
@@ -69,58 +67,34 @@
 
       use ice_blocks, only: block, get_block, nblocks_x, nblocks_y
       use ice_constants, only: c0
-      use ice_domain, only: ew_boundary_type, ns_boundary_type, &
-          nblocks, blocks_ice
-      use ice_fileunits, only: nu_diag, nu_da
-      use ice_grid, only: tmask
-      use ice_flux, only: sst, Tf, Tair, salinz, Tmltz
-      use ice_itd, only: aggregate
-      use ice_restart_shared, only: restart_ext
 
-   integer (int_kind) :: &
-     i,j,iblk,nt,n,k,    &! dummy loop indices
-     ilo,ihi,jlo,jhi,    &! beginning and end of physical domain
-     iglob(nx_block),    &! global indices
-     jglob(ny_block),    &! global indices
-     iblock, jblock,     &! block indices
-     ibc,                &! ghost cell column or row
-     npad                 ! padding column/row counter
+      call ice_timer_start(timer_da)
 
-   type (block) :: &
-     this_block  ! block info for current block
+!-----------------------------------------------------------------------
+!     allocate variables for sea ice observations
+!-----------------------------------------------------------------------
+      if (da_sic) then
+         allocate (aice_obs(nx_block,ny_block,max_blocks), &
+                   aice_obs_err(nx_block,ny_block,max_blocks))
+         aice_obs = c0
+         aice_obs_err = c0
+      endif
 
-   call ice_timer_start(timer_da)
+      if (da_sit) then
+         allocate (vice_obs(nx_block,ny_block,max_blocks), &
+                   vice_obs_err(nx_block,ny_block,max_blocks))
+         vice_obs = c0
+         vice_obs_err = c0
+      endif
+ 
+      if (da_sno) then
+         allocate (vsno_obs(nx_block,ny_block,max_blocks), &
+                   vsno_obs_err(nx_block,ny_block,max_blocks))
+         vsno_obs = c0
+         vsno_obs_err = c0
+      endif
 
-!=======================================================================
-   if (ew_boundary_type == 'open' .and. &
-       ns_boundary_type == 'open' .and. .not.(restart_ext)) then
-      if (my_task == master_task) write (nu_diag,*) &
-            'WARNING: Setting restart_ext = T for open boundaries'
-      restart_ext = .true.
-   endif
-
-   if (da_sic) then
-      allocate (aice_obs(nx_block,ny_block,max_blocks), &
-                aice_obs_err(nx_block,ny_block,max_blocks))
-      aice_obs = c0
-      aice_obs_err = c0
-   endif
-
-   if (da_sit) then
-      allocate (vice_obs(nx_block,ny_block,max_blocks), &
-                vice_obs_err(nx_block,ny_block,max_blocks))
-      vice_obs = c0
-      vice_obs_err = c0
-   endif
-
-   if (da_sno) then
-      allocate (vsno_obs(nx_block,ny_block,max_blocks), &
-                vsno_obs_err(nx_block,ny_block,max_blocks))
-      vsno_obs = c0
-      vsno_obs_err = c0
-   endif
-
-   call ice_timer_stop(timer_da)
+      call ice_timer_stop(timer_da)
 
  end subroutine init_da
 
@@ -133,6 +107,9 @@
       use ice_blocks, only: block, get_block, nblocks_x, nblocks_y
       use ice_domain, only: ew_boundary_type, ns_boundary_type, &
           nblocks, blocks_ice
+      use ice_state, only: aicen, vicen, vsnon, trcrn, ntrcr, bound_state, &
+                           aice_init, aice0, aice, vice, vsno, trcr, trcr_depend
+      use ice_itd, only: aggregate
 
 !-----------------------------------------------------------------------
 !  local variables
@@ -224,6 +201,30 @@
       !$OMP END PARALLEL DO
    endif
 
+   !-----------------------------------------------------------------
+   ! aggregate tracers
+   !-----------------------------------------------------------------
+
+   !$OMP PARALLEL DO PRIVATE(iblk)
+   do iblk = 1, nblocks
+
+      call aggregate (nx_block, ny_block, &
+                      aicen(:,:,:,iblk),  &
+                      trcrn(:,:,:,:,iblk),&
+                      vicen(:,:,:,iblk),  &
+                      vsnon(:,:,:,iblk),  &
+                      aice (:,:,  iblk),  &
+                      trcr (:,:,:,iblk),  &
+                      vice (:,:,  iblk),  &
+                      vsno (:,:,  iblk),  &
+                      aice0(:,:,  iblk),  &
+                      tmask(:,:,  iblk),  &
+                      max_ntrcr,          &
+                      trcr_depend)
+
+   enddo
+   !$OMP END PARALLEL DO
+
    call ice_timer_stop(timer_da)
 
 end subroutine ice_da_run
@@ -292,9 +293,8 @@ subroutine da_coin    (nx_block,            ny_block,      &
          gain,         & ! Kalman gain, optimal estimated
          weight,       & ! nudging weight, increamental Kalman gain
          weightn,      & ! nudging weigth distributed among categories
-         rda             ! dt/dT, where dT is observation time step
-
-      call ice_timer_start(timer_da)
+         rda,          & ! dt/dT, where dT is observation time step
+         radd            ! incremental ratio
 
       !-----------------------------------------------------------------
       ! assimilate sic on grid
@@ -315,22 +315,22 @@ subroutine da_coin    (nx_block,            ny_block,      &
                weight = c0
             endif
 
-            if (aice(i,j) > p1) then
+            if (aice(i,j) >= p1) then
+               radd = weight * (aice_obs(i,j)/aice(i,j) - c1)
                do n=1, ncat
-                  aicen(i,j,n) = aicen(i,j,n) * (c1 + weight &
-                        * (aice_obs(i,j)/aice(i,j) - c1))
+                  aicen(i,j,n) = aicen(i,j,n) * (c1 + radd)
+                  vicen(i,j,n) = vicen(i,j,n) * (c1 + radd)
                enddo
             else
                if (tmask(i,j)) then
-                  aicen(i,j,1) = aicen(i,j,1) + weight * &
-                                (aice_obs(i,j) - aicen(i,j,1))
+                  radd = weight * (aice_obs(i,j)/p1 - c1)
+                  aicen(i,j,1) = aicen(i,j,1) - radd * mod_err
+                  vicen(i,j,1) = vicen(i,j,1) - radd * mod_err * p1
                endif
             endif
          enddo
          enddo
       endif
-
-      call ice_timer_stop(timer_da)
 
 end subroutine da_coin
 
