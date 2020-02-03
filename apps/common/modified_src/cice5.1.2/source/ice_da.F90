@@ -10,9 +10,10 @@
 
       use ice_kinds_mod
       use ice_constants, only: c0, c1, p1, p01, secday, puny, &
-                               field_loc_center, field_type_scalar
+                   Tsmelt, Tffresh, rhoi, cp_ice, Lfresh, &
+                   field_loc_center, field_type_scalar
       use ice_blocks, only: nx_block, ny_block
-      use ice_domain_size, only: ncat, max_blocks, max_ntrcr
+      use ice_domain_size, only: ncat, nilyr, max_blocks, max_ntrcr
       use ice_communicate, only: my_task, master_task
       use ice_fileunits, only: nu_diag
       use ice_grid, only: tmask
@@ -110,6 +111,7 @@
       use ice_state, only: aicen, vicen, vsnon, trcrn, ntrcr, bound_state, &
                            aice_init, aice0, aice, vice, vsno, trcr, trcr_depend
       use ice_itd, only: aggregate
+      use ice_flux, only: Tf, Tair, sst, salinz, Tmltz
 
 !-----------------------------------------------------------------------
 !  local variables
@@ -189,6 +191,8 @@
                         ilo, ihi,            jlo, jhi,      &
                         iglob,               jglob,         &
                         iblock,              jblock,        &
+                        Tf(:,:,       iblk),                &
+                        Tair(:,:,     iblk),                &
                         tmask(:,:,    iblk),                &
                         aice(:,:,     iblk),                &
                         aice_obs(:,:, iblk),                &
@@ -235,12 +239,15 @@ subroutine da_coin    (nx_block,            ny_block,      &
                        ilo, ihi,            jlo, jhi,      &
                        iglob,               jglob,         &
                        iblock,              jblock,        &
+                       Tf,                  Tair,          &
                        tmask,               aice,          &
                        aice_obs,            aice_obs_err,  &
                        aicen,     vicen,    vsnon,         &
                        trcrn,     ntrcr)         
 
       use ice_blocks, only: nblocks_x, nblocks_y
+      use ice_state, only: nt_Tsfc, nt_qice, nt_qsno, nt_sice, &
+                           nt_fbri, tr_brine
 
       integer (kind=int_kind), intent(in) :: &
          nx_block, ny_block, & ! block dimensions
@@ -255,6 +262,10 @@ subroutine da_coin    (nx_block,            ny_block,      &
       logical (kind=log_kind), dimension (nx_block,ny_block), &
          intent(inout) :: &
          tmask                 ! true for ice/ocean cells
+
+      real (kind=dbl_kind), dimension (nx_block,ny_block), intent(in) :: &
+         Tair    , & ! air temperature  (K)
+         Tf          ! freezing temperature (C) 
 
       real (kind=dbl_kind), dimension (nx_block,ny_block), &
          intent(in) :: &
@@ -296,6 +307,10 @@ subroutine da_coin    (nx_block,            ny_block,      &
          rda,          & ! dt/dT, where dT is observation time step
          radd            ! incremental ratio
 
+      real (kind=dbl_kind) :: &
+         slope,        & !
+         Ti              !
+
       !-----------------------------------------------------------------
       ! assimilate sic on grid
       !-----------------------------------------------------------------
@@ -316,16 +331,43 @@ subroutine da_coin    (nx_block,            ny_block,      &
             endif
 
             if (aice(i,j) >= p1) then
-               radd = weight * (aice_obs(i,j)/aice(i,j) - c1)
-               do n=1, ncat
-                  aicen(i,j,n) = aicen(i,j,n) * (c1 + radd)
-                  vicen(i,j,n) = vicen(i,j,n) * (c1 + radd)
+               radd = c1 + weight * (aice_obs(i,j)/aice(i,j) - c1)
+
+               aicen(i,j,1:n) = aicen(i,j,1:n) * radd
+               vicen(i,j,1:n) = vicen(i,j,1:n) * radd
+               vsnon(i,j,1:n) = vsnon(i,j,1:n) * radd
+
+               do it=1, ntrcr
+                  if ((it .ne. nt_Tsfc) .and. (it .ne. nt_fbri)) then
+                     trcrn(i,j,it,1:n) = trcrn(i,j,it,1:n) * radd
+                  endif                   
                enddo
             else
                if (tmask(i,j)) then
                   radd = weight * (aice_obs(i,j)/p1 - c1)
                   aicen(i,j,1) = aicen(i,j,1) - radd * mod_err
                   vicen(i,j,1) = vicen(i,j,1) - radd * mod_err * p1
+!                  vsnon(i,j,1) = vsnon(i,j,1) - radd * mod_err * p01
+
+                  do it=1, ntrcr
+                     if ((it .ne. nt_Tsfc) .and. (it .ne. nt_fbri)) then
+                        trcrn(i,j,it,1) = trcrn(i,j,it,1) * radd
+                     endif
+                  enddo               
+         
+                  do n=1,ncat
+                     if (aice(i,j) < puny) then
+
+                        trcrn(i,j,nt_Tsfc,n) = min(Tsmelt, Tair(i,j)-Tffresh) 
+                        if (tr_brine) trcrn(i,j,nt_fbri,n) = c1
+
+                        do k=1,nilyr
+                          ! enthalpy
+                          Ti = min(c0, trcrn(i,j,nt_Tsfc,n))
+                          trcrn(i,j,nt_qice+k-1,n) = -rhoi*(Lfresh - cp_ice*Ti)
+                        enddo
+                     endif
+                  enddo
                endif
             endif
          enddo
