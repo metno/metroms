@@ -32,6 +32,7 @@
          da_sic ,       & ! perform da of sic if true
          da_sit ,       & ! perform da of sea ice thickess if true
          da_sno ,       & ! for snow depth if true
+         da_insert,     & ! direct insertion
          corr_bias        ! perform bias correction if true
 
      character (char_len), public :: &
@@ -340,7 +341,10 @@ subroutine da_coin    (nx_block,            ny_block,      &
             if (tmask(i,j)) then
                mod_err = aice(i,j) - aice_obs(i,j)
                mod_err2 = mod_err**2 + aice_obs_err(i,j)**2
+
                gain   = mod_err2 / (mod_err2 + puny + aice_obs_err(i,j)**2)
+               if (da_insert) gain = c1
+
                weight = c1 - (c1 - gain)**rda
                if (corr_bias) then
                   weight = weight * exp(-(aice(i,j)+aice_obs(i,j)*2.5_dbl_kind))
