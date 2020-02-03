@@ -350,17 +350,10 @@ subroutine da_coin    (nx_block,            ny_block,      &
                enddo
             else
                if (tmask(i,j)) then
-                  radd = weight * (aice_obs(i,j)/p1 - c1)
-                  aicen(i,j,1) = aicen(i,j,1) - radd * mod_err
-                  vicen(i,j,1) = vicen(i,j,1) - radd * mod_err * p1
-!                  vsnon(i,j,1) = vsnon(i,j,1) - radd * mod_err * p01
+                  radd = weight * (aice_obs(i,j) - aice(i,j))
+                  aicen(i,j,1) = aicen(i,j,1) + radd 
+                  vicen(i,j,1) = vicen(i,j,1) + radd 
 
-                  do it=1, max_ntrcr
-                     if ((it .ne. nt_Tsfc) .and. (it .ne. nt_fbri)) then
-                        trcrn(i,j,it,1) = trcrn(i,j,it,1) * radd
-                     endif
-                  enddo               
-         
                   do n=1,ncat
                      if (aice(i,j) < puny) then
 
