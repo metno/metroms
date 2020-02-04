@@ -18,6 +18,8 @@
       use ice_fileunits, only: nu_diag
       use ice_grid, only: tmask
       use ice_forcing, only: dbug
+      use ice_domain, only: distrb_info
+      use ice_global_reductions, only: global_minval, global_maxval
       use ice_timers, only: ice_timer_start, ice_timer_stop, timer_da
       use ice_calendar, only: istep, idate, new_day, yday, dt
       use ice_read_write, only: ice_open_nc, ice_read_nc, ice_close_nc
@@ -27,15 +29,17 @@
       public :: init_da, ice_da_run
       save
 
+      integer (kind=int_kind), public :: &
+         da_sic ,       & ! perform da of sic if 1
+         da_sit ,       & ! perform da of sea ice thickess if 1
+         da_sno           ! perform da for snow depth if 1
+
       logical (kind=log_kind), public :: &
          da_ice ,       & ! perform data assimilation if true
-         da_sic ,       & ! perform da of sic if true
-         da_sit ,       & ! perform da of sea ice thickess if true
-         da_sno ,       & ! for snow depth if true
          da_insert,     & ! direct insertion
          corr_bias        ! perform bias correction if true
 
-     character (char_len), public :: &
+      character (char_len), public :: &
          da_method        ! data assimilation method
 
       character (char_len_long), public :: &
@@ -51,10 +55,13 @@
       real (kind=dbl_kind), dimension (:,:,:), allocatable :: &
          aice_obs     ,  & ! observed SIC 
          aice_obs_err ,  & ! observed SIC std
+         aice_ana_err ,  & ! analysis SIC std
          vice_obs     ,  & ! observed ice volume (m) 
-         vice_obs_err ,  & ! observed ice volume std (m) 
+         vice_obs_err ,  & ! observed ice volume std (m)
+         vice_ana_err ,  & ! analysis ice volume std (m)  
          vsno_obs     ,  & ! observed snow volume (m) 
-         vsno_obs_err      ! observed snow volume std (m) 
+         vsno_obs_err ,  & ! observed snow volume std (m) 
+         tmp               ! temporal array
 
       real (kind=dbl_kind), dimension (:,:,:,:), allocatable :: &
          trcr_obs, trcr_err     ! tracers
@@ -79,21 +86,24 @@
 !-----------------------------------------------------------------------
 !     allocate variables for sea ice observations
 !-----------------------------------------------------------------------
-      if (da_sic) then
+      allocate (tmp(nx_block,ny_block,max_blocks))
+      tmp = c0
+
+      if (da_sic > 0) then
          allocate (aice_obs(nx_block,ny_block,max_blocks), &
                    aice_obs_err(nx_block,ny_block,max_blocks))
          aice_obs = c0
          aice_obs_err = c0
       endif
 
-      if (da_sit) then
+      if (da_sit > 0) then
          allocate (vice_obs(nx_block,ny_block,max_blocks), &
                    vice_obs_err(nx_block,ny_block,max_blocks))
          vice_obs = c0
          vice_obs_err = c0
       endif
  
-      if (da_sno) then
+      if (da_sno > 0) then
          allocate (vsno_obs(nx_block,ny_block,max_blocks), &
                    vsno_obs_err(nx_block,ny_block,max_blocks))
          vsno_obs = c0
@@ -130,6 +140,7 @@
      iblock, jblock,     & ! block indices
      ibc,                & ! ghost cell column or row
      npad,               & ! padding column/row counter
+     ix, iy,             & ! temporal integers
      fid                   ! file id for netCDF routines
 
    character (char_len_long) :: &
@@ -142,6 +153,10 @@
    type (block) :: &
      this_block            ! block info for current block
 
+   logical (kind=log_kind) :: file_exist
+
+   real (kind=dbl_kind) :: vmin, vmax
+
    call ice_timer_start(timer_da)
 
 !-----------------------------------------------------------------------
@@ -151,21 +166,42 @@
    if ((istep == 1) .or. new_day) then
 
 
-      if (da_sic) then     ! sea ice concentration & uncertainties
+      if (da_sic > 0) then     ! sea ice concentration & uncertainties
 
-         write(da_date,'(i4)') idate/10000
-         data_file = trim(da_data_dir)//'osisaf_'//trim(da_date)//'.nc'
+!         write(da_date,'(i4)') idate/10000
+!         data_file = trim(da_data_dir)//'osisaf_'//trim(da_date)//'.nc'
+         write(da_date,'(i8)') idate
+!         data_file = trim(da_data_dir)//'amsr_'//trim(da_date)//'.nc'
+         data_file = trim(da_data_dir)//'multisensorSeaIce_'//trim(da_date)//'1200.nc'
+         write(nu_diag,*) 'DA data file0 = ', data_file
+
+         inquire(file=data_file,exist=file_exist)
+         if (.not. file_exist) return
+
          write(nu_diag,*) 'DA data file = ', data_file
-
          call ice_open_nc(data_file,fid)
 
-         fieldname = 'obsAice'
-         call ice_read_nc (fid, int(yday), fieldname, aice_obs, dbug, &
+!         fieldname = 'obsAice'
+!         call ice_read_nc (fid, int(yday), fieldname, aice_obs, dbug, &
+!         fieldname = 'amsr2_sic'
+         fieldname = 'conc'
+         call ice_read_nc (fid, 1, fieldname, aice_obs, dbug, &
               field_loc_center, field_type_scalar)
+
+         vmin = global_minval(aice_obs,distrb_info,tmask)
+         vmax = global_maxval(aice_obs,distrb_info,tmask)
+         write (nu_diag,*) 'aice_obs',vmin,vmax 
         
-         fieldname = 'obsAerr'
-         call ice_read_nc (fid, int(yday), fieldname, aice_obs_err, dbug, &
+!         fieldname = 'obsAerr'
+!         call ice_read_nc (fid, int(yday), fieldname, aice_obs_err, dbug, &
+!         fieldname = 'amsr2_sice'
+         fieldname = 'confidence'
+         call ice_read_nc (fid, 1, fieldname, aice_obs_err, dbug, &
               field_loc_center, field_type_scalar)
+
+         vmin = global_minval(aice_obs_err,distrb_info,tmask)
+         vmax = global_maxval(aice_obs_err,distrb_info,tmask)
+         write (nu_diag,*) 'aice_obs_err',vmin,vmax 
 
          call ice_close_nc(fid)
       endif
@@ -328,9 +364,9 @@ subroutine da_coin    (nx_block,            ny_block,      &
       !-----------------------------------------------------------------
 
       rda = dt / Tobs
-      if (my_task == master_task) write(nu_diag,*) 'rda = ', rda
+      if (my_task == master_task) write(nu_diag,*) 'DA rda = ', rda
 
-      if (da_sic == .true.) then
+      if (da_sic > 0) then
 
          do j = 1, ny_block
          do i = 1, nx_block
@@ -339,6 +375,7 @@ subroutine da_coin    (nx_block,            ny_block,      &
 
                aobs = aice_obs(i,j)     * p01
                aerr = aice_obs_err(i,j) * p01
+               aerr = aobs * (c1 - aerr)
 
                mod_err  = aice(i,j) - aobs
                mod_err2 = mod_err**2 + aerr**2

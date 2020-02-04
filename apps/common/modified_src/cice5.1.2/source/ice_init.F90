@@ -63,7 +63,7 @@
       use ice_forcing, only: &
           ycycle,          fyear_init,    dbug, &
           atm_data_type,   atm_data_dir,  precip_units, &
-          atm_data_format, ocn_data_format, atm_an_step, atm_fc_step, &
+          atm_data_format, ocn_data_format, &
           sss_data_type,   sst_data_type, ocn_data_dir, &
           oceanmixed_file, restore_sst,   trestore
       use ice_grid, only: grid_file, gridcpl_file, kmt_file, grid_type, grid_format
@@ -157,7 +157,7 @@
         atmbndy,        fyear_init,      ycycle,        atm_data_format,&
         atm_data_type,  atm_data_dir,    calc_strair,   calc_Tsfc,      &
         precip_units,   update_ocn_f,    l_mpond_fresh, ustar_min,      &
-        fbot_xfer_type, atm_an_step,     atm_fc_step,                   &
+        fbot_xfer_type, &
         oceanmixed_ice, ocn_data_format, sss_data_type, sst_data_type,  &
         ocn_data_dir,   oceanmixed_file, restore_sst,   trestore,       &
         restore_ice,    formdrag,        highfreq,      natmiter,       &
@@ -276,8 +276,6 @@
       atm_data_format = 'bin'     ! file format ('bin'=binary or 'nc'=netcdf)
       atm_data_type   = 'default'
       atm_data_dir    = ' '
-      atm_an_step     = 6
-      atm_fc_step     = 12
       calc_strair     = .true.    ! calculate wind stress
       formdrag        = .false.   ! calculate form drag
       highfreq        = .false.   ! calculate high frequency RASM coupling
@@ -331,9 +329,9 @@
       phi_i_mushy       =    0.85_dbl_kind ! liquid fraction of congelation ice
 
       da_ice      = .true.
-      da_sic      = .true.
-      da_sit      = .false.
-      da_sno      = .false.
+      da_sic      = 1
+      da_sit      = 0
+      da_sno      = 0
       da_method   = 'coin'
       da_data_dir = '.'
       Tobs        = 86400.0_dbl_kind
