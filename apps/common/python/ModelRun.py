@@ -87,15 +87,16 @@ class ModelRun(object):
         """
         cicerstdir=self._params.CICERUNDIR+'/restart'
         if not os.path.exists(cicerstdir):
-           os.makedirs(self._params.RUNPATH)
+#           os.makedirs(self._params.RUNPATH)
            os.makedirs(self._params.ROMSRUNDIR)
-           os.makedirs(self._params.CICERUNDIR)
+#           os.makedirs(self._params.CICERUNDIR)
            os.makedirs(self._params.CICERUNDIR+'/history')
            os.makedirs(cicerstdir)
 
         os.chdir(self._params.RUNPATH)
-        shutil.copy(self._params.TMPDIR+'/oceanM','.')
-        shutil.copy(self._params.TMPDIR+'/coupling.dat','.')
+        if self._params.mycase not in 'cice5.1.2':
+           shutil.copy(self._params.TMPDIR+'/oceanM','.')
+           shutil.copy(self._params.TMPDIR+'/coupling.dat','.')
         shutil.copy(self._params.INITDIR+'/ice.restart_file',cicerstdir)
         
         if (self._params.RESTART == True):
