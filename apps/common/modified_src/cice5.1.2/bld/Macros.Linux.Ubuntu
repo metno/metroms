@@ -3,8 +3,8 @@
 # Geophysical Institute, University of Alaska Fairbanks
 #==============================================================================
 
-INCLDIR    := -I$(MCT_INCDIR)
-SLIBS      := -L$(MCT_LIBDIR) -lmct -lmpeu
+INCLDIR    := -I$(MCT_DIR)/include
+SLIBS      := -L$(MCT_DIR)/lib -lmct -lmpeu
 ULIBS      := 
 CPP        := cpp
 CPPFLAGS   := -P -traditional
@@ -39,9 +39,10 @@ ifeq ($(DITTO), yes)
 endif
 
 ifeq ($(IO_TYPE), netcdf)
-   CPPDEFS :=  $(CPPDEFS) -Dncdf
-   INCLDIR := $(INCLDIR) -I/usr/include
-   SLIBS   := $(SLIBS) -L/usr/lib -lnetcdf -lnetcdff
+   CPPDEFS := $(CPPDEFS) -Dncdf
+   NC_CONFIG := nc-config
+   INCLDIR += $(shell $(NC_CONFIG) --fflags)
+   SLIBS   += $(shell $(NC_CONFIG) --flibs)
 endif
 
 ### note this file does not include PIO capability

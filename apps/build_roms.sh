@@ -187,8 +187,8 @@ fi
 cd  ${MY_PROJECT_DIR}
 
 # Clean up unpacked static code:
-rm -rf ${MY_CICE_SRC}
-rm -rf ${MY_ROMS_SRC}
+#rm -rf ${MY_CICE_SRC}
+#rm -rf ${MY_ROMS_SRC}
 
 set +x
 
