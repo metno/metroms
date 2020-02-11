@@ -399,38 +399,38 @@ subroutine da_coin    (nx_block,            ny_block,      &
                   vicen(i,j,n) = vicen(i,j,n) * radd
                   vsnon(i,j,n) = vsnon(i,j,n) * radd
                enddo
-            else
-               if (weight > c0) then
-                  radd = weight * (aobs - aice(i,j))
-                  aicen(i,j,1) = aicen(i,j,1) + radd 
-                  vicen(i,j,1) = vicen(i,j,1) + radd 
+!            else
+!               if (weight > c0) then
+!                  radd = weight * (aobs - aice(i,j))
+!                  aicen(i,j,1) = aicen(i,j,1) + radd 
+!                  vicen(i,j,1) = vicen(i,j,1) + radd 
 
-                  do n=1,ncat
-                     trcrn(i,j,nt_Tsfc,n) = min(Tsmelt, Tair(i,j)-Tffresh) 
-                     if (tr_brine) trcrn(i,j,nt_fbri,n) = c1
+!                  do n=1,ncat
+!                     trcrn(i,j,nt_Tsfc,n) = min(Tsmelt, Tair(i,j)-Tffresh) 
+!                     if (tr_brine) trcrn(i,j,nt_fbri,n) = c1
 
-                     do k=1,nilyr
+!                     do k=1,nilyr
                         ! assume linear temp profile and compute enthalpy
-                        slope = Tf(i,j) - trcrn(i,j,nt_Tsfc,n)
-                        Ti = trcrn(i,j,nt_Tsfc,n) &
-                           + slope*(real(k,kind=dbl_kind)-p5) &
-                           / real(nilyr,kind=dbl_kind)
+!                        slope = Tf(i,j) - trcrn(i,j,nt_Tsfc,n)
+!                        Ti = trcrn(i,j,nt_Tsfc,n) &
+!                           + slope*(real(k,kind=dbl_kind)-p5) &
+!                           / real(nilyr,kind=dbl_kind)
 
-                        if (ktherm == 2) then
+!                        if (ktherm == 2) then
                            ! enthalpy
-                           trcrn(i,j,nt_qice+k-1,n) = &
-                              enthalpy_mush(Ti, c5)
-                        else
-                           trcrn(i,j,nt_qice+k-1,n) = &
-                             - (rhoi * (cp_ice*(Tmltz(i,j,k)-Ti) &
-                             + Lfresh*(c1-Tmltz(i,j,k)/Ti) &
-                             - cp_ocn*Tmltz(i,j,k)))
-                        endif
+!                           trcrn(i,j,nt_qice+k-1,n) = &
+!                              enthalpy_mush(Ti, c5)
+!                        else
+!                           trcrn(i,j,nt_qice+k-1,n) = &
+!                             - (rhoi * (cp_ice*(Tmltz(i,j,k)-Ti) &
+!                             + Lfresh*(c1-Tmltz(i,j,k)/Ti) &
+!                             - cp_ocn*Tmltz(i,j,k)))
+!                        endif
                       ! trcrn(i,j,nt_sice+k-1,n) = salinz(i,j,k)
-                       trcrn(i,j,nt_sice+k-1,n) = c5
-                     enddo
-                  enddo
-               endif
+!                       trcrn(i,j,nt_sice+k-1,n) = c5
+!                     enddo
+!                  enddo
+!               endif
             endif
          enddo
          enddo
