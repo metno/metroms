@@ -14,7 +14,7 @@ fi
 cd ${METROMS_TMPDIR}
 # Unpack standard source files
 tar -xvf ${METROMS_BASEDIR}/static_libs/mct-2.9.tar.gz
-export MCT_DIR=${METROMS_TMPDIR}/MCT
+#export MCT_DIR=${METROMS_TMPDIR}/MCT
 cd $MCT_DIR
 
 ./configure FC=$FORT --prefix=$MCT_DIR

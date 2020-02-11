@@ -17,9 +17,11 @@ if [ $# -ge 3 ]; then
     NPX=$2
     NPY=$3
 elif [ $# -eq 2 ]; then
+    export ROMS_APPLICATION=$app
     NPX=$1
     NPY=$2
-    export ROMS_APPLICATION=$app
+elif [ $# -eq 1 ]; then
+    export ROMS_APPLICATION=$1
 else
     echo "Usage: $0 modelname <xcpu> <ycpu>"
     echo "<xcpu> <ycpu> are optional arguments"

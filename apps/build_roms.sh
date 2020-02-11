@@ -90,7 +90,6 @@ fi
 
 export MY_CICE_SRC=${METROMS_TMPDIR}/$ROMS_APPLICATION/cice
 export MY_ROMS_SRC=${METROMS_BLDDIR}/$ROMS_APPLICATION/roms_src
-rm -r ${MY_ROMS_SRC}
 mkdir -p ${MY_ROMS_SRC}
 cd ${MY_ROMS_SRC}
 tar -xf ${METROMS_BASEDIR}/static_libs/${roms_ver}.tar.gz
@@ -185,8 +184,11 @@ if [ -n "${USE_CICE:+1}" ]; then
 	cp ${MODIFIED_SRC_FOLDER}/coupling.dat $BINDIR/
 fi
 
-# Clean up unpacked static code:
 cd  ${MY_PROJECT_DIR}
-#rm -rf ${MY_ROMS_SRC}
+
+# Clean up unpacked static code:
+rm -rf ${MY_CICE_SRC}
+rm -rf ${MY_ROMS_SRC}
 
 set +x
+

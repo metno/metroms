@@ -10,15 +10,16 @@ if [ $# -eq 2 ]; then
 elif [ $# -eq 1 ]; then
    export METROMS_MYHOST=$1
    echo "loading $METROMS_MYHOST paths"
-   export app=barents-2.5km
 else
    echo "Undefined METROMS_MYHOST/APPLICATION !!! "
    return
 fi
 
 if [ "$METROMS_MYHOST" == "metlocal" ]; then
-    export METROMS_BASEDIR=/disk1/$USER
-    export METROMS_TMPDIR=/disk1/$USER
+    export METROMS_BASEDIR=$HOME/metroms
+    export METROMS_APPDIR=$HOME/metroms_apps
+    export METROMS_TMPDIR=$HOME/metroms_run
+    export METROMS_BLDDIR=$METROMS_TMPDIR
 elif [ "$METROMS_MYHOST" == "vilje" ]; then
     if [ "$USER" == "forecast" ]; then
 	export METROMS_BASEDIR=$HOME/sea/ROMS/metroms
@@ -75,19 +76,22 @@ else
     echo "Undefined METROMS_MYHOST ", $METROMS_MYHOST
 fi
 
-export WORKDIR=$METROMS_TMPDIR
-export FORCDIR=$WORKDIR/Forcing/$app
-export INITDIR=$WORKDIR/Initial/$app
-export DATADIR=$WORKDIR/Data/$app
-export RUNDIR=$METROMS_TMPDIR/$app/run
-mkdir -p $RUNDIR
-
-export APPDIR=$METROMS_APPDIR/$app
-export ROMSGRD=$APPDIR/grid
-export CICEGRD=$APPDIR/cice_input_grid
+mkdir -p $METROMS_TMPDIR
 export MCT_DIR=$METROMS_TMPDIR/MCT
 export METROMS_PYTHON=$METROMS_BASEDIR/apps/common/python
 export PYTHONPATH=$PYTHONPATH:$METROMS_PYTHON
+
+if [ $# -eq 2 ]; then
+   export WORKDIR=$METROMS_TMPDIR
+   export FORCDIR=$WORKDIR/Forcing/$app
+   export INITDIR=$WORKDIR/Initial/$app
+   export DATADIR=$WORKDIR/Data/$app
+   export RUNDIR=$METROMS_TMPDIR/$app/run
+   mkdir -p $RUNDIR
+   export APPDIR=$METROMS_APPDIR/$app
+   export ROMSGRD=$APPDIR/grid
+   export CICEGRD=$APPDIR/cice_input_grid
+fi
 
 if [ "$METROMS_MYHOST" == "metlocal" ]; then
     export FORT=gfortran
