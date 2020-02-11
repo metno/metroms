@@ -5,23 +5,17 @@ class GlobalParams(object):
 
     username=getpass.getuser()
 
-    MYHOST=os.environ.get('METROMS_MYHOST','metlocal')
+    MYHOST=os.environ.get('METROMS_MYHOST')
 
-    if MYHOST=='metlocal':
-        METROMSDIR=os.environ.get('METROMS_BASEDIR','/disk1/'+username+'/metroms')
-        tmpdir=os.environ.get('METROMS_TMPDIR','/disk1/'+username)
-        RUNDIR=tmpdir
-    elif MYHOST=='vilje' or MYHOST=='alvin' or MYHOST=='met_ppi' or MYHOST=='elvis' or MYHOST=='nebula' or MYHOST=='stratus':
+    if MYHOST=='metlocal' or 'vilje' or MYHOST=='alvin' or MYHOST=='met_ppi' or MYHOST=='elvis' or MYHOST=='nebula' or MYHOST=='stratus':
         HOME=os.environ.get('HOME')
         if HOME=='None':
             print "Environment variable HOME not found in configuration"
             sys.exit(1)
 
-        METROMSDIR=os.environ.get('METROMS_BASEDIR',HOME+'/metroms')
-
-        tmpdir=os.environ.get('METROMS_TMPDIR','/work/'+username)
-        RUNDIR=tmpdir
-        METROMSAPPDIR=os.environ.get('METROMS_APPDIR',HOME+'/metroms_apps')
+        METROMSDIR   =os.environ.get('METROMS_BASEDIR',HOME+'/metroms')
+        METROMSAPPDIR=os.environ.get('METROMS_APPDIR', HOME+'/metroms_apps')
+        METROMSTMPDIR=os.environ.get('METROMS_TMPDIR','/work/'+username)
     else:
         print 'Environment variable MYHOST not defined or unknown (metlocal,vilje,)'
         sys.exit(1)
