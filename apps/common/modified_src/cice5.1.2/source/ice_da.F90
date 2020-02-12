@@ -171,8 +171,8 @@
 !         write(da_date,'(i4)') idate/10000
 !         data_file = trim(da_data_dir)//'osisaf_'//trim(da_date)//'.nc'
          write(da_date,'(i8)') idate
-!         data_file = trim(da_data_dir)//'amsr_'//trim(da_date)//'.nc'
-         data_file = trim(da_data_dir)//'multisensorSeaIce_'//trim(da_date)//'1200.nc'
+         data_file = trim(da_data_dir)//'amsr_'//trim(da_date)//'.nc'
+!         data_file = trim(da_data_dir)//'multisensorSeaIce_'//trim(da_date)//'1200.nc'
          write(nu_diag,*) 'DA data file0 = ', data_file
 
          inquire(file=data_file,exist=file_exist)
@@ -183,8 +183,8 @@
 
 !         fieldname = 'obsAice'
 !         call ice_read_nc (fid, int(yday), fieldname, aice_obs, dbug, &
-!         fieldname = 'amsr2_sic'
-         fieldname = 'conc'
+         fieldname = 'amsr2_sic'
+!         fieldname = 'conc'
          call ice_read_nc (fid, 1, fieldname, aice_obs, dbug, &
               field_loc_center, field_type_scalar)
 
@@ -194,8 +194,8 @@
         
 !         fieldname = 'obsAerr'
 !         call ice_read_nc (fid, int(yday), fieldname, aice_obs_err, dbug, &
-!         fieldname = 'amsr2_sice'
-         fieldname = 'confidence'
+         fieldname = 'amsr2_sice'
+!         fieldname = 'confidence'
          call ice_read_nc (fid, 1, fieldname, aice_obs_err, dbug, &
               field_loc_center, field_type_scalar)
 
@@ -375,7 +375,7 @@ subroutine da_coin    (nx_block,            ny_block,      &
 
                aobs = aice_obs(i,j)     * p01
                aerr = aice_obs_err(i,j) * p01
-               aerr = aobs * (c1 - aerr)
+!               aerr = aobs * (c1 - aerr)
 
                mod_err  = aice(i,j) - aobs
                mod_err2 = mod_err**2 + aerr**2

@@ -82,7 +82,7 @@ export METROMS_PYTHON=$METROMS_BASEDIR/apps/common/python
 export PYTHONPATH=$PYTHONPATH:$METROMS_PYTHON
 
 if [ $# -eq 2 ]; then
-   export WORKDIR=$METROMS_TMPDIR
+   export WORKDIR=$METROMS_TMPDIR/..
    export FORCDIR=$WORKDIR/Forcing/$app
    export INITDIR=$WORKDIR/Initial/$app
    export DATADIR=$WORKDIR/Data/$app
