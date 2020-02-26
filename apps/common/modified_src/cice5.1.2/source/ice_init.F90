@@ -761,6 +761,12 @@
       call broadcast_array (lonpnt(1:2),        master_task)
       call broadcast_scalar(runid,              master_task)
       call broadcast_scalar(runtype,            master_task)
+      call broadcast_scalar(da_ice,             master_task)
+      call broadcast_scalar(da_sic,             master_task)
+      call broadcast_scalar(da_sit,             master_task)
+      call broadcast_scalar(da_sno,             master_task)
+      call broadcast_scalar(da_method,          master_task)
+      call broadcast_scalar(da_data_dir,        master_task)
 
       if (dbug) & ! else only master_task writes to file
       call broadcast_scalar(nu_diag,            master_task)
