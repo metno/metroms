@@ -2957,7 +2957,9 @@
         field_loc_center, field_type_scalar, &
         should_loop, metroms_ip_rhoa)
 
-      !rhoa = rhoa / (Tair * 287.058_dbl_kind)
+      if (maxval(rhoa) < 2000.) then
+         rhoa = rhoa * 100.
+      endif
 
       fieldname = 'Qair'
       call metroms_read_and_interpolate(fieldname, &
