@@ -37,7 +37,10 @@
          da_method        ! data assimilation method
 
       character (char_len_long), public :: &
-         da_data_dir       ! top directory for data to assimilate 
+         da_data_dir      ! top directory for data to assimilate 
+
+      real (kind=dbl_kind), public :: &
+        Tobs              ! time step for observations, in seconds
 
       !-----------------------------------------------------------------
       ! observed & model ice/snow variables & uncertainties
@@ -325,7 +328,7 @@ subroutine da_coin    (nx_block,            ny_block,      &
       ! assimilate sic on grid
       !-----------------------------------------------------------------
 
-      rda = dt / real(secday,kind=dbl_kind)
+      rda = dt / Tobs
       if (my_task == master_task) write(nu_diag,*) 'rda = ', rda
 
       if (da_sic == .true.) then

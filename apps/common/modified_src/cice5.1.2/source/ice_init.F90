@@ -92,7 +92,7 @@
                                  phi_i_mushy
       use ice_restoring, only: restore_ice
       use ice_da, only: da_ice, da_sic, da_sit, da_sno, da_method, &
-                        da_data_dir
+                        da_data_dir, Tobs
 #ifdef CCSMCOUPLED
       use shr_file_mod, only: shr_file_setIO
 #endif
@@ -173,7 +173,7 @@
         tr_aero, restart_aero
 
       namelist /da_nml/  &
-        da_ice, da_sic, da_sit, da_sno, da_method, da_data_dir
+        da_ice, da_sic, da_sit, da_sno, da_method, da_data_dir, Tobs
 
       !-----------------------------------------------------------------
       ! default values
@@ -335,6 +335,7 @@
       da_sno      = .false.
       da_method   = 'coin'
       da_data_dir = '.'
+      Tobs        = 86400.0_dbl_kind
 
       !-----------------------------------------------------------------
       ! read from input file
@@ -767,6 +768,7 @@
       call broadcast_scalar(da_sno,             master_task)
       call broadcast_scalar(da_method,          master_task)
       call broadcast_scalar(da_data_dir,        master_task)
+      call broadcast_scalar(Tobs,               master_task)
 
       if (dbug) & ! else only master_task writes to file
       call broadcast_scalar(nu_diag,            master_task)
