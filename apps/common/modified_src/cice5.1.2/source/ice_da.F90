@@ -42,7 +42,7 @@
          da_data_dir      ! top directory for data to assimilate 
 
       real (kind=dbl_kind), public :: &
-        Tobs              ! time step for observations, in seconds
+         Tobs             ! time step for observations, in seconds
 
       !-----------------------------------------------------------------
       ! observed & model ice/snow variables & uncertainties
@@ -150,31 +150,25 @@
 
    if ((istep == 1) .or. new_day) then
 
-   ! sea ice concentration & uncertainties
-      write(da_date,'(i4)') idate/10000
-      data_file = trim(da_data_dir)//'osisaf_'//trim(da_date)//'.nc'
-      write(nu_diag,*) 'DA data file = ', data_file
 
-      call ice_open_nc(data_file,fid)
+      if (da_sic) then     ! sea ice concentration & uncertainties
 
-      fieldname = 'obsAice'
-      call ice_read_nc (fid, int(yday), fieldname, aice_obs, dbug, &
-           field_loc_center, field_type_scalar)
+         write(da_date,'(i4)') idate/10000
+         data_file = trim(da_data_dir)//'osisaf_'//trim(da_date)//'.nc'
+         write(nu_diag,*) 'DA data file = ', data_file
+
+         call ice_open_nc(data_file,fid)
+
+         fieldname = 'obsAice'
+         call ice_read_nc (fid, int(yday), fieldname, aice_obs, dbug, &
+              field_loc_center, field_type_scalar)
         
-      fieldname = 'obsAerr'
-      call ice_read_nc (fid, int(yday), fieldname, aice_obs_err, dbug, &
-           field_loc_center, field_type_scalar)
+         fieldname = 'obsAerr'
+         call ice_read_nc (fid, int(yday), fieldname, aice_obs_err, dbug, &
+              field_loc_center, field_type_scalar)
 
-      where ((aice_obs >= c0) .and. (aice_obs) <= 100)
-           aice_obs = aice_obs * p01
-           aice_obs_err = aice_obs_err * p01
-      elsewhere
-           aice_obs = c0
-           aice_obs_err = c0
-      endwhere
-
-      call ice_close_nc(fid)
-
+         call ice_close_nc(fid)
+      endif
    endif
          
    if (da_method == 'coin') then
@@ -315,12 +309,14 @@ subroutine da_coin    (nx_block,            ny_block,      &
          indxi, indxj    ! compressed indices for cells with restoring
 
       real (kind=dbl_kind) :: &
-         mod_err,      & ! model error
-         mod_err2,     & ! model error squre
-         gain,         & ! Kalman gain, optimal estimated
-         weight,       & ! nudging weight, increamental Kalman gain
-         weightn,      & ! nudging weigth distributed among categories
-         rda,          & ! dt/dT, where dT is observation time step
+         mod_err     , & ! model error
+         mod_err2    , & ! model error squre
+         aobs        , & ! aice_obs
+         aerr        , & ! aice_obs_err
+         gain        , & ! Kalman gain, optimal estimated
+         weight      , & ! nudging weight, increamental Kalman gain
+         weightn     , & ! nudging weigth distributed among categories
+         rda         , & ! dt/dT, where dT is observation time step
          radd            ! incremental ratio
 
       real (kind=dbl_kind) :: &
@@ -338,22 +334,28 @@ subroutine da_coin    (nx_block,            ny_block,      &
 
          do j = 1, ny_block
          do i = 1, nx_block
-            if (tmask(i,j)) then
-               mod_err = aice(i,j) - aice_obs(i,j)
-               mod_err2 = mod_err**2 + aice_obs_err(i,j)**2
-               gain   = mod_err2 / (mod_err2 + puny + aice_obs_err(i,j)**2)
+
+            if ((aice_obs(i,j) >= c0) .and. aice_obs(i,j) <= 100) then
+
+               aobs = aice_obs(i,j)     * p01
+               aerr = aice_obs_err(i,j) * p01
+
+               mod_err  = aice(i,j) - aobs
+               mod_err2 = mod_err**2 + aerr**2
+
+               gain   = mod_err2 / (mod_err2 + puny + aerr**2)
                if (da_insert) gain = c1
 
                weight = c1 - (c1 - gain)**rda
                if (corr_bias) then
-                  weight = weight * exp(-(aice(i,j)+aice_obs(i,j)*2.5_dbl_kind))
+                  weight = weight * exp(-(aice(i,j)+aobs*2.5_dbl_kind))
                endif
             else
                weight = c0
             endif
 
             if (aice(i,j) > puny) then
-               radd = c1 + weight * (aice_obs(i,j)/max(aice(i,j),p1) - c1)
+               radd = c1 + weight * (aobs/max(aice(i,j),p1) - c1)
 
                do n=1,ncat
                   aicen(i,j,n) = aicen(i,j,n) * radd
@@ -361,8 +363,8 @@ subroutine da_coin    (nx_block,            ny_block,      &
                   vsnon(i,j,n) = vsnon(i,j,n) * radd
                enddo
             else
-               if (tmask(i,j)) then
-                  radd = weight * (aice_obs(i,j) - aice(i,j))
+               if (weight > c0) then
+                  radd = weight * (aobs - aice(i,j))
                   aicen(i,j,1) = aicen(i,j,1) + radd 
                   vicen(i,j,1) = vicen(i,j,1) + radd 
 
