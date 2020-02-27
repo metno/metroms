@@ -139,6 +139,9 @@
      da_date,            & ! date for data assimilation
      fieldname             ! field name in netcdf file
 
+   logical (kind=log_kind) :: &
+         file_exist        ! perform data assimilation if true
+
    type (block) :: &
      this_block            ! block info for current block
 
@@ -153,18 +156,25 @@
 
       if (da_sic) then     ! sea ice concentration & uncertainties
 
-         write(da_date,'(i4)') idate/10000
-         data_file = trim(da_data_dir)//'osisaf_'//trim(da_date)//'.nc'
+         write(da_date,'(i8)') idate
+         data_file = trim(da_data_dir)//'sic_'//trim(da_date)//'.nc'
          write(nu_diag,*) 'DA data file = ', data_file
+
+         inquire(file=data_file,exist=file_exist)
+         if (.not. file_exist) then
+            if (my_task == master_task) &
+               write(nu_diag,*) 'da_file not exist ...'
+            return
+         endif
 
          call ice_open_nc(data_file,fid)
 
-         fieldname = 'obsAice'
-         call ice_read_nc (fid, int(yday), fieldname, aice_obs, dbug, &
+         fieldname = 'amsr2_sic'
+         call ice_read_nc (fid, 1, fieldname, aice_obs, dbug, &
               field_loc_center, field_type_scalar)
         
-         fieldname = 'obsAerr'
-         call ice_read_nc (fid, int(yday), fieldname, aice_obs_err, dbug, &
+         fieldname = 'amsr2_err'
+         call ice_read_nc (fid, 1, fieldname, aice_obs_err, dbug, &
               field_loc_center, field_type_scalar)
 
          call ice_close_nc(fid)
