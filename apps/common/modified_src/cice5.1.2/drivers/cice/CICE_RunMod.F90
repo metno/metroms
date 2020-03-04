@@ -158,6 +158,7 @@
       use ice_algae, only: bgc_diags, write_restart_bgc
       use ice_zbgc, only: init_history_bgc, biogeochemistry
       use ice_zbgc_shared, only: skl_bgc
+      use ice_da, only: da_ice, ice_da_run
 
       integer (kind=int_kind) :: &
          iblk        , & ! block index 
@@ -168,6 +169,12 @@
       !-----------------------------------------------------------------
 
          if (restore_ice) call ice_HaloRestore
+
+      !-----------------------------------------------------------------
+      ! assimilate observations
+      !-----------------------------------------------------------------
+
+         if (da_ice) call ice_da_run
 
       !-----------------------------------------------------------------
       ! initialize diagnostics

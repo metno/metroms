@@ -17,7 +17,7 @@ endif
 FIXEDFLAGS := -132
 FREEFLAGS  := 
 # Should use this together with ROMS? 
-FFLAGS     :=  -ip -O3 -ftz -xCORE-AVX2 -shared-intel -r8 -convert big_endian -IPF_fp_relaxed -assume noold_maxminloc -mcmodel large
+FFLAGS     :=  -xHost #-mcmodel=large -Nmpi
 MOD_SUFFIX := mod
 LD         := $(FC)
 LDFLAGS    := $(FFLAGS) -v
@@ -40,8 +40,8 @@ endif
 
 ifeq ($(IO_TYPE), netcdf)
    CPPDEFS :=  $(CPPDEFS) -Dncdf
-   INCLDIR := $(INCLDIR) -I/modules/xenial/NETCDF/4.6.0intel18/include
-   SLIBS   := $(SLIBS) -L/modules/xenial/NETCDF/4.6.0intel18/lib -lnetcdff -L/modules/xenial/hdf5/1.10.1/lib -lnetcdf
+   INCLDIR := $(INCLDIR) -I/modules/centos7/netcdf/4.7.0-intel2018/include
+   SLIBS   :=  $(SLIBS) -L/modules/centos7/netcdf/4.7.0-intel2018/lib -lnetcdff -L/modules/centos7/netcdf/4.7.0-intel2018/lib -L/modules/centos7/hdf5/1.10.5-intel2018/lib -L/modules/centos7/compiler/parallel_studio/2018/compilers_and_libraries/linux/lib -lnetcdf -lnetcdf -lhdf5_hl -lhdf5 -lsz -lz -lcurl -lm
 endif
 
 ifeq ($(compile_threaded), true) 
