@@ -51,6 +51,7 @@
       timer_readwrite,        &! read/write
       timer_diags,            &! diagnostics/history
       timer_hist,             &! diagnostics/history
+      timer_da,               &! data assimilation
 #if (defined CCSMCOUPLED) || (defined ROMSCOUPLED)
       timer_cplrecv,          &! receive from coupler
       timer_rcvsnd,           &! time between receive to send
@@ -173,6 +174,7 @@
    call get_ice_timer(timer_hist,     'History  ',nblocks,distrb_info%nprocs)
    call get_ice_timer(timer_bound,    'Bound',    nblocks,distrb_info%nprocs)
    call get_ice_timer(timer_bgc,      'BGC',      nblocks,distrb_info%nprocs)
+   call get_ice_timer(timer_da,       'DA',       nblocks,distrb_info%nprocs)
 #if (defined CCSMCOUPLED)
    call get_ice_timer(timer_cplrecv,  'Cpl-recv', nblocks,distrb_info%nprocs)
    call get_ice_timer(timer_rcvsnd,   'Rcv->Snd', nblocks,distrb_info%nprocs)
