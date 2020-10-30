@@ -1200,7 +1200,8 @@
 ! Use interp_coef_monthly for monthly data.
 
       use ice_constants, only: c1, p5, secday
-
+      use ice_calendar, only: time2sec !Pedro stuff to correct the bug mentioned below
+      
       integer (kind=int_kind), intent(in) :: &
           recnum      , & ! record number for current data value
           recslot     , & ! spline slot for current record
@@ -1213,19 +1214,44 @@
       ! local variables
 
       real (kind=dbl_kind) :: &
-          secyr            ! seconds in a year
+          secyr      , &      ! seconds in a year
+          rsec
 
       real (kind=dbl_kind) :: &
           tt           , & ! seconds elapsed in current year
           t1, t2       , & ! seconds elapsed at data points
-          rcnum            ! recnum => dbl_kind
+          rcnum        , & ! recnum => dbl_kind
+          MySecs1      , &
+          MySecs2      , &
+          MySecs
+      
+      secyr = dayyr * secday         ! seconds in a year
 
-!jd Start
-!jd      secyr = dayyr * secday         ! seconds in a year
-!jd      tt = mod(ftime,secyr)
-
-        tt=secday*(yday - c1) + sec
-!jd Slutt
+      ! Calculating tt this way leads to a major error when ftime > seconds in a year
+      ! leading to a violation of the necessary conditions  t1<=tt<=t2 and 
+      ! negative interpolation coefficients
+      ! This bug was fixed by Pedro at NPI in 19.06.2019 with the following expressions 
+      !tt = mod(ftime,secyr)
+      
+      !tt bug fix begin:
+      call time2sec(fyear,1,1,MySecs1);
+      call time2sec(fyear,month,mday,MySecs2);  !This call returns 
+                                             !time in secs at 
+                                             !beginning of mday
+                                             !Next: time is corrected
+                                             !with secs 
+      MySecs = MySecs2-MySecs1;
+ !     write(*,*) 'rsec, secyr, fyear,month, mday,nyr,Mysecs1,MySecs2,MySecs', &
+ !                 rsec,secyr, fyear, month, mday, nyr,MySecs1,MySecs2,MySecs
+ 
+      rsec = real(sec)
+      MySecs = MySecs + rsec                  !Here seconds "used" in current day are added
+      if (MySecs.GE.secyr) then
+         tt = mod(rsec,secyr)  
+      else  
+         tt = mod(MySecs,secyr)
+      endif     
+      !tt bug fix end
 
       ! Find neighboring times
       rcnum = real(recnum,kind=dbl_kind)
@@ -5026,6 +5052,7 @@
       !write (nu_diag,*) 'aicen_N =',aicen_bry(nx_block,ny_block,2,12)
       !endif
       
+      call file_year_bry (data_file, fyear)
       fieldname1='vicen_N_bry'
       fieldname2='vicen_S_bry'
       fieldname3='vicen_W_bry'
@@ -5043,7 +5070,8 @@
       !write (nu_diag,*) 'vicen_N_bry =',vicen_work_bry(nx_block,ny_block,2,1,1:max_blocks)
       !write (nu_diag,*) 'vicen_N =',vicen_bry(nx_block,ny_block,2,12)
       !endif
-
+      
+      call file_year_bry (data_file, fyear)
       fieldname1='vsnon_N_bry'
       fieldname2='vsnon_S_bry'
       fieldname3='vsnon_W_bry'
@@ -5056,7 +5084,8 @@
        
       call interp_coeff (recnum, recslot, secday, dataloc)
       call interpolate_data_n (vsnon_work_bry, vsnon_bry)
-  
+      
+      call file_year_bry (data_file, fyear)
       fieldname1='Tsfc_N_bry'
       fieldname2='Tsfc_S_bry'
       fieldname3='Tsfc_W_bry'
@@ -5069,7 +5098,8 @@
        
       call interp_coeff (recnum, recslot, secday, dataloc)
       call interpolate_data_n (Tsfc_work_bry, Tsfc_bry)
-
+      
+      call file_year_bry (data_file, fyear)
       fieldname1='alvln_N_bry'
       fieldname2='alvln_S_bry'
       fieldname3='alvln_W_bry'
@@ -5082,7 +5112,8 @@
        
       call interp_coeff (recnum, recslot, secday, dataloc)
       call interpolate_data_n (alvln_work_bry, alvln_bry)
-
+      
+      call file_year_bry (data_file, fyear)
       fieldname1='vlvln_N_bry'
       fieldname2='vlvln_S_bry'
       fieldname3='vlvln_W_bry'
@@ -5095,7 +5126,8 @@
        
       call interp_coeff (recnum, recslot, secday, dataloc)
       call interpolate_data_n (vlvln_work_bry, vlvln_bry)
-
+      
+      call file_year_bry (data_file, fyear)
       fieldname1='apondn_N_bry'
       fieldname2='apondn_S_bry'
       fieldname3='apondn_W_bry'
@@ -5108,7 +5140,8 @@
        
       call interp_coeff (recnum, recslot, secday, dataloc)
       call interpolate_data_n (apondn_work_bry, apondn_bry)
-
+      
+      call file_year_bry (data_file, fyear)
       fieldname1='hpondn_N_bry'
       fieldname2='hpondn_S_bry'
       fieldname3='hpondn_W_bry'
@@ -5120,8 +5153,9 @@
                 field_loc_center, field_type_scalar)
        
       call interp_coeff (recnum, recslot, secday, dataloc)
-      call interpolate_data_n (hpondn_work_bry, hpondn_bry)      
-
+      call interpolate_data_n (hpondn_work_bry, hpondn_bry)
+      
+      call file_year_bry (data_file, fyear)
       fieldname1='ipondn_N_bry'
       fieldname2='ipondn_S_bry'
       fieldname3='ipondn_W_bry'
@@ -5134,7 +5168,8 @@
        
       call interp_coeff (recnum, recslot, secday, dataloc)
       call interpolate_data_n (ipondn_work_bry, ipondn_bry) 
-
+      
+      !call file_year_bry (data_file, fyear)
       !fieldname1='hbrine_N_bry'
       !fieldname2='hbrine_S_bry'
       !fieldname3='hbrine_W_bry'
@@ -5147,7 +5182,8 @@
        
       !call interp_coeff (recnum, recslot, secday, dataloc)
       !call interpolate_data_n (hbrine_work_bry, hbrine_bry) 
-
+      
+      !call file_year_bry (data_file, fyear)
       !fieldname1='fbrine_N_bry'
       !fieldname2='fbrine_S_bry'
       !fieldname3='fbrine_W_bry'
@@ -5160,7 +5196,8 @@
       ! 
       !call interp_coeff (recnum, recslot, secday, dataloc)
       !call interpolate_data_n (fbrine_work_bry, fbrine_bry) 
-  
+      
+      call file_year_bry (data_file, fyear)
       fieldname1='iage_N_bry'
       fieldname2='iage_S_bry'
       fieldname3='iage_W_bry'
@@ -5173,7 +5210,8 @@
        
       call interp_coeff (recnum, recslot, secday, dataloc)
       call interpolate_data_n (iage_work_bry, iage_bry) 
-
+      
+      call file_year_bry (data_file, fyear)
       fieldname1='Tinz_N_bry'
       fieldname2='Tinz_S_bry'
       fieldname3='Tinz_W_bry'
@@ -5188,7 +5226,8 @@
     
       call interpolate_data_n_layer &
               (Tinz_work_bry,Tinz_bry)
-   
+              
+      call file_year_bry (data_file, fyear)
       fieldname1='Sinz_N_bry'
       fieldname2='Sinz_S_bry'
       fieldname3='Sinz_W_bry'
@@ -5214,7 +5253,6 @@
       !if (my_task == master_task ) then
       !     write (nu_diag,*) 'boundary_data end'
       !end if 
-      
 
       end subroutine boundary_data
 
@@ -5336,14 +5374,14 @@
             if (ixx==maxrec) then
                if (yr < fyear_final) then ! get data from following year
                   call ice_close_nc(fid)
-                  call file_year (data_file, yr+1)
+                  call file_year_bry (data_file, yr+1)
                   call ice_open_nc (data_file, fid)
                else             ! yr = fyear_final, no more data exists
                   if (maxrec > 12) then ! extrapolate from ixx
                      n4 = ixx
                   else          ! go to beginning of fyear_init
                      call ice_close_nc(fid)
-                     call file_year (data_file, fyear_init)
+                     call file_year_bry (data_file, fyear_init)
                      call ice_open_nc (data_file, fid)
 
                   endif
@@ -5494,14 +5532,14 @@
             if (ixx==maxrec) then
                if (yr < fyear_final) then ! get data from following year
                   call ice_close_nc(fid)
-                  call file_year (data_file, yr+1)
+                  call file_year_bry (data_file, yr+1)
                   call ice_open_nc (data_file, fid)
                else             ! yr = fyear_final, no more data exists
                   if (maxrec > 12) then ! extrapolate from ixx
                      n4 = ixx
                   else          ! go to beginning of fyear_init
                      call ice_close_nc(fid)
-                     call file_year (data_file, fyear_init)
+                     call file_year_bry (data_file, fyear_init)
                      call ice_open_nc (data_file, fid)
 
                   endif
@@ -5654,14 +5692,14 @@
             if (ixx==maxrec) then
                if (yr < fyear_final) then ! get data from following year
                   call ice_close_nc(fid)
-                  call file_year (data_file, yr+1)
+                  call file_year_bry (data_file, yr+1)
                   call ice_open_nc (data_file, fid)
                else             ! yr = fyear_final, no more data exists
                   if (maxrec > 12) then ! extrapolate from ixx
                      n4 = ixx
                   else          ! go to beginning of fyear_init
                      call ice_close_nc(fid)
-                     call file_year (data_file, fyear_init)
+                     call file_year_bry (data_file, fyear_init)
                      call ice_open_nc (data_file, fid)
 
                   endif
