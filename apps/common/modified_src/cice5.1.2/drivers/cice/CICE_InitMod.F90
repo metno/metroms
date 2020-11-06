@@ -123,6 +123,7 @@
       call init_state           ! initialize the ice state
       if (da_ice) call init_da  ! define data assimilation varialbes
       call init_transport       ! initialize horizontal transport
+      call ice_HaloRestore_init ! restored boundary conditions
       
 
       call init_restart         ! initialize restart variables
@@ -147,7 +148,7 @@
    !--------------------------------------------------------------------
 
       call init_forcing_atmo    ! initialize atmospheric forcing (standalone)
-      call ice_HaloRestore_init ! restored boundary conditions
+!      call ice_HaloRestore_init ! restored boundary conditions
       
       if (sea_ice_time_bry) call init_forcing_bry ! sea-ice time varying boundaries
 
