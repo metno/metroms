@@ -57,5 +57,15 @@ else
     echo "Undefined METROMS_MYHOST ", $METROMS_MYHOST
 fi
 
-
 export PYTHONPATH=$PYTHONPATH:$METROMS_BASEDIR/apps/common/python/
+
+#=====================================================================
+export MCT_DIR=$METROMS_TMPDIR/MCT
+
+export SITE=$METROMS_MYHOST
+export FORT=ifort
+if [ "$METROMS_MYHOST" == "metlocal" ]; then
+   export SITE=Ubuntu
+   export FORT=gfortran
+fi
+
