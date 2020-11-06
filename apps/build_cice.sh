@@ -3,14 +3,7 @@ set -x
 #export CICEVERSION=cice5.0
 export CICEVERSION=cice5.1.2
 
-NPX=1; NPY=1
-if [ "${METROMS_MYHOST}" == "metlocal" ] || [ "${METROMS_MYHOST}" == "met_ppi" ]; then
-    NPX=1  
-    NPY=2
-elif [ "${METROMS_MYHOST}" == "vilje" ]; then
-    NPX=1  
-    NPY=2
-fi
+NPX=1; NPY=2
 
 if [ $# -lt 1 ]
   then
@@ -43,26 +36,19 @@ if [ ! -d ${METROMS_BASEDIR} ] ; then
 fi
 
 # Build CICE
-export CICE_DIR=${METROMS_TMPDIR}/$ROMS_APPLICATION/cice
+export CICE_DIR=${METROMS_TMPDIR}/${ROMS_APPLICATION}/cice
 mkdir -p $CICE_DIR/rundir
-cd ${METROMS_TMPDIR}/$ROMS_APPLICATION
+cd ${METROMS_TMPDIR}/${ROMS_APPLICATION}
 # Unpack standard source files
 echo $PWD
-tar -xvf ${METROMS_BASEDIR}/static_libs/$CICEVERSION.tar.gz
-cd $CICE_DIR
-
-export MCT_INCDIR=${METROMS_TMPDIR}/MCT/include
-export MCT_LIBDIR=${METROMS_TMPDIR}/MCT/lib
-
+tar -xvf ${METROMS_BASEDIR}/static_libs/${CICEVERSION}.tar.gz
 
 # Copy modified source files
-#mkdir -p ${tup}/tmproms/cice
-mkdir -p $CICE_DIR/input_templates/$ROMS_APPLICATION/
-cp -a ${METROMS_BASEDIR}/apps/common/modified_src/$CICEVERSION/* $CICE_DIR
-cp -av ${METROMS_APPDIR}/$ROMS_APPLICATION/cice_input_grid/* $CICE_DIR/input_templates/$ROMS_APPLICATION/
-# Remove old binaries
-rm -f $CICE_DIR/rundir/cice
+cd $CICE_DIR
+cp -a ${METROMS_BASEDIR}/apps/common/modified_src/${CICEVERSION}/* ${CICE_DIR}
+cp ${METROMS_APPDIR}/${ROMS_APPLICATION}/cice_input_grid/ice_in.${CICEVERSION} ${CICE_DIR}/input_templates
 
+# build cice binaries
 echo $PWD
 ./comp_ice $ROMS_APPLICATION $NPX $NPY
 
