@@ -79,8 +79,8 @@ elif [ "${METROMS_MYHOST}" == "met_ppi" ] ; then
   echo "Linux distro is `lsb_release -sc`"
   if [ `lsb_release -sc` == 'xenial' ]; then
     export FORT=ifort
-    export USE_MPI=
-    export USE_MPIF90=
+    export USE_MPI=on
+    export USE_MPIF90=on
     export which_MPI=openmpi
   elif [ `lsb_release -sc` == 'Core' ]; then
     export FORT=ifort
