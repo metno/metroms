@@ -4,7 +4,7 @@
 # if using rotate: use *-el7.q and "module load pyromstools/0.3"
 # qlogin -q research-el7.q -l h_vmem=10G
 # E.g. run:
-# python /home/nilsmk/metroms/tools/windStressProgram.py
+# python3 /home/nilsmk/metroms/tools/windStressProgram.py
 #   /home/nilsmk/metroms_apps/nordic-4km_stormsurge2d/grid/nordic-4km_grd.nc
 #   ocean_force2.nc ocean_force.nc
 ################################################################################
@@ -63,7 +63,7 @@ def ocnstress(u, v, rot=False, angle=None):
 t0   = datetime.datetime.now()
 try:
     f0 = Dataset(File)
-except Exception,e :
+except Exception as e :
     print("ERROR opening file %s for reading (%s)" % (File, e))
     sys.exit()
 # ------------------------
@@ -71,7 +71,7 @@ except Exception,e :
 # -------------------------
 try:
     f1 = Dataset(FileGRID)
-except Exception,e :
+except Exception as e :
     print("ERROR opening file %s for reading (%s)" % (File, e))
     sys.exit()
 #------------------------------------------
@@ -82,7 +82,10 @@ try:
 except:
     Tx,Ty = ocnstress(f0.variables['x_wind_10m'][:], f0.variables['y_wind_10m'][:], rot=True, angle=f1.variables['angle'][:])
 timeIN    = f0.variables['time'][:]
-f_Reftime = f0.variables['forecast_reference_time'][:]
+try:
+    f_Reftime = f0.variables['forecast_reference_time'][:]
+except:
+    f_Reftime = None
 try:
     Pair  = f0.variables['Pair'][:]
 except:
@@ -148,12 +151,13 @@ v.field     = "time, scalar, series"
 v[:]        = timeIN[:]
 root.sync()
 #
-v           = root.createVariable('forecast_reference_time', 'f')
-v.long_name = "surface forcing refrence time"
-v.units     ="days since %s 00:00:00" % ref_time.isoformat()
-v.field     = "time, scalar, series"
-v[:]        = f_Reftime
-root.sync()
+if f_Reftime is not None:
+    v           = root.createVariable('forecast_reference_time', 'f')
+    v.long_name = "surface forcing refrence time"
+    v.units     ="days since %s 00:00:00" % ref_time.isoformat()
+    v.field     = "time, scalar, series"
+    v[:]        = f_Reftime
+    root.sync()
 #
 v             = root.createVariable('sustr', 'f',('time', 'eta_u', 'xi_u',))
 v.long_name   = "surface u-momentum stress"
