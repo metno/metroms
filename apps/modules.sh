@@ -41,6 +41,15 @@ elif [ "$METROMS_MYHOST" == "nebula" ] || [ "$METROMS_MYHOST" == "stratus" ]; th
     module load NCO/4.6.3-nsc1
     #module load Python/2.7.14-anaconda-5.0.1-nsc1
     module load Python/2.7.15-anaconda-5.3.0-extras-nsc1
+elif [ "$METROMS_MYHOST" == "fram" ]; then
+    module load iccifort/2018.3.222-GCC-7.3.0-2.30
+    module load HDF5/1.10.2-intel-2018b
+    module load netCDF/4.6.1-intel-2018b
+    module load netCDF-Fortran/4.4.4-intel-2018b
+    module load OpenMPI/3.1.1-iccifort-2018.3.222-GCC-7.3.0-2.30
+
+    module load Python/2.7.15-intel-2018b
+    module load netcdf4-python/1.4.1-intel-2018b-Python-2.7.15
 else
     echo "Undefined METROMS_MYHOST ", $METROMS_MYHOST
 fi

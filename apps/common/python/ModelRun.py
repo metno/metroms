@@ -156,6 +156,13 @@ class ModelRun(object):
             else:
                 result = os.system("/modules/centos7/OPENMPI/3.1.4-intel2018/bin/mpirun --mca mtl psm2 " + executable + " " + infile)
                 #result = os.system("/modules/centos7/OPENMPI/3.1.3-intel2018/bin/mpiexec --mca mtl psm2 " + executable + " " + infile)
+	elif architecture==Constants.FRAM:
+            print 'running on FRAM:'
+            if debugoption==Constants.PROFILE:
+                print "Profiling not working yet on "+architecture
+                result = 1
+            else:
+		result = os.system("mpirun --mca mtl psm2 " + executable + " " + infile)
         else:
             print "Unrecognized architecture!"
             result = 1
@@ -225,7 +232,7 @@ class ModelRun(object):
                 result = 1
 
         elif architecture==Constants.NEBULA or architecture==Constants.STRATUS or \
-             architecture==Constants.MET_PPI_OPATH:
+             architecture==Constants.MET_PPI_OPATH or architecture==Constants.FRAM:
             if runoption==Constants.MPI:
                 result = self._execute_roms_mpi((int(self._params.XCPU)*int(self._params.YCPU))+
                                        int(self._params.CICECPU),

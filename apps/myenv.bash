@@ -53,6 +53,11 @@ elif [ "$METROMS_MYHOST" == "stratus" ]; then
     else
 	echo 'not defined yet'
     fi
+elif [ "$METROMS_MYHOST" == "fram" ]; then
+    export METROMS_BASEDIR=$HOME/metroms
+    export METROMS_TMPDIR=/cluster/work/users/$USER/metroms_run
+    export METROMS_BLDDIR=$METROMS_TMPDIR
+    export METROMS_APPDIR=$HOME/metroms_apps
 else
     echo "Undefined METROMS_MYHOST ", $METROMS_MYHOST
 fi

@@ -19,7 +19,7 @@ cd $MCT_DIR
 
 if [ ${METROMS_MYHOST} == "metlocal" ] || [ "${METROMS_MYHOST}" == "met_ppi" ]; then
     FORT=mpif90
-elif [ ${METROMS_MYHOST} == "vilje" ]; then
+elif [ ${METROMS_MYHOST} == "vilje" ] || [ ${METROMS_MYHOST} == "fram" ]; then
     FORT=ifort
 else
     echo " Computer not defined set environment variable METROMS_MYHOST= metlocal, vilje .."
