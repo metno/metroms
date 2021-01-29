@@ -146,7 +146,7 @@ root.sync()
 #
 v           = root.createVariable('time', 'f', ('time',))
 v.long_name = "surface forcing time"
-v.units     ="days since %s 00:00:00" % ref_time.isoformat()
+v.units     = f0.variables['time'].units #"days since %s 00:00:00" % ref_time.isoformat()
 v.field     = "time, scalar, series"
 v[:]        = timeIN[:]
 root.sync()
@@ -154,7 +154,7 @@ root.sync()
 if f_Reftime is not None:
     v           = root.createVariable('forecast_reference_time', 'f')
     v.long_name = "surface forcing refrence time"
-    v.units     ="days since %s 00:00:00" % ref_time.isoformat()
+    v.units     = "days since %s 00:00:00" % ref_time.isoformat()
     v.field     = "time, scalar, series"
     v[:]        = f_Reftime
     root.sync()
