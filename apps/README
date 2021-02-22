@@ -19,6 +19,14 @@ Build CICE by executing './build_cice.sh arctic-20km'. Optionally,
 give as arguments the numbers of processors you will use in x and 
 y-direction in your CICE application. 
 
+NOTE!!
+Before compiling ROMS, make sure you have the correct makefile for
+your configuration. 
+E.g. 'ln -sf $METROMS_BASEDIR/apps/common/modified_src/roms-trunk/
+Linux-ifort.mk_<your-machine> $METROMS_BASEDIR/apps/common/
+modified_src/roms-trunk/Linux-ifort.mk' or by modifying the .mk-
+file directly for new setups.
+
 3:
 In folder metroms/apps, execute './build_roms.sh arctic-20km' 
 to build roms-3.6 arctic-20km application. To compile in paralell, 
