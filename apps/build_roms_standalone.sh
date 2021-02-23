@@ -54,7 +54,8 @@ fi
 # Setting up things, like compilers etc:
 export ROMS_APPLICATION=$1
 #export roms_ver="roms-3.6"
-export roms_ver="roms-trunk"
+#export roms_ver="roms-trunk820"
+export roms_ver="roms-trunk1041"
 #export roms_ver="roms_svn"
 
 # Default settings:
@@ -343,6 +344,6 @@ fi
 
 # Clean up unpacked static code:
 cd  ${MY_PROJECT_DIR}
-#rm -rf ${MY_ROMS_SRC}
+rm -rf ${MY_ROMS_SRC}
 
 set +x

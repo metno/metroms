@@ -1,0 +1,5 @@
+From roms-trunk820 to roms-trunk1041:
+Removed possibilty of using #SPECIFIC_HUMIDITY
+Removed own code 'iwrknudg'
+Must now have #define MCT_LIB ?
+Executable is now named romsM, need to update 'common/python/ModelRun.py: executable="oceanM"'
