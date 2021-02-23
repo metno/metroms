@@ -70,7 +70,7 @@ export which_MPI=mpich2        # compile with MPICH2 library
 
 if [ "${METROMS_MYHOST}" == "metlocal" ]; then
     export FORT=gfortran
-elif [ "${METROMS_MYHOST}" == "vilje" ] || [ "${METROMS_MYHOST}" == "alvin" ] || [ "${METROMS_MYHOST}" == "elvis" ] ; then
+elif [ "${METROMS_MYHOST}" == "vilje" ] || [ "${METROMS_MYHOST}" == "fram" ] ; then
     export FORT=ifort
 elif [ "${METROMS_MYHOST}" == "nebula" ] || [ "${METROMS_MYHOST}" == "stratus" ]; then
     export FORT=ifort
