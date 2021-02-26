@@ -54,7 +54,7 @@ fi
 # Setting up things, like compilers etc:
 export ROMS_APPLICATION=$1
 #export roms_ver="roms-3.6"
-export roms_ver="roms-trunk"
+export roms_ver="roms-trunk820"
 
 export USE_MPI=on
 export USE_MPIF90=on
