@@ -4,33 +4,36 @@ Example given for Arctic 20km, coupled ROMS-CICE:
 This has been tested on Intel computer, using Gfortran
 and Ubuntu 12.04. C-shell must be installed for CICE compilation.
 
-Start with seting the METROMS_MYHOST and METROMS_TMPDIR environmental 
-variables by souring the myenv.bash file (or similar method). 
-source ./myenv.bash alvin
+Start with seting the METROMS_MYHOST and METROMS_TMPDIR environmental
+variables by souring the myenv.bash file (or similar method).
+source ./myenv.bash <name_of_hpc>
 
-On the Vilje supercomputer, load modules by sourcing modules.sh.
+On the supercomputer, load modules by sourcing modules.sh.
 source ./modules.sh
 
-1:
+Step 1:
 Build MCT by executing './build_mct.sh' in metroms/apps-folder.
 
-2:
-Build CICE by executing './build_cice.sh arctic-20km'. Optionally, 
-give as arguments the numbers of processors you will use in x and 
-y-direction in your CICE application. 
+Step 2:
+Build CICE by executing './build_cice.sh arctic-20km'. Optionally,
+give as arguments the numbers of processors you will use in x and
+y-direction in your CICE application.
 
 NOTE!!
 Before compiling ROMS, make sure you have the correct makefile for
-your configuration. 
+your configuration.
 E.g. 'ln -sf $METROMS_BASEDIR/apps/common/modified_src/roms-trunk/
 Linux-ifort.mk_<your-machine> $METROMS_BASEDIR/apps/common/
 modified_src/roms-trunk/Linux-ifort.mk' or by modifying the .mk-
 file directly for new setups.
 
-3:
-In folder metroms/apps, execute './build_roms.sh arctic-20km' 
-to build roms-3.6 arctic-20km application. To compile in paralell, 
-add the keyword '-j 4' after the name of your application to use 
-4 cpus in the compilation process. You still need to specify which 
+Step 3:
+In folder metroms/apps, execute './build_roms.sh arctic-20km'
+to build roms-3.6 arctic-20km application. To compile in parallel,
+add the keyword '-j 4' after the name of your application to use
+4 cpus in the compilation process. You still need to specify which
 compiler etc you want to use inside the 'build_roms.sh'-file.
 
+OR:
+If compiling ROMS standalone, omit steps 1-2, and use
+"build_roms_standalone.sh" instead of "build_roms.sh".
