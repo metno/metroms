@@ -120,11 +120,6 @@ cd ${MY_ROMS_SRC}
 if [ $roms_ver != 'roms_svn' ]; then
     tar -xf ${METROMS_BASEDIR}/static_libs/${roms_ver}.tar.gz
     rm -rf User
-    # JD : Added temporary to have place for a new file
-    touch $MY_ROMS_SRC/ROMS/Nonlinear/frazil_ice_prod_mod.F
-    # JD end
-    #SM: Same here, added temporary for new file
-    touch $MY_ROMS_SRC/ROMS/Modules/mod_ice.F
 else
 #    echo 'no checkout today'
     svn checkout https://www.myroms.org/svn/src/trunk .
@@ -208,8 +203,8 @@ if [ "$gotModifiedSourceAPP" != "" ] || [ "$gotModifiedSourceCOMMON" != "" ]; th
             # first checking if the original already exists with
             # the .orig extension
             if [ ! -f "$origFile.orig" ]; then
-		mv $origFile $origFile.orig
-		echo "Moving $origFile to $origFile.orig"
+		            mv $origFile $origFile.orig
+		            echo "Moving $origFile to $origFile.orig"
             fi
 
             # Copying from local source directory to repository
@@ -243,8 +238,8 @@ if [ "$gotModifiedSourceAPP" != "" ] || [ "$gotModifiedSourceCOMMON" != "" ]; th
             # first checking if the original already exists with
             # the .orig extension
             if [ ! -f "$origFile.orig" ]; then
-		mv $origFile $origFile.orig
-		echo "Moving $origFile to $origFile.orig"
+		            mv $origFile $origFile.orig
+		            echo "Moving $origFile to $origFile.orig"
             fi
 
             # Copying from local source directory to repository
