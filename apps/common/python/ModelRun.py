@@ -162,7 +162,7 @@ class ModelRun(object):
                 print "Profiling not working yet on "+architecture
                 result = 1
             else:
-		result = os.system("mpirun --mca mtl psm2 " + executable + " " + infile)
+		result = os.system("mpirun " + os.path.join(self._params.RUNPATH, executable) + " " + infile)
         else:
             print "Unrecognized architecture!"
             result = 1
