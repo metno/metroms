@@ -68,8 +68,11 @@ export USE_CICE=on
 
 if [ "${METROMS_MYHOST}" == "metlocal" ]; then
     export FORT=gfortran
-elif [ "${METROMS_MYHOST}" == "vilje" ] || [ "${METROMS_MYHOST}" == "fram" ] ; then
+elif [ "${METROMS_MYHOST}" == "vilje" ] ; then
     export FORT=ifort
+elif [ "${METROMS_MYHOST}" == "fram" ] ; then
+    export FORT=ifort
+    export I_MPI_F90=ifort
 elif [ "${METROMS_MYHOST}" == "met_ppi" ] ; then
     export FORT=ifort
     export USE_MPI=on
