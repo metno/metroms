@@ -54,8 +54,8 @@ fi
 # Setting up things, like compilers etc:
 export ROMS_APPLICATION=$1
 #export roms_ver="roms-3.6"
-#export roms_ver="roms-trunk820"
-export roms_ver="roms-trunk1041"
+export roms_ver="roms-trunk820"
+#export roms_ver="roms-trunk1041"
 #export roms_ver="roms_svn"
 
 # Default settings:
@@ -127,6 +127,13 @@ else
 #    echo 'no checkout today'
     svn checkout https://www.myroms.org/svn/src/trunk .
 fi
+
+# JD : Added temporary to have place for a new file
+touch $MY_ROMS_SRC/ROMS/Nonlinear/frazil_ice_prod_mod.F
+# JD end
+
+#SM: Same here, added temporary for new file
+touch $MY_ROMS_SRC/ROMS/Modules/mod_ice.F
 
 # Set path of the directory containing makefile configuration (*.mk) files.
 # The user has the option to specify a customized version of these files
