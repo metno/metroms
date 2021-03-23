@@ -28,7 +28,7 @@
 # First the defaults
 #
                FC := ifort
-           FFLAGS := -xHost
+           FFLAGS := #-xHost
               CPP := /usr/bin/cpp
          CPPFLAGS := -P -traditional
                CC := icc
@@ -55,8 +55,8 @@ ifdef USE_NETCDF4
     NETCDF_INCDIR ?= $(shell $(NC_CONFIG) --prefix)/include
              LIBS := $(shell $(NC_CONFIG) --flibs)
 else
-    NETCDF_INCDIR ?= 
-    NETCDF_LIBDIR ?= 
+    NETCDF_INCDIR ?=
+    NETCDF_LIBDIR ?=
              LIBS := -L$(NETCDF_LIBDIR) -lnetcdff -lnetcdf
 endif
 

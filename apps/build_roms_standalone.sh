@@ -54,7 +54,7 @@ fi
 export ROMS_APPLICATION=$1
 #export roms_ver="roms-3.6"
 export roms_ver="roms-3.9"
-# export roms_ver="roms-trunk820"
+#export roms_ver="roms-trunk820"
 #export roms_ver="roms-trunk1041"
 #export roms_ver="roms_svn"
 #
@@ -206,11 +206,6 @@ if [ "$gotModifiedSourceAPP" != "" ] || [ "$gotModifiedSourceCOMMON" != "" ]; th
             # Copying from local source directory to repository
             cp $MODIFIED_SRC_FOLDER/$ModSrc $origFile
             echo "Copying modified_src/$ModSrc to $origFile"
-            if [ ! -f USER_MODIFIED_CODE ]; then
-                # Touch file to notify that user modified code has been
-                # placed in the repository
-                touch USER_MODIFIED_CODE
-            fi
         else
             # No such file in repository, quit script
             echo "No source code file $ModSrc in repository, exiting."
