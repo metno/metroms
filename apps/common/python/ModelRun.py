@@ -311,7 +311,7 @@ class ModelRun(object):
                 print "Restartfile not found!! Will exit"
                 exit(1)
 
-    def _verify_cice_rst_file(self):
+    def _verify_cice_rst_file(self, rst_dir=None):
         """Function checking if the specified model start time is found in the
         CICE restart file located in cice restart pointer file, if not, it checks
         if model start time is found in any other restart files in the restart
@@ -326,7 +326,11 @@ class ModelRun(object):
             return True if date == file_date else False
 
         # open CICE restart pointer file and read filename
-        rst_dir = os.path.join(self._params.CICERUNDIR, "restart")
+        if rst_dir is None:
+            rst_dir = os.path.join(self._params.CICERUNDIR, "restart")  # default to this if nothing specified
+        elif type(rst_dir) is not str:
+            raise TypeError("Invalid type for rst_dir, must be str!")
+            
         rst_pointer_file = os.path.join(rst_dir, "ice.restart_file")
 
         with open(rst_pointer_file, "r") as rst_fp:
