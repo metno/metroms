@@ -52,8 +52,9 @@ fi
 #
 # Setting up things, like compilers etc:
 export ROMS_APPLICATION=$1
-#export roms_ver="roms-3.6"
-export roms_ver="roms-3.9"
+# export roms_ver="roms-3.6"
+export roms_ver="roms-3.6clean"
+#export roms_ver="roms-3.9"
 #export roms_ver="roms-trunk820"
 #export roms_ver="roms-trunk1041"
 #export roms_ver="roms_svn"
@@ -126,10 +127,6 @@ else
     svn checkout https://www.myroms.org/svn/src/trunk .
 fi
 #
-# JD : Added temporary to have place for a new file
-touch $MY_ROMS_SRC/ROMS/Nonlinear/frazil_ice_prod_mod.F
-touch $MY_ROMS_SRC/ROMS/Modules/mod_ice.F
-# JD end
 #
 # Set path of the directory containing makefile configuration (*.mk) files.
 # The user has the option to specify a customized version of these files
@@ -235,10 +232,6 @@ if [ "$gotModifiedSourceAPP" != "" ] || [ "$gotModifiedSourceCOMMON" != "" ]; th
     done
 fi
 #
-if [ -n "${USE_CICE:+1}" ]; then
-	export USE_MCT=on
-	export MY_CPP_FLAGS="${MY_CPP_FLAGS} -DNO_LBC_ATT -DMODEL_COUPLING -DUSE_MCT -DMCT_COUPLING -DMCT_LIB -DCICE_COUPLING -DCICE_OCEAN"
-fi
 #
 if [ -n "${USE_NETCDF4:+1}" ]; then
  export USE_DAP=on
@@ -263,10 +256,6 @@ if [ $parallel -eq 1 ]; then
   make $NCPUS
 else
   make
-fi
-#
-if [ -n "${USE_CICE:+1}" ]; then
-	cp ${MODIFIED_SRC_FOLDER}/coupling.dat $BINDIR/
 fi
 #
 # Clean up unpacked static code:
