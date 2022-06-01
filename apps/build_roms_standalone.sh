@@ -125,7 +125,7 @@ if [ $roms_ver != 'roms_svn' ]; then
     rm -rf User
 else
 #    echo 'no checkout today'
-    svn checkout https://www.myroms.org/svn/src/trunk .
+    svn checkout -r ${svn_rev} https://www.myroms.org/svn/src/trunk .
 fi
 
 # JD : Added temporary to have place for a new file
