@@ -21,7 +21,7 @@ if [ ${METROMS_MYHOST} == "metlocal" ] || [ "${METROMS_MYHOST}" == "met_ppi" ]; 
     FORT=mpif90
 elif [ ${METROMS_MYHOST} == "vilje" ] ; then
     FORT=ifort
-elif [ ${METROMS_MYHOST} == "fram" ] ; then
+elif [ ${METROMS_MYHOST} == "fram" ] || [ "${METROMS_MYHOST}" == "nebula" ]; then
     FORT=ifort
     export I_MPI_F90=ifort
 else
