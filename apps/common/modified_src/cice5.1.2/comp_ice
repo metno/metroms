@@ -22,7 +22,7 @@ elif [ "$METROMS_MYHOST" == "vilje" ]; then
 elif [ "$METROMS_MYHOST" == "met_ppi" ]; then
     export SITE=Linux.MET_PPI
 #    export WORKDIR=/work/$LOGNAME/
-elif [ "$METROMS_MYHOST" == "fram" ]; then
+elif [ "$METROMS_MYHOST" == "fram" ] || [ "$METROMS_MYHOST" == "nebula" ]; then
     export I_MPI_F90=ifort
     export SITE=Linux.fram
 #    export WORKDIR=/work/$LOGNAME/

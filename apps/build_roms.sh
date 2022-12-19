@@ -70,7 +70,7 @@ if [ "${METROMS_MYHOST}" == "metlocal" ]; then
     export FORT=gfortran
 elif [ "${METROMS_MYHOST}" == "vilje" ] ; then
     export FORT=ifort
-elif [ "${METROMS_MYHOST}" == "fram" ] ; then
+elif [ "${METROMS_MYHOST}" == "fram" ] || [ "${METROMS_MYHOST}" == "nebula" ]; then
     export FORT=ifort
     export I_MPI_F90=ifort
 elif [ "${METROMS_MYHOST}" == "met_ppi" ] ; then
@@ -297,7 +297,9 @@ fi
 
 if [ -n "${USE_NETCDF4:+1}" ]; then
  export USE_DAP=on
- export PATH=/usr/bin:$PATH
+ if [ "${METROMS_MYHOST}" != "nebula" ]; then
+     export PATH=/usr/bin:$PATH
+ fi
 fi
 
 export MY_HEADER_DIR=${MY_PROJECT_DIR}/include

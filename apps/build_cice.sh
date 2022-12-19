@@ -7,7 +7,7 @@ NPX=1; NPY=1
 if [ "${METROMS_MYHOST}" == "metlocal" ] || [ "${METROMS_MYHOST}" == "met_ppi" ]; then
     NPX=1  
     NPY=2
-elif [ "${METROMS_MYHOST}" == "vilje" ] || [ "${METROMS_MYHOST}" == "fram" ]; then
+elif [ "${METROMS_MYHOST}" == "vilje" ] || [ "${METROMS_MYHOST}" == "fram" ] || [ "${METROMS_MYHOST}" == "nebula" ]; then
     NPX=1  
     NPY=2
 fi

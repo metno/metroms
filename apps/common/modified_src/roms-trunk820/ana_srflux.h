@@ -109,6 +109,8 @@
 #endif
       real(r8) :: cff
 
+      real(r8), parameter :: alb_w=0.06_r8
+
 #include "set_bounds.h"
 
 #if defined ALBEDO || defined DIURNAL_SRFLUX
@@ -144,7 +146,7 @@
 !
 !  Estimate solar declination angle (radians).
 !
-      Dangle=23.44_r8*COS((172.0_r8-yday)*2.0_r8*pi/365.25_r8)
+      Dangle=23.44_r8*COS((172.0_r8-yday)*2.0_r8*pi/365.2425_r8)
       Dangle=Dangle*deg2rad
 !
 !  Compute hour angle (radians).
@@ -156,15 +158,11 @@
 # endif
       DO j=JstrT,JendT
         DO i=IstrT,IendT
-!jd - start I think this is wrong. 
-!jd!
-!jd!  Local daylight is a function of the declination (Dangle) and hour 
-!jd!  angle adjusted for the local meridian (Hangle-lonr(i,j)/15.0). 
-!jd!  The 15.0 factor is because the sun moves 15 degrees every hour.
-!jd! - New
-!  Local daylight is a function of the declination (Dangle) and hour 
-!  angle adjusted for the local longitude (Hangle-lonr(i,j))
-!jd - end
+!
+!  Local daylight, GMT time zone, is a function of the declination
+!  (Dangle) and hour angle adjusted for the local meridian
+!  (Hangle-lonr(i,j)*deg2rad).
+!
           LatRad=latr(i,j)*deg2rad
           cff1=SIN(LatRad)*SIN(Dangle)
           cff2=COS(LatRad)*COS(Dangle)
@@ -172,7 +170,7 @@
 !
 !  Estimate variation in optical thickness of the atmosphere over
 !  the course of a day under cloudless skies (Zillman, 1972). To
-!  obtain net incoming shortwave radiation multiply by (1.0-0.6*c**3),
+!  obtain incoming shortwave radiation multiply by (1.0-0.6*c**3),
 !  where c is the fractional cloud cover.
 !
 !  The equation for saturation vapor pressure is from Gill (Atmosphere-
@@ -199,6 +197,13 @@
      &                 ((zenith+2.7_r8)*vap_p*1.0E-3_r8+                &
      &                  1.085_r8*zenith+0.1_r8)
           END IF
+!
+!  Add correction for ocean albedo. Notice that the correction is not
+!  needed below because it is assumed that the input (>=24h-average)
+!  and 'srflx' is NET downward shortwave radiation.
+!
+          srflx(i,j)=(1.0_r8-alb_w)*srflx(i,j)
+
 # elif defined DIURNAL_SRFLUX
 !
 !  SRFLX is reset on each time step in subroutine SET_DATA which
