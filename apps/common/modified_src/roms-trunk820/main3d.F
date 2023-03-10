@@ -342,11 +342,12 @@
 !-----------------------------------------------------------------------
 !
         DO ng=1,Ngrids
-          IF ((iic(ng).ne.ntstart(ng)).and.                             &
-     &        MOD(iic(ng)-1,CoupleSteps(Icice,ng)).eq.0) THEN
-            DO tile=first_tile(ng),last_tile(ng),+1
-              CALL ocn2cice_coupling (ng, TILE,CoupleSteps(Icice,ng))
-            END DO
+!jd           IF ((iic(ng).ne.ntstart(ng)).and.                             &
+           if ( MOD(iic(ng)-1,CoupleSteps(Icice,ng)).eq.0 .and.             &
+     &          iic(ng) .lt. (ntend(ng)+1) ) THEN
+              DO tile=first_tile(ng),last_tile(ng),+1
+                 CALL ocn2cice_coupling (ng, TILE,CoupleSteps(Icice,ng))
+              END DO
 !$OMP BARRIER
           END IF
         END DO
