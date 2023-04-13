@@ -39,25 +39,26 @@
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 # 08/01/2014: Big rewrite by nilsmk@met.no to make build-script more general
 set -x
-
+#
 if [ $# -lt 1 ]
   then
   echo "Usage: $0 modelname -j 4"
   echo "Or specify more kernels than 4 for compilation if you have them available"
   exit
 fi
-
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 # Users can/should/must change things between here...
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 #
 # Setting up things, like compilers etc:
 export ROMS_APPLICATION=$1
-#export roms_ver="roms-3.6"
-export roms_ver="roms-trunk820"
+# export roms_ver="roms-3.6"
+export roms_ver="roms-3.6clean"
+#export roms_ver="roms-3.9"
+#export roms_ver="roms-trunk820"
 #export roms_ver="roms-trunk1041"
 #export roms_ver="roms_svn"
-
+#
 # Default settings:
 export USE_MPI=on
 export USE_MPIF90=on
@@ -67,7 +68,7 @@ export USE_OpenMP=
 export USE_NETCDF4=on
 #export USE_PARALLEL_IO=on
 export which_MPI=mpich2        # compile with MPICH2 library
-
+#
 if [ "${METROMS_MYHOST}" == "metlocal" ]; then
     export FORT=gfortran
 elif [ "${METROMS_MYHOST}" == "vilje" ] ; then
@@ -99,11 +100,9 @@ else
   echo " Did you perhaps forgot 'source ./myenv.bash' ? "
   exit
 fi
-
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 # ... and here.
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
 if [ ! -d ${METROMS_TMPDIR} ] ; then
     echo "METROMS_TMPDIR not defined, set environment variable METROMS_TMPDIR"
     exit
@@ -116,7 +115,7 @@ if [ ! -d ${METROMS_BASEDIR} ] ; then
     echo "METROMS_BASEDIR not defined, set environment variable METROMS_TMPDIR"
     exit
 fi
-
+#
 export MY_ROMS_SRC=${METROMS_BLDDIR}/roms_src
 # mkdir -p ${MY_ROMS_SRC}
 cd ${MY_ROMS_SRC}
@@ -140,14 +139,12 @@ cd ${MY_ROMS_SRC}
 # in a different directory than the one distributed with the source code,
 # ${MY_ROMS_SCR}/Compilers. If this is the case, the you need to keep
 # these configurations files up-to-date.
-
 export COMPILERS=${MY_ROMS_SRC}/Compilers
-
 cd ${METROMS_APPDIR}
-
+#
 parallel=1
 clean=1
-
+#
 while [ $# -gt 1 ]
 do
   case "$2" in
@@ -164,21 +161,20 @@ fi
 ;;
 esac
 done
-
+#
 cd ${ROMS_APPLICATION}
-
+#
 # Set number of nested/composed/mosaic grids.  Currently, only one grid
 # is supported.
-
+#
 export NestedGrids=1
-
+#
 export MY_ROOT_DIR=${METROMS_APPDIR}/${ROMS_APPLICATION}/
 export MY_PROJECT_DIR=${METROMS_APPDIR}/${ROMS_APPLICATION}/
 export SCRATCH_DIR=${METROMS_BLDDIR}/build
-
+#
 cd ${MY_PROJECT_DIR}
-
-#if [ $roms_ver != 'roms_svn' ]; then
+#
 # # NMK - 20151030
 # # Check if we have any common modified source files
 # export MODIFIED_SRC_FOLDER=${METROMS_BASEDIR}/apps/common/modified_src/${roms_ver}
@@ -313,42 +309,34 @@ cd ${MY_PROJECT_DIR}
 # #fi # if roms_svn
 
 #
-if [ -n "${USE_CICE:+1}" ]; then
-	export USE_MCT=on
-	export MY_CPP_FLAGS="${MY_CPP_FLAGS} -DNO_LBC_ATT -DMODEL_COUPLING -DUSE_MCT -DMCT_COUPLING -DMCT_LIB -DCICE_COUPLING -DCICE_OCEAN"
-fi
-
+#
 if [ -n "${USE_NETCDF4:+1}" ]; then
  export USE_DAP=on
  #export PATH=/usr/bin:$PATH
 fi
-
+#
 export MY_HEADER_DIR=${MY_PROJECT_DIR}/include
 export MY_ANALYTICAL_DIR=${MY_HEADER_DIR}
-
+#
 # Build ROMS
 # Put the binary to execute in the following directory.
 export BINDIR=${METROMS_TMPDIR}/${ROMS_APPLICATION}
 mkdir -p $BINDIR
-
+#
 cd ${MY_ROMS_SRC}
 if [ $clean -eq 1 ]; then
   make clean
 fi
-
+#
 # Compile (the binary will go to BINDIR set above).
 if [ $parallel -eq 1 ]; then
   make $NCPUS
 else
   make
 fi
-
-if [ -n "${USE_CICE:+1}" ]; then
-	cp ${MODIFIED_SRC_FOLDER}/coupling.dat $BINDIR/
-fi
-
+#
 # Clean up unpacked static code:
 cd  ${MY_PROJECT_DIR}
-#rm -rf ${MY_ROMS_SRC}
-
+rm -rf ${MY_ROMS_SRC}
+#
 set +x

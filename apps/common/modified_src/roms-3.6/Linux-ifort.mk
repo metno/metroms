@@ -90,7 +90,7 @@ ifdef USE_DEBUG
          CXXFLAGS += -g
 else
 #           FFLAGS += -ip -O3 
-           FFLAGS += -ip -O3 -g
+           FFLAGS += -ip -O3
            CFLAGS += -O3
          CXXFLAGS += -O3
 endif

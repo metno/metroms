@@ -70,7 +70,7 @@ if [ "${METROMS_MYHOST}" == "metlocal" ]; then
     export FORT=gfortran
 elif [ "${METROMS_MYHOST}" == "vilje" ] ; then
     export FORT=ifort
-elif [ "${METROMS_MYHOST}" == "fram" ] ; then
+elif [ "${METROMS_MYHOST}" == "fram" ] || [ "${METROMS_MYHOST}" == "nebula" ]; then
     export FORT=ifort
     export I_MPI_F90=ifort
 elif [ "${METROMS_MYHOST}" == "nebula" ] || [ "${METROMS_MYHOST}" == "stratus" ]; then
