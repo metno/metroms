@@ -73,11 +73,25 @@ elif [ "${METROMS_MYHOST}" == "vilje" ] ; then
 elif [ "${METROMS_MYHOST}" == "fram" ] ; then
     export FORT=ifort
     export I_MPI_F90=ifort
+elif [ "${METROMS_MYHOST}" == "nebula" ] || [ "${METROMS_MYHOST}" == "stratus" ]; then
+    export FORT=ifort
+    export USE_MPIF90=on
+    export USE_MPI=on
 elif [ "${METROMS_MYHOST}" == "met_ppi" ] ; then
+  echo "Linux distro is `lsb_release -sc`"
+  if [ `lsb_release -sc` == 'Core' ]; then
+    export FORT=ifort
+    export USE_MPI=on
+    export USE_MPIF90=on
+    export which_MPI=
+  elif [ `lsb_release -sc` == 'Ootpa' ]; then
     export FORT=ifort
     export USE_MPI=on
     export USE_MPIF90=on
     export which_MPI=openmpi
+  else
+    echo "Undefined linux distro for met_ppi"
+  fi
 else
   echo " Computer not defined set environment variable METROMS_MYHOST= metlocal, vilje ... "
   echo " Did you perhaps forgot 'source ./myenv.bash' ? "
@@ -297,7 +311,7 @@ fi
 
 if [ -n "${USE_NETCDF4:+1}" ]; then
  export USE_DAP=on
- export PATH=/usr/bin:$PATH
+ #export PATH=/usr/bin:$PATH
 fi
 
 export MY_HEADER_DIR=${MY_PROJECT_DIR}/include
