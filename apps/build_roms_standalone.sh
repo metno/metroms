@@ -82,22 +82,22 @@ elif [ "${METROMS_MYHOST}" == "nebula" ] || [ "${METROMS_MYHOST}" == "stratus" ]
     export USE_MPI=on
 elif [ "${METROMS_MYHOST}" == "met_ppi" ] ; then
   echo "Linux distro is `lsb_release -sc`"
-  if [ `lsb_release -sc` == 'xenial' ]; then
-    export FORT=ifort
-    export USE_MPI=on
-    export USE_MPIF90=on
-    export which_MPI=openmpi
-  elif [ `lsb_release -sc` == 'Core' ]; then
+  if [ `lsb_release -sc` == 'Core' ]; then
     export FORT=ifort
     export USE_MPI=on
     export USE_MPIF90=on
     export which_MPI=
+  elif [ `lsb_release -sc` == 'Ootpa' ]; then
+    export FORT=ifort
+    export USE_MPI=on
+    export USE_MPIF90=on
+    export which_MPI=openmpi
   else
     echo "Undefined linux distro for met_ppi"
   fi
 else
   echo " Computer not defined set environment variable METROMS_MYHOST= metlocal, vilje ... "
-  echo " Did you perhaps forget 'source ./myenv.bash' ? "
+  echo " Did you perhaps forgot 'source ./myenv.bash' ? "
   exit
 fi
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -117,17 +117,23 @@ if [ ! -d ${METROMS_BASEDIR} ] ; then
 fi
 #
 export MY_ROMS_SRC=${METROMS_BLDDIR}/roms_src
-mkdir -p ${MY_ROMS_SRC}
+# mkdir -p ${MY_ROMS_SRC}
 cd ${MY_ROMS_SRC}
-if [ $roms_ver != 'roms_svn' ]; then
-    tar -xf ${METROMS_BASEDIR}/static_libs/${roms_ver}.tar.gz
-    rm -rf User
-else
-#    echo 'no checkout today'
-    svn checkout -r ${svn_rev} https://www.myroms.org/svn/src/trunk .
-fi
-#
-#
+# if [ $roms_ver != 'roms_svn' ]; then
+    # tar -xf ${METROMS_BASEDIR}/static_libs/${roms_ver}.tar.gz
+    # rm -rf User
+# else
+# #    echo 'no checkout today'
+#     svn checkout -r ${svn_rev} https://www.myroms.org/svn/src/trunk .
+# fi
+
+# JD : Added temporary to have place for a new file
+# touch $MY_ROMS_SRC/ROMS/Nonlinear/frazil_ice_prod_mod.F
+# JD end
+
+#SM: Same here, added temporary for new file
+# touch $MY_ROMS_SRC/ROMS/Modules/mod_ice.F
+
 # Set path of the directory containing makefile configuration (*.mk) files.
 # The user has the option to specify a customized version of these files
 # in a different directory than the one distributed with the source code,
@@ -171,66 +177,137 @@ cd ${MY_PROJECT_DIR}
 #
 # # NMK - 20151030
 # # Check if we have any common modified source files
-export MODIFIED_SRC_FOLDER=${METROMS_BASEDIR}/apps/common/modified_src/${roms_ver}
-if [ -s $MODIFIED_SRC_FOLDER ]; then
-  cd $MODIFIED_SRC_FOLDER
-  gotModifiedSourceCOMMON=`ls *.F *.h *.mk *.in`
-  cd ${MY_PROJECT_DIR}
-fi
+# export MODIFIED_SRC_FOLDER=${METROMS_BASEDIR}/apps/common/modified_src/${roms_ver}
+# if [ -s $MODIFIED_SRC_FOLDER ]; then
+#   cd $MODIFIED_SRC_FOLDER
+#   gotModifiedSourceCOMMON=`ls *.F *.h *.mk *.in`
+#   cd ${MY_PROJECT_DIR}
+# fi
+
+# # # KHC - 20110209
+# # # Check if we have any modified source files
+# if [ -s modified_src ]; then
+#   cd modified_src
+#   gotModifiedSourceAPP=`ls *.F *.h *.mk *.in`
+#   cd ..
+# fi
+
+# # Replace the original files with the modifications
+# if [ "$gotModifiedSourceAPP" != "" ] || [ "$gotModifiedSourceCOMMON" != "" ]; then
+
+#   echo "!!!!!!!!!!!!Found modified src...!!!!!!!!!!!!!!!!!!!!!"
+
+#     # Copy common modified source to ROMS app-directory
+#     for ModSrc in $gotModifiedSourceCOMMON; do
+
+#         # Check where original resides
+#         origFile=`find ${MY_ROMS_SRC} -name $ModSrc`
+
+#         if [ -f "$origFile" ]; then
+
+#             # Moving original and copying user-modifed source code
+#             # first checking if the original already exists with
+#             # the .orig extension
+#             if [ ! -f "$origFile.orig" ]; then
+# 		            mv $origFile $origFile.orig
+# 		            echo "Moving $origFile to $origFile.orig"
+#             fi
+
+#             # Copying from local source directory to repository
+#             cp $MODIFIED_SRC_FOLDER/$ModSrc $origFile
+#             echo "Copying modified_src/$ModSrc to $origFile"
+
+#             if [ ! -f USER_MODIFIED_CODE ]; then
+
+#                 # Touch file to notify that user modified code has been
+#                 # placed in the repository
+#                 touch USER_MODIFIED_CODE
+
+#             fi
+#         else
+
+#             # No such file in repository, quit script
+#             echo "No source code file $ModSrc in repository, exiting."
+#             exit 3
+
+#         fi
+#     done
+#     # Copy locally modified source to main ROMS directory
+#     for ModSrc in $gotModifiedSourceAPP; do
+
+#         # Check where original resides
+#         origFile=`find ${MY_ROMS_SRC} -name $ModSrc`
+
+#         if [ -f "$origFile" ]; then
+
+#             # Moving original and copying user-modifed source code
+#             # first checking if the original already exists with
+#             # the .orig extension
+#             if [ ! -f "$origFile.orig" ]; then
+# 		            mv $origFile $origFile.orig
+# 		            echo "Moving $origFile to $origFile.orig"
+#             fi
+
+#             # Copying from local source directory to repository
+#             cp modified_src/$ModSrc $origFile
+#             echo "Copying modified_src/$ModSrc to $origFile"
+
+#             if [ ! -f USER_MODIFIED_CODE ]; then
+
+#                 # Touch file to notify that user modified code has been
+#                 # placed in the repository
+#                 touch USER_MODIFIED_CODE
+
+#             fi
+#         else
+
+#             # No such file in repository, quit script
+#             echo "No source code file $ModSrc in repository, exiting."
+#             exit 3
+
+#         fi
+#     done
+# fi
+
+# # Removing user modified source code in repository
 # # KHC - 20110209
-# # Check if we have any modified source files
-if [ -s modified_src ]; then
-  cd modified_src
-  gotModifiedSourceAPP=`ls *.F *.h *.mk *.in`
-  cd ..
-fi
-#
-# Replace the original files with the modifications
-if [ "$gotModifiedSourceAPP" != "" ] || [ "$gotModifiedSourceCOMMON" != "" ]; then
-  echo "!!!!!!!!!!!!Found modified src...!!!!!!!!!!!!!!!!!!!!!"
-    # Copy common modified source to ROMS app-directory
-    for ModSrc in $gotModifiedSourceCOMMON; do
-        # Check where original resides
-        origFile=`find ${MY_ROMS_SRC} -name $ModSrc`
-        if [ -f "$origFile" ]; then
-            # Moving original and copying user-modifed source code
-            # first checking if the original already exists with
-            # the .orig extension
-            if [ ! -f "$origFile.orig" ]; then
-		            mv $origFile $origFile.orig
-		            echo "Moving $origFile to $origFile.orig"
-            fi
-            # Copying from local source directory to repository
-            cp $MODIFIED_SRC_FOLDER/$ModSrc $origFile
-            echo "Copying modified_src/$ModSrc to $origFile"
-        else
-            # No such file in repository, quit script
-            echo "No source code file $ModSrc in repository, exiting."
-            exit 3
-        fi
-    done
-    # Copy locally modified source to main ROMS directory
-    for ModSrc in $gotModifiedSourceAPP; do
-        # Check where original resides
-        origFile=`find ${MY_ROMS_SRC} -name $ModSrc`
-        if [ -f "$origFile" ]; then
-            # Moving original and copying user-modifed source code
-            # first checking if the original already exists with
-            # the .orig extension
-            if [ ! -f "$origFile.orig" ]; then
-		            mv $origFile $origFile.orig
-		            echo "Moving $origFile to $origFile.orig"
-            fi
-            # Copying from local source directory to repository
-            cp modified_src/$ModSrc $origFile
-            echo "Copying modified_src/$ModSrc to $origFile"
-        else
-            # No such file in repository, quit script
-            echo "No source code file $ModSrc in repository, exiting."
-            exit 3
-        fi
-    done
-fi
+# # NMK - 2013
+# rollback() {
+#     cd $MY_ROOT_DIR
+
+#     if [ -f USER_MODIFIED_CODE ]; then
+
+#     # Find source code files with ".orig"-ending and
+#     # remove ending
+#     filelist=`find "$MY_ROMS_SRC" -name *.orig`
+
+#     if [ "$filelist" != "" ]; then
+
+#       for oldFileName in $filelist; do
+
+#       # extract basename
+#       newFileName=`basename $oldFileName .orig`
+#       fileDirectory=`dirname $oldFileName`
+#       mv $oldFileName  $fileDirectory/$newFileName
+
+#       echo "Moved $oldFileName  to $fileDirectory/$newFileName"
+
+#     done
+
+#   else # Empty filelist, no such files in repository
+
+#     echo "Did not find any .orig-files in the repository, empty file deleted"
+
+#   fi
+
+#     # Remove empty file
+#     rm -f USER_MODIFIED_CODE
+
+#   fi
+# }
+# trap 'rollback; exit 99' 0
+# #fi # if roms_svn
+
 #
 #
 if [ -n "${USE_NETCDF4:+1}" ]; then
