@@ -29,7 +29,7 @@
       use ice_constants
       use ice_communicate, only: my_task, master_task
       use ice_domain_size, only: ncat, max_aero, nilyr, nslyr, n_aero, nblyr
-      use ice_fileunits, only: nu_diag
+      use ice_fileunits, only: nu_diag, ice_stderr
 
       implicit none
       save
@@ -2417,7 +2417,7 @@
 
         enddo ! n
 
-        if (nzaps > 0) write(nu_diag,*) &
+        if (nzaps > 0) write(ice_stderr,*) &
              'zap_snow_temperature :: ',nzaps,' points zaped at proc ',my_task
 
       end subroutine zap_snow_temperature
