@@ -11,12 +11,10 @@ if [ "$METROMS_MYHOST" == "met_ppi" ]; then
         export METROMS_APPDIR=$HOME/sea/ROMS/metroms_apps
     else
     	export METROMS_BASEDIR=$HOME/metroms
-    if [ -d "/lustre/storeB" ]
-    then
+    if [ -d "/lustre/storeB/users/$USER" ]; then
         echo "using storeB"
 	    export METROMS_TMPDIR=/lustre/storeB/users/$USER/metroms_run
-    elif [ -d "/lustre/storeA" ]
-    then
+    elif [ -d "/lustre/storeA/users/$USER" ]; then
         echo "using storeA"
         export METROMS_TMPDIR=/lustre/storeA/users/$USER/metroms_run
     else
