@@ -14,7 +14,7 @@ class GlobalParams(object):
     elif MYHOST=='vilje' or MYHOST=='alvin' or MYHOST=='met_ppi' or MYHOST=='elvis' or MYHOST=='nebula' or MYHOST=='stratus' or MYHOST=='fram':
         HOME=os.environ.get('HOME')
         if HOME=='None':
-            print "Environment variable HOME not found in configuration"
+            print("Environment variable HOME not found in configuration")
             sys.exit(1)
 
         METROMSDIR=os.environ.get('METROMS_BASEDIR',HOME+'/metroms')
@@ -23,7 +23,7 @@ class GlobalParams(object):
         RUNDIR=tmpdir
         METROMSAPPDIR=os.environ.get('METROMS_APPDIR',HOME+'/metroms_apps')
     else:
-        print 'Environment variable MYHOST not defined or unknown (metlocal,vilje,)'
+        print('Environment variable MYHOST not defined or unknown (metlocal,vilje,)')
         sys.exit(1)
 
     COMMONPATH=METROMSDIR+"/apps/common"

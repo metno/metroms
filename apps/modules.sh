@@ -36,7 +36,8 @@ elif [ "$METROMS_MYHOST" == "met_ppi" ]; then
     module use /modules/MET/rhel8/user-modules/
     module add compiler/Intel2022
     module add OPA-R8/netcdf/4.6.0intel22-opa OPA-R8/openmpi/3.1.4-i22-2023
-    #module load nco # ask nicob!! is in conda production env
+    . /modules/rhel8/conda/install/etc/profile.d/conda.sh
+    conda activate production-10-2022
   else
     echo "Undefined linux distro for met_ppi"
   fi
