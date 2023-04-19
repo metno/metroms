@@ -88,6 +88,7 @@ elif [ "${METROMS_MYHOST}" == "met_ppi" ] ; then
     export USE_MPI=on
     export USE_MPIF90=on
     export which_MPI=openmpi
+    export USE_NETCDF4=
   else
     echo "Undefined linux distro for met_ppi"
   fi
