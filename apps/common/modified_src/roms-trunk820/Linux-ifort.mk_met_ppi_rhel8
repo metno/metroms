@@ -24,7 +24,7 @@
 # First the defaults
 #
                FC := ifort
-           FFLAGS := -heap-arrays -fp-model precise
+           FFLAGS := -xHost -heap-arrays -fp-model precise
               CPP := /usr/bin/cpp
          CPPFLAGS := -P -traditional
           LDFLAGS :=
@@ -43,13 +43,16 @@
 #
 
 ifdef USE_NETCDF4
-        NC_CONFIG ?= nc-config
-    NETCDF_INCDIR ?= $(shell $(NC_CONFIG) --prefix)/include
-             LIBS := $(shell $(NC_CONFIG) --flibs)
+#        NC_CONFIG ?= nc-config
+#    NETCDF_INCDIR ?= $(shell $(NC_CONFIG) --prefix)/include
+#             LIBS := $(shell $(NC_CONFIG) --flibs)
+    NETCDF_INCDIR ?= /modules/rhel8/user-apps/netcdf/4.6.0intel22-opa/include
+    NETCDF_LIBDIR ?= /modules/rhel8/user-apps/netcdf/4.6.0intel22-opa/lib
+             LIBS := -L$(NETCDF_LIBDIR) -lnetcdff -L/modules/rhel8/user-apps/netcdf/4.6.0intel22-opa/lib -lnetcdff -lnetcdf -lm
 else
     NETCDF_INCDIR ?= /modules/rhel8/user-apps/netcdf/4.6.0intel22-opa/include
     NETCDF_LIBDIR ?= /modules/rhel8/user-apps/netcdf/4.6.0intel22-opa/lib
-             LIBS := -L$(NETCDF_LIBDIR) -lnetcdff -L/modules/rhel8/user-apps/netcdf/4.6.0intel22-opa/lib -lnetcdf -lnetcdf -lm
+             LIBS := -L$(NETCDF_LIBDIR) -lnetcdff -L/modules/rhel8/user-apps/netcdf/4.6.0intel22-opa/lib -lnetcdff -lnetcdf -lm
 endif
 
 ifdef USE_ARPACK
