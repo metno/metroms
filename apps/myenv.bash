@@ -49,4 +49,4 @@ fi
 
 
 export PYTHONPATH=$PYTHONPATH:$METROMS_BASEDIR/apps/common/python/
-source ./modules.sh
+source ${METROMS_BASEDIR}/apps/modules.sh
