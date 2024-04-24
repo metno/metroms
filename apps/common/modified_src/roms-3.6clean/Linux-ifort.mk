@@ -28,7 +28,7 @@
 # First the defaults
 #
                FC := ifort
-           FFLAGS := -mcmodel=large -xHOST #-Nmpi
+           FFLAGS := -mcmodel=large #-xHOST #-Nmpi
               CPP := /usr/bin/cpp
          CPPFLAGS := -P -traditional
                CC := icc
@@ -51,9 +51,12 @@
 #
 
 ifdef USE_NETCDF4
-        NC_CONFIG ?= nc-config
-    NETCDF_INCDIR ?= $(shell $(NC_CONFIG) --prefix)/include
-             LIBS := $(shell $(NC_CONFIG) --flibs)
+    #     NC_CONFIG ?= nf-config
+    # NETCDF_INCDIR ?= $(shell $(NC_CONFIG) --prefix)/include
+    #          LIBS := $(shell $(NC_CONFIG) --flibs)
+    NETCDF_INCDIR ?= /modules/rhel8/user-apps/netcdf/netcdf-4.6.1-IB-i22-2023-prod/include
+    NETCDF_LIBDIR ?= /modules/rhel8/user-apps/netcdf/netcdf-4.6.1-IB-i22-2023-prod/lib
+             LIBS := -L$(NETCDF_LIBDIR) -lnetcdff -lnetcdf
 else
     NETCDF_INCDIR ?= /sw/sdev/Modules/netcdf/netcdf-4.1.3/include
     NETCDF_LIBDIR ?= /sw/sdev/Modules/netcdf/netcdf-4.1.3/lib

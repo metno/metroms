@@ -24,7 +24,8 @@
 # First the defaults
 #
                FC := ifort
-           FFLAGS := -heap-arrays -fp-model precise
+           FFLAGS := -mcmodel=large
+          #  FFLAGS := -heap-arrays -fp-model precise
               CPP := /usr/bin/cpp
          CPPFLAGS := -P -traditional
           LDFLAGS :=
@@ -43,13 +44,16 @@
 #
 
 ifdef USE_NETCDF4
-        NC_CONFIG ?= nc-config
-    NETCDF_INCDIR ?= $(shell $(NC_CONFIG) --prefix)/include
-             LIBS := $(shell $(NC_CONFIG) --flibs)
+    #     NC_CONFIG ?= nc-config
+    # NETCDF_INCDIR ?= $(shell $(NC_CONFIG) --prefix)/include
+    #          LIBS := $(shell $(NC_CONFIG) --flibs)
+    NETCDF_INCDIR ?= /modules/rhel8/user-apps/netcdf/netcdf-4.6.1-IB-i22-2023-prod/include
+    NETCDF_LIBDIR ?= /modules/rhel8/user-apps/netcdf/netcdf-4.6.1-IB-i22-2023-prod/lib
+             LIBS := -L$(NETCDF_LIBDIR) -lnetcdff -lnetcdf
 else
-    NETCDF_INCDIR ?= /modules/rhel8/user-apps/netcdf/4.6.0intel22-opa/include #/modules/rhel8/conda/install/envs/production-10-2022/include
-    NETCDF_LIBDIR ?= /modules/rhel8/user-apps/netcdf/4.6.0intel22-opa/lib #/modules/rhel8/conda/install/envs/production-10-2022/lib
-             LIBS := -L$(NETCDF_LIBDIR) -lnetcdf
+    # NETCDF_INCDIR ?= /modules/rhel8/user-apps/netcdf/4.6.0intel22-opa/include #/modules/rhel8/conda/install/envs/production-10-2022/include
+    # NETCDF_LIBDIR ?= /modules/rhel8/user-apps/netcdf/4.6.0intel22-opa/lib #/modules/rhel8/conda/install/envs/production-10-2022/lib
+    #          LIBS := -L$(NETCDF_LIBDIR) -lnetcdf
 endif
 
 ifdef USE_ARPACK
