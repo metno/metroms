@@ -56,6 +56,7 @@ export ROMS_APPLICATION=$1
 #export roms_ver="roms-3.6"
 export roms_ver="roms-trunk820"
 
+# Default settings:
 export USE_MPI=on
 export USE_MPIF90=on
 export USE_OpenMP=
@@ -171,8 +172,8 @@ export SCRATCH_DIR=${METROMS_BLDDIR}/build
 
 cd ${MY_PROJECT_DIR}
 
-# # NMK - 20151030
-# # Check if we have any common modified source files
+# NMK - 20151030
+# Check if we have any common modified source files
 export MODIFIED_SRC_FOLDER=${METROMS_BASEDIR}/apps/common/modified_src/${roms_ver}
 if [ -s $MODIFIED_SRC_FOLDER ]; then
   cd $MODIFIED_SRC_FOLDER
@@ -181,7 +182,7 @@ if [ -s $MODIFIED_SRC_FOLDER ]; then
 fi
 
 # # KHC - 20110209
-# # Check if we have any modified source files
+# # Check if we have any APP SPECIFIC modified source files
 if [ -s modified_src ]; then
   cd modified_src
   gotModifiedSourceAPP=`ls *.F *.h *.mk *.in`
@@ -311,7 +312,6 @@ fi
 
 if [ -n "${USE_NETCDF4:+1}" ]; then
  export USE_DAP=on
- #export PATH=/usr/bin:$PATH
 fi
 
 export MY_HEADER_DIR=${MY_PROJECT_DIR}/include

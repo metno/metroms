@@ -39,7 +39,7 @@
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 # 08/01/2014: Big rewrite by nilsmk@met.no to make build-script more general
 set -x
-#
+
 if [ $# -lt 1 ]
   then
   echo "Usage: $0 modelname -j 4"
@@ -74,7 +74,7 @@ if [ "${METROMS_MYHOST}" == "metlocal" ]; then
     export FORT=gfortran
 elif [ "${METROMS_MYHOST}" == "vilje" ] ; then
     export FORT=ifort
-elif [ "${METROMS_MYHOST}" == "fram" ] ; then
+elif [ "${METROMS_MYHOST}" == "fram" ] || [ "${METROMS_MYHOST}" == "nebula" ]; then
     export FORT=ifort
     export I_MPI_F90=ifort
 elif [ "${METROMS_MYHOST}" == "nebula" ] || [ "${METROMS_MYHOST}" == "stratus" ]; then
@@ -101,9 +101,11 @@ else
   echo " Did you perhaps forgot 'source ./myenv.bash' ? "
   exit
 fi
+
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 # ... and here.
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
 if [ ! -d ${METROMS_TMPDIR} ] ; then
     echo "METROMS_TMPDIR not defined, set environment variable METROMS_TMPDIR"
     exit
@@ -116,7 +118,7 @@ if [ ! -d ${METROMS_BASEDIR} ] ; then
     echo "METROMS_BASEDIR not defined, set environment variable METROMS_TMPDIR"
     exit
 fi
-#
+
 export MY_ROMS_SRC=${METROMS_BLDDIR}/roms_src
 mkdir -p ${MY_ROMS_SRC}
 cd ${MY_ROMS_SRC}
@@ -135,10 +137,10 @@ fi
 # these configurations files up-to-date.
 export COMPILERS=${MY_ROMS_SRC}/Compilers
 cd ${METROMS_APPDIR}
-#
+
 parallel=1
 clean=1
-#
+
 while [ $# -gt 1 ]
 do
   case "$2" in
@@ -155,18 +157,18 @@ fi
 ;;
 esac
 done
-#
+
 cd ${ROMS_APPLICATION}
-#
+
 # Set number of nested/composed/mosaic grids.  Currently, only one grid
 # is supported.
-#
+
 export NestedGrids=1
-#
+
 export MY_ROOT_DIR=${METROMS_APPDIR}/${ROMS_APPLICATION}/
 export MY_PROJECT_DIR=${METROMS_APPDIR}/${ROMS_APPLICATION}/
 export SCRATCH_DIR=${METROMS_BLDDIR}/build
-#
+
 cd ${MY_PROJECT_DIR}
 #
 # NMK - 20151030
@@ -179,7 +181,7 @@ if [ -s $MODIFIED_SRC_FOLDER ]; then
 fi
 
 # # KHC - 20110209
-# # Check if we have any modified source files
+# # Check if we have any APP SPECIFIC modified source files
 if [ -s modified_src ]; then
   cd modified_src
   gotModifiedSourceAPP=`ls *.F *.h *.mk *.in`
@@ -300,37 +302,34 @@ rollback() {
   fi
 }
 trap 'rollback; exit 99' 0
-# #fi # if roms_svn
 
-#
 #
 if [ -n "${USE_NETCDF4:+1}" ]; then
  export USE_DAP=on
- #export PATH=/usr/bin:$PATH
 fi
-#
+
 export MY_HEADER_DIR=${MY_PROJECT_DIR}/include
 export MY_ANALYTICAL_DIR=${MY_HEADER_DIR}
-#
+
 # Build ROMS
 # Put the binary to execute in the following directory.
 export BINDIR=${METROMS_TMPDIR}/${ROMS_APPLICATION}
 mkdir -p $BINDIR
-#
+
 cd ${MY_ROMS_SRC}
 if [ $clean -eq 1 ]; then
   make clean
 fi
-#
+
 # Compile (the binary will go to BINDIR set above).
 if [ $parallel -eq 1 ]; then
   make $NCPUS
 else
   make
 fi
-#
+
 # Clean up unpacked static code:
 cd  ${MY_PROJECT_DIR}
-rm -rf ${MY_ROMS_SRC}
-#
+#rm -rf ${MY_ROMS_SRC}
+
 set +x
