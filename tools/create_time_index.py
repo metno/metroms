@@ -1,5 +1,9 @@
 #!/global/apps/python/2.7.3/bin/python
 # -*- coding: utf-8 -*-
+# Example usage:
+# python ~/sea/ROMS/metroms/tools/create_time_index.py /home/havis/run/barents-2.5km barents_atm_cice.nc
+# or
+# python ~/sea/ROMS/metroms/tools/create_time_index.py .
 
 from netCDF4 import Dataset
 import numpy as np
@@ -7,6 +11,7 @@ import os
 import sys
 import re
 import datetime
+import glob
 
 variable_names = {
  #   u'ssrd':'fsw',  # incoming shortwave radiation
@@ -25,9 +30,9 @@ refdate = datetime.datetime(1970, 1, 1, 0, 0)
 
 # text file format.
 # date, file_name, index
-def write_files(lists):
+def write_files(lists,path='.'):
     for var in lists.keys():
-	fname = "{}.txt".format(var)
+	fname = os.path.join(path,"{}.txt".format(var))
         time,ff,ind = lists[var]
         sort_index = np.argsort(time) #sorted(range(len(time)), key=lambda k: time[k])
 	with open(fname,'w') as f:
@@ -42,7 +47,9 @@ if __name__ == "__main__":
     print "hello"
     print sys.argv[:]
     try:
-    	path = sys.argv[1]
+        path = sys.argv[1]
+        if len(sys.argv) > 2:
+            fileformat = sys.argv[2]
     except:
         print("no path given as argument")
         sys.exit()
@@ -58,7 +65,10 @@ if __name__ == "__main__":
 
     sought_nc_vars = set(variable_names.keys())
    
-    files = os.listdir(path)
+    if len(sys.argv) > 2:
+        files = glob.glob(os.path.join(path,fileformat))
+    else:
+        files = os.listdir(path)
     nc_files = [f for f in files if f[-3:]=='.nc']
     print(nc_files)
     if path[-1] != '/':
@@ -74,11 +84,14 @@ if __name__ == "__main__":
                 timeslots_,inds,ff = lists[v]
                 timeslots_ = np.hstack((timeslots_,timeslots))
                 inds = inds + range(1,len(timeslots)+1)
-                fs = [path+f]*len(timeslots) # list with repeated elements
+                if len(sys.argv) > 2:
+                    fs = [f]*len(timeslots)
+                else:
+                    fs = [path+f]*len(timeslots) # list with repeated elements
                 ff = ff+fs
                 lists[v] = (timeslots_,inds,ff)
             nc.close()
         except Exception as ex:
             print 'Error: '+str(ex)
     print("Writing files")
-    write_files(lists)
+    write_files(lists, path)

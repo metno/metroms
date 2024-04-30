@@ -65,7 +65,7 @@
           atm_data_type,   atm_data_dir,  precip_units, &
           atm_data_format, ocn_data_format, &
           sss_data_type,   sst_data_type, ocn_data_dir, &
-          oceanmixed_file, restore_sst,   trestore
+          oceanmixed_file, restore_sst,   trestore, sea_ice_bry_dir
       use ice_grid, only: grid_file, gridcpl_file, kmt_file, grid_type, grid_format
       use ice_lvl, only: restart_lvl
       use ice_mechred, only: kstrength, krdg_partic, krdg_redist, mu_rdg, Cf
@@ -91,6 +91,8 @@
                                  dSdt_slow_mode, phi_c_slow_mode, &
                                  phi_i_mushy
       use ice_restoring, only: restore_ice
+      use ice_da, only: da_ice, da_sic, da_sit, da_sno, da_method, &
+                        da_data_dir, Tobs, da_insert, corr_bias
 #ifdef CCSMCOUPLED
       use shr_file_mod, only: shr_file_setIO
 #endif
@@ -159,7 +161,7 @@
         oceanmixed_ice, ocn_data_format, sss_data_type, sst_data_type,  &
         ocn_data_dir,   oceanmixed_file, restore_sst,   trestore,       &
         restore_ice,    formdrag,        highfreq,      natmiter,       &
-        tfrz_option
+        tfrz_option, sea_ice_bry_dir
 
       namelist /tracer_nml/   &
         tr_iage, restart_age, &
@@ -169,6 +171,10 @@
         tr_pond_lvl, restart_pond_lvl, &
         tr_pond_topo, restart_pond_topo, &
         tr_aero, restart_aero
+
+      namelist /da_nml/  &
+        da_ice, da_sic, da_sit, da_sno, da_method, da_data_dir, Tobs, &
+        da_insert, corr_bias
 
       !-----------------------------------------------------------------
       ! default values
@@ -286,6 +292,7 @@
       restore_sst     = .false.   ! restore sst if true
       trestore        = 90        ! restoring timescale, days (0 instantaneous)
       restore_ice     = .false.   ! restore ice state on grid edges if true
+      sea_ice_bry_dir = ' '
       dbug      = .false.         ! true writes diagnostics for input forcing
 
       latpnt(1) =  90._dbl_kind   ! latitude of diagnostic point 1 (deg)
@@ -321,6 +328,17 @@
       dSdt_slow_mode    = -1.5e-7_dbl_kind ! slow mode drainage strength (m s-1 K-1)
       phi_c_slow_mode   =    0.05_dbl_kind ! critical liquid fraction porosity cutoff
       phi_i_mushy       =    0.85_dbl_kind ! liquid fraction of congelation ice
+
+      ! sea ice data assimilation initial settings
+      da_ice      = .false.
+      da_sic      = .false.
+      da_sit      = .false.
+      da_sno      = .false.
+      da_method   = 'coin'
+      da_data_dir = '.'
+      Tobs        = 86400.0_dbl_kind
+      da_insert   = .false.
+      corr_bias   = .false.
 
       !-----------------------------------------------------------------
       ! read from input file
@@ -364,6 +382,9 @@
                if (nml_error /= 0) exit
                write(ice_stdout,*) 'Reading forcing_nml'
                read(nu_nml, nml=forcing_nml,iostat=nml_error)
+               if (nml_error /= 0) exit
+               write(ice_stdout,*) 'Reading da_nml'
+               read(nu_nml, nml=da_nml,iostat=nml_error)
                if (nml_error /= 0) exit
          end do
          if (nml_error == 0) close(nu_nml)
@@ -738,11 +759,21 @@
       call broadcast_scalar(restore_sst,        master_task)
       call broadcast_scalar(trestore,           master_task)
       call broadcast_scalar(restore_ice,        master_task)
+      call broadcast_scalar(sea_ice_bry_dir,    master_task)
       call broadcast_scalar(dbug,               master_task)
       call broadcast_array (latpnt(1:2),        master_task)
       call broadcast_array (lonpnt(1:2),        master_task)
       call broadcast_scalar(runid,              master_task)
       call broadcast_scalar(runtype,            master_task)
+      call broadcast_scalar(da_ice,             master_task)
+      call broadcast_scalar(da_sic,             master_task)
+      call broadcast_scalar(da_sit,             master_task)
+      call broadcast_scalar(da_sno,             master_task)
+      call broadcast_scalar(da_method,          master_task)
+      call broadcast_scalar(da_data_dir,        master_task)
+      call broadcast_scalar(Tobs,               master_task)
+      call broadcast_scalar(da_insert,          master_task)
+      call broadcast_scalar(corr_bias,          master_task)
 
       if (dbug) & ! else only master_task writes to file
       call broadcast_scalar(nu_diag,            master_task)

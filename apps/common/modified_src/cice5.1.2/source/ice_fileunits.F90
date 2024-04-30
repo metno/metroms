@@ -64,6 +64,7 @@
          nu_rst_pointer, &  ! pointer to latest restart file
          nu_history    , &  ! binary history output file
          nu_hdr        , &  ! header file for binary history output
+         nu_da         , &  ! input file for data assimilation
 #ifdef ROMSCOUPLED
          nu_dump_accum , &  ! dump file for accumulated fluxes
          nu_restart_accum,& ! restart file for accumulated fluxes
@@ -157,6 +158,7 @@
          call get_fileunit(nu_rst_pointer)
          call get_fileunit(nu_history)
          call get_fileunit(nu_hdr)
+         call get_fileunit(nu_da)
 #ifdef ROMSCOUPLED
          !seb
          call get_fileunit(nu_dump_accum)
@@ -242,6 +244,7 @@
          call release_fileunit(nu_rst_pointer)
          call release_fileunit(nu_history)
          call release_fileunit(nu_hdr)
+         call release_fileunit(nu_da)
          if (nu_diag /= ice_stdout) call release_fileunit(nu_diag)
 #ifdef ROMSCOUPLED
          call release_fileunit(nu_dump_accum)

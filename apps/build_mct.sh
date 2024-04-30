@@ -18,9 +18,17 @@ export MCT_DIR=${METROMS_TMPDIR}/MCT
 cd $MCT_DIR
 
 if [ ${METROMS_MYHOST} == "metlocal" ] || [ "${METROMS_MYHOST}" == "met_ppi" ]; then
-    FORT=mpif90
-elif [ ${METROMS_MYHOST} == "vilje" ]; then
+    if [ `lsb_release -sc` == 'Ootpa' ]; then
+        FORT=ifort
+        export I_MPI_F90=ifort
+    else
+        FORT=mpif90
+    fi
+elif [ ${METROMS_MYHOST} == "vilje" ] ; then
     FORT=ifort
+elif [ ${METROMS_MYHOST} == "fram" ] || [ "${METROMS_MYHOST}" == "nebula" ]; then
+    FORT=ifort
+    export I_MPI_F90=ifort
 else
     echo " Computer not defined set environment variable METROMS_MYHOST= metlocal, vilje .."
     exit

@@ -17,7 +17,7 @@ endif
 FIXEDFLAGS := -132
 FREEFLAGS  := 
 # Should use this together with ROMS? 
-FFLAGS     :=  -ip -O3 -ftz -xCORE-AVX2 -shared-intel -r8 -convert big_endian -IPF_fp_relaxed -assume noold_maxminloc -mcmodel large
+FFLAGS     :=  -xHost -mcmodel=large # -Nmpi
 MOD_SUFFIX := mod
 LD         := $(FC)
 LDFLAGS    := $(FFLAGS) -v
@@ -40,8 +40,8 @@ endif
 
 ifeq ($(IO_TYPE), netcdf)
    CPPDEFS :=  $(CPPDEFS) -Dncdf
-   INCLDIR := $(INCLDIR) -I/modules/xenial/NETCDF/4.6.0intel18/include
-   SLIBS   := $(SLIBS) -L/modules/xenial/NETCDF/4.6.0intel18/lib -lnetcdff -L/modules/xenial/hdf5/1.10.1/lib -lnetcdf
+   INCLDIR :=  $(INCLDIR) -I/modules/rhel8/user-apps/netcdf/4.6.0intel22-opa/include -I/modules/rhel8/user-apps/openmpi/3.1.4-opa-i22-2023/include
+   SLIBS   :=  $(SLIBS) -L/modules/rhel8/user-apps/openmpi/3.1.4-opa-i22-2023/lib  -L/modules/rhel8/user-apps/netcdf/4.6.0intel22-opa/lib -lnetcdf -lnetcdff -L/modules/rhel8/Compiler/HPC-Toolkit/2022/2022.3.1.16997/compiler/latest/linux/compiler/lib -L/modules/rhel8/user-apps/netcdf/4.6.0intel22-opa/lib -lhdf5_hl -lhdf5 -lsz -lz -lcurl -lm  #   -lhdf5_hl -lhdf5 -lsz -lz -lcurl -lm
 endif
 
 ifeq ($(compile_threaded), true) 
@@ -62,7 +62,7 @@ ifeq ($(IO_TYPE), pio)
 
 #   CPPDEFS :=  $(CPPDEFS) -Dncdf
 #   INCLDIR := $(INCLDIR) -I/usr/projects/climate/SHARED_CLIMATE/software/conejo/intel_openmpi/netcdf-3.6.3/include
-   SLIBS   := $(SLIBS) -L/usr/projects/climate/SHARED_CLIMATE/software/conejo/intel_openmpi/netcdf-3.6.3/lib -lnetcdf
+#   SLIBS   := $(SLIBS) -L/usr/projects/climate/SHARED_CLIMATE/software/conejo/intel_openmpi/netcdf-3.6.3/lib -lnetcdf
 
 endif
 

@@ -54,8 +54,9 @@ fi
 # Setting up things, like compilers etc:
 export ROMS_APPLICATION=$1
 #export roms_ver="roms-3.6"
-export roms_ver="roms-trunk"
+export roms_ver="roms-trunk820"
 
+# Default settings:
 export USE_MPI=on
 export USE_MPIF90=on
 export USE_OpenMP=
@@ -68,13 +69,30 @@ export USE_CICE=on
 
 if [ "${METROMS_MYHOST}" == "metlocal" ]; then
     export FORT=gfortran
-elif [ "${METROMS_MYHOST}" == "vilje" ] || [ "${METROMS_MYHOST}" == "alvin" ] ; then
+elif [ "${METROMS_MYHOST}" == "vilje" ] ; then
     export FORT=ifort
+elif [ "${METROMS_MYHOST}" == "fram" ] || [ "${METROMS_MYHOST}" == "nebula" ]; then
+    export FORT=ifort
+    export I_MPI_F90=ifort
+elif [ "${METROMS_MYHOST}" == "nebula" ] || [ "${METROMS_MYHOST}" == "stratus" ]; then
+    export FORT=ifort
+    export USE_MPIF90=on
+    export USE_MPI=on
 elif [ "${METROMS_MYHOST}" == "met_ppi" ] ; then
+  echo "Linux distro is `lsb_release -sc`"
+  if [ `lsb_release -sc` == 'Core' ]; then
+    export FORT=ifort
+    export USE_MPI=on
+    export USE_MPIF90=on
+    export which_MPI=
+  elif [ `lsb_release -sc` == 'Ootpa' ]; then
     export FORT=ifort
     export USE_MPI=on
     export USE_MPIF90=on
     export which_MPI=openmpi
+  else
+    echo "Undefined linux distro for met_ppi"
+  fi
 else
   echo " Computer not defined set environment variable METROMS_MYHOST= metlocal, vilje ... "
   echo " Did you perhaps forgot 'source ./myenv.bash' ? "
@@ -154,8 +172,8 @@ export SCRATCH_DIR=${METROMS_BLDDIR}/build
 
 cd ${MY_PROJECT_DIR}
 
-# # NMK - 20151030
-# # Check if we have any common modified source files
+# NMK - 20151030
+# Check if we have any common modified source files
 export MODIFIED_SRC_FOLDER=${METROMS_BASEDIR}/apps/common/modified_src/${roms_ver}
 if [ -s $MODIFIED_SRC_FOLDER ]; then
   cd $MODIFIED_SRC_FOLDER
@@ -164,7 +182,7 @@ if [ -s $MODIFIED_SRC_FOLDER ]; then
 fi
 
 # # KHC - 20110209
-# # Check if we have any modified source files
+# # Check if we have any APP SPECIFIC modified source files
 if [ -s modified_src ]; then
   cd modified_src
   gotModifiedSourceAPP=`ls *.F *.h *.mk *.in`
@@ -294,7 +312,6 @@ fi
 
 if [ -n "${USE_NETCDF4:+1}" ]; then
  export USE_DAP=on
- export PATH=/usr/bin:$PATH
 fi
 
 export MY_HEADER_DIR=${MY_PROJECT_DIR}/include
