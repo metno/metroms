@@ -62,6 +62,7 @@ class ModelRun(object):
                                  (choose an option from the Contants module)
         """
         print("Running ROMS in directory: "+self._params.RUNPATH+"\n\n")
+        #print((int(self._params.XCPU)*int(self._params.YCPU))+int(self._params.CICECPU))
         os.chdir(self._params.RUNPATH)
         # Prepare roms input-file, replace keywords:
         if self._params.CICECPU > 0:
@@ -139,7 +140,7 @@ class ModelRun(object):
         else:
             executable="oceanM"
 
-        if architecture==Constants.NEBULA or architecture==Constants.STRATUS:
+        if architecture==Constants.NEBULA or architecture==Constants.STRATUS or architecture==Constants.STRATUS2:
             print('running on NSC HPC:')
             if debugoption==Constants.PROFILE:
                 print("Profiling not working yet on "+architecture)
@@ -240,7 +241,7 @@ class ModelRun(object):
 
         elif architecture==Constants.NEBULA or architecture==Constants.STRATUS or \
              architecture==Constants.MET_PPI_OPATH or architecture==Constants.MET_PPI_R8IBX or \
-             architecture==Constants.FRAM:
+             architecture==Constants.FRAM or architecture==Constants.STRATUS2:
             if runoption==Constants.MPI:
                 result = self._execute_roms_mpi((int(self._params.XCPU)*int(self._params.YCPU))+
                                        int(self._params.CICECPU),

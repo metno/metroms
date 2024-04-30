@@ -35,6 +35,9 @@ elif [ "$METROMS_MYHOST" == "fram" ]; then
     module load netCDF-Fortran/4.4.4-intel-2018b
     module load Python/2.7.15-intel-2018b
     module load netcdf4-python/1.4.1-intel-2018b-Python-2.7.15
+elif [ "$METROMS_MYHOST" == "nebula2" ] || [ "$METROMS_MYHOST" == "stratus2" ]; then
+    module load buildenv-intel/2023a-eb
+    module load netCDF-HDF5/4.9.2-1.12.2-hpc1
 else
     echo "Undefined METROMS_MYHOST ", $METROMS_MYHOST
 fi
