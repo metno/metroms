@@ -32,12 +32,12 @@ elif [ "$METROMS_MYHOST" == "met_ppi" ]; then
     export METROMS_TMPDIR=/lustre/storeB/users/$USER/metroms_run
     export METROMS_BLDDIR=$METROMS_TMPDIR
     export METROMS_APPDIR=$HOME/metroms_apps
-elif [ "$METROMS_MYHOST" == "elvis" ] || [ "$METROMS_MYHOST" == "nebula" ]; then
+elif [ "$METROMS_MYHOST" == "nebula" ] || [ "$METROMS_MYHOST" == "nebula2" ]; then
     export METROMS_BASEDIR=$HOME/metroms
     export METROMS_TMPDIR=/nobackup/forsk/$USER/metroms_run
     export METROMS_BLDDIR=$METROMS_TMPDIR
     export METROMS_APPDIR=$HOME/metroms_apps
-elif [ "$METROMS_MYHOST" == "stratus" ]; then
+elif [ "$METROMS_MYHOST" == "stratus" ] || [ "$METROMS_MYHOST" == "stratus2" ]; then
     if [ "$USER" == "metno_op" ]; then
 	export METROMS_BASEDIR=$HOME/sea/ROMS/metroms
 	export METROMS_TMPDIR=$HOME/run

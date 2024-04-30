@@ -27,7 +27,7 @@ class ModelRun(object):
         """
         About this...
         """
-        print "Running ROMS in directory: "+self._params.RUNPATH+"\n\n"
+        print("Running ROMS in directory: "+self._params.RUNPATH+"\n\n")
         #print (int(self._params.XCPU)*int(self._params.YCPU))+int(self._params.CICECPU)
         os.chdir(self._params.RUNPATH)
         # Prepare roms input-file, replace keywords:
@@ -37,13 +37,13 @@ class ModelRun(object):
         if (self._params.RESTART == True):
             self._check_starttime()
         self._replace_keywords_roms_in()
-        print "running roms for this timespan:"
-        print self._params.START_DATE, self._params.END_DATE
-        print self._params.FCLEN
+        print("running roms for this timespan:")
+        print(self._params.START_DATE, self._params.END_DATE)
+        print(self._params.FCLEN)
         self._run(runoption,debugoption,architecture)
         # Should check output-files to verify a successful run?
         # Output to std.out that model has finished:
-        print "\nROMS run finished"
+        print( "\nROMS run finished")
 
     def preprocess(self):
         """
@@ -51,7 +51,7 @@ class ModelRun(object):
         """
         os.chdir(self._params.RUNPATH)
         if (self._params.RESTART == True):
-            print "Model is restarting from previuos solution..."
+            print( "Model is restarting from previuos solution...")
             self._cycle_rst_ini()
 
     def postprocess(self):
@@ -109,13 +109,13 @@ class ModelRun(object):
 #                os.environ["MPI_BUFS_PER_PROC"] = str(128)
                 result = os.system("mpiexec_mpt -np "+str(ncpus)+" "+executable+" "+infile)
                 if result != 0: os.system('cat cice_stderr')
-        elif architecture==Constants.ALVIN or architecture==Constants.ELVIS or architecture==Constants.NEBULA or architecture==Constants.STRATUS:
-            print 'running on NSC HPC:'
+        elif architecture==Constants.ALVIN or architecture==Constants.ELVIS or architecture==Constants.NEBULA or architecture==Constants.STRATUS or architecture==Constants.STRATUS2:
+            print('running on NSC HPC:')
             if debugoption==Constants.PROFILE:
-                print "Profiling not working yet on "+architecture
+                print("Profiling not working yet on "+architecture)
                 exit(1)
             else:
-                print "mpprun -np "+str(ncpus)+" "+executable+" "+infile
+                print("mpprun -np "+str(ncpus)+" "+executable+" "+infile)
                 result = os.system("mpprun -np "+str(ncpus)+" "+executable+" "+infile) 
                 if result != 0: os.system('cat cice_stderr')
         elif architecture==Constants.MET_PPI:
@@ -228,7 +228,7 @@ class ModelRun(object):
                 print "No valid runoption!"
                 exit(1)
 
-        elif architecture==Constants.VILJE or architecture==Constants.ALVIN or architecture==Constants.ELVIS or architecture==Constants.NEBULA or architecture==Constants.STRATUS or  architecture==Constants.MET_PPI:
+        elif architecture==Constants.VILJE or architecture==Constants.ALVIN or architecture==Constants.ELVIS or architecture==Constants.NEBULA or architecture==Constants.STRATUS or  architecture==Constants.MET_PPI or architecture==Constants.STRATUS2:
             if runoption==Constants.MPI:
                 self._execute_roms_mpi((int(self._params.XCPU)*int(self._params.YCPU))+
                                        int(self._params.CICECPU),
@@ -253,12 +253,12 @@ class ModelRun(object):
         try:
             nc_ini = netCDF4.Dataset(_ini)
         except:
-            print "error finding ini-file"
+            print( "error finding ini-file")
             #pass
         try:
             nc_rst = netCDF4.Dataset(_rst)
         except:
-            print "error finding rst-file, will use old ini-file..."
+            print( "error finding rst-file, will use old ini-file...")
             os.system('cp -av '+_ini+' '+_rst)
             nc_rst = netCDF4.Dataset(_rst)
             #pass
@@ -267,28 +267,28 @@ class ModelRun(object):
         else:
             nrrec = self._params.NRREC
         if (self._params.START_DATE == netCDF4.num2date(nc_ini.variables['ocean_time'][nrrec],nc_ini.variables['ocean_time'].units)):
-            print "No need to cycle restart-files"
+            print( "No need to cycle restart-files")
         else:
             if os.path.isfile(_rst):
                 # Check if START_DATE is on rst-file:
                 nrrec2 = bisect.bisect(netCDF4.num2date(nc_rst.variables['ocean_time'][:],nc_rst.variables['ocean_time'].units), self._params.START_DATE) - 1
-                print nrrec, nrrec2
+                print( nrrec, nrrec2)
                 if nrrec2 >= len(nc_rst.variables['ocean_time'][:]): nrrec2 = len(nc_rst.variables['ocean_time'][:])-1
-                print nrrec, nrrec2
+                print( nrrec, nrrec2)
                 if nrrec != nrrec2:
-                    print "I should not restart from specified nrrec!"
+                    print( "I should not restart from specified nrrec!")
                     if (self._params.START_DATE == netCDF4.num2date(nc_rst.variables['ocean_time'][nrrec2],nc_rst.variables['ocean_time'].units)):
                         nrrec = nrrec2
                         self._params.NRREC = nrrec + 1
                         # Must update keywords!
                         self._params.change_run_param('IRESTART',str(self._params.NRREC))
-                        print "Changes nrrec and keyword IRESTART"
+                        print( "Changes nrrec and keyword IRESTART")
                 if (self._params.START_DATE == netCDF4.num2date(nc_rst.variables['ocean_time'][nrrec],nc_rst.variables['ocean_time'].units)):
                     os.rename(_ini, self._params.RUNPATH+netCDF4.num2date(nc_ini.variables['ocean_time'][0],nc_ini.variables['ocean_time'].units).strftime("/ocean_ini.nc_%Y%m%d-%H%M"))
                     os.rename(_rst, _ini)
-                    print "Cycled restart files"
+                    print( "Cycled restart files")
                 elif (self._params.START_DATE == netCDF4.num2date(nc_ini.variables['ocean_time'][nrrec],nc_ini.variables['ocean_time'].units)):
-                    print "No need to cycle restart-files"
+                    print( "No need to cycle restart-files")
                     # If model hasn't been run last day:
                 else:
                     self._params.START_DATE = netCDF4.num2date(nc_rst.variables['ocean_time'][nrrec],nc_rst.variables['ocean_time'].units)
@@ -298,10 +298,10 @@ class ModelRun(object):
                     self._params.change_run_param('STARTTIME',str((self._params.START_DATE-self._params.TIMEREF).total_seconds()/86400))
                     os.rename(_ini, self._params.RUNPATH+netCDF4.num2date(nc_ini.variables['ocean_time'][nrrec],nc_ini.variables['ocean_time'].units).strftime("/ocean_ini.nc_%Y%m%d-%H%M"))
                     os.rename(_rst, _ini)
-                    print "Cycled restart and changed START_DATE and FCLEN, icluding keywords"
+                    print( "Cycled restart and changed START_DATE and FCLEN, icluding keywords")
             else:
-                print netCDF4.num2date(nc_ini.variables['ocean_time'][nrrec],nc_ini.variables['ocean_time'].units)
-                print "Restartfile not found!! Will exit"
+                print( netCDF4.num2date(nc_ini.variables['ocean_time'][nrrec],nc_ini.variables['ocean_time'].units))
+                print( "Restartfile not found!! Will exit")
                 exit(1)
 
     def _check_starttime(self):

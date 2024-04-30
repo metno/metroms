@@ -28,6 +28,9 @@ elif [ "$METROMS_MYHOST" == "nebula" ] || [ "$METROMS_MYHOST" == "stratus" ]; th
     module load NCO/4.6.3-nsc1
     #module load Python/2.7.14-anaconda-5.0.1-nsc1
     module load Python/2.7.15-anaconda-5.3.0-extras-nsc1
+elif [ "$METROMS_MYHOST" == "nebula2" ] || [ "$METROMS_MYHOST" == "stratus2" ]; then
+    module load buildenv-intel/2023a-eb
+    module load netCDF-HDF5/4.9.2-1.12.2-hpc1
 else
     echo "Undefined METROMS_MYHOST ", $METROMS_MYHOST
 fi
