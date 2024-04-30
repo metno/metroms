@@ -131,7 +131,7 @@ class Params(object):
             ########################################################################
             ########################################################################
         else:
-            print 'Unknown application, will exit now'
+            print('Unknown application, will exit now')
             sys.exit()
 
 

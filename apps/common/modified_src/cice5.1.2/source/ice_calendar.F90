@@ -287,6 +287,9 @@
         case ("d", "D")
           if (new_day   .and. mod(elapsed_days, dumpfreq_n)==0) &
                 write_restart = 1
+        case ("h", "H")
+          if (new_hour   .and. mod(elapsed_hours, dumpfreq_n)==0) &
+                write_restart = 1
         end select
 
         if (force_restart_now) write_restart = 1

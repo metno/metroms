@@ -57,14 +57,15 @@
           init_calendar, calendar
       use ice_communicate, only: init_communicate
       use ice_diagnostics, only: init_diags
-      use ice_domain, only: init_domain_blocks
+      use ice_domain, only: init_domain_blocks,sea_ice_time_bry
       use ice_dyn_eap, only: init_eap
       use ice_dyn_shared, only: kdyn, init_evp
       use ice_fileunits, only: init_fileunits
       use ice_flux, only: init_coupler_flux, init_history_therm, &
           init_history_dyn, init_flux_atm, init_flux_ocn
       use ice_forcing, only: init_forcing_ocn, init_forcing_atmo, &
-          get_forcing_atmo, get_forcing_ocn
+          get_forcing_atmo, get_forcing_ocn, &
+          init_forcing_bry, get_forcing_bry
       use ice_grid, only: init_grid1, init_grid2
       use ice_history, only: init_hist, accum_hist
       use ice_restart_shared, only: restart, runid, runtype
@@ -79,13 +80,13 @@
       use ice_transport_driver, only: init_transport
       use ice_zbgc, only: init_zbgc
       use ice_zbgc_shared, only: skl_bgc
+      use ice_da, only: da_ice, init_da
 #ifdef popcice
       use drv_forcing, only: sst_sss
 #endif
 #ifdef ROMSCOUPLED
       use CICE_MCT, only: init_mct, CICE_MCT_coupling
 #endif
-
       call init_communicate     ! initial setup for message passing
       call init_fileunits       ! unit numbers
       call input_data           ! namelist variables
@@ -120,8 +121,10 @@
 
       call init_forcing_ocn(dt) ! initialize sss and sst from data
       call init_state           ! initialize the ice state
+      if (da_ice) call init_da  ! define data assimilation varialbes
       call init_transport       ! initialize horizontal transport
       call ice_HaloRestore_init ! restored boundary conditions
+      
 
       call init_restart         ! initialize restart variables
 
@@ -145,10 +148,14 @@
    !--------------------------------------------------------------------
 
       call init_forcing_atmo    ! initialize atmospheric forcing (standalone)
+!      call ice_HaloRestore_init ! restored boundary conditions
+      
+      if (sea_ice_time_bry) call init_forcing_bry ! sea-ice time varying boundaries
 
 #ifndef coupled
       call get_forcing_atmo     ! atmospheric forcing from data
       call get_forcing_ocn(dt)  ! ocean forcing from data
+      if (sea_ice_time_bry) call get_forcing_bry      ! sea-ice boundary data
 !      if (tr_aero) call faero_data          ! aerosols
       if (tr_aero) call faero_default ! aerosols
       if (skl_bgc) call get_forcing_bgc

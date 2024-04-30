@@ -46,17 +46,20 @@ if [ $# -lt 1 ]
   echo "Or specify more kernels than 4 for compilation if you have them available"
   exit
 fi
-
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 # Users can/should/must change things between here...
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 #
 # Setting up things, like compilers etc:
 export ROMS_APPLICATION=$1
-#export roms_ver="roms-3.6"
-export roms_ver="roms-trunk"
+# export roms_ver="roms-3.6"
+#export roms_ver="roms-3.6clean"
+#export roms_ver="roms-3.9"
+# export roms_ver="roms-trunk820"
+export roms_ver="roms-trunk820clean"
+#export roms_ver="roms-trunk1041"
 #export roms_ver="roms_svn"
-
+#
 # Default settings:
 export USE_MPI=on
 export USE_MPIF90=on
@@ -66,23 +69,36 @@ export USE_OpenMP=
 export USE_NETCDF4=on
 #export USE_PARALLEL_IO=on
 export which_MPI=mpich2        # compile with MPICH2 library
-
+#
 if [ "${METROMS_MYHOST}" == "metlocal" ]; then
     export FORT=gfortran
-elif [ "${METROMS_MYHOST}" == "vilje" ] || [ "${METROMS_MYHOST}" == "alvin" ] || [ "${METROMS_MYHOST}" == "elvis" ] ; then
+elif [ "${METROMS_MYHOST}" == "vilje" ] ; then
     export FORT=ifort
+elif [ "${METROMS_MYHOST}" == "fram" ] || [ "${METROMS_MYHOST}" == "nebula" ]; then
+    export FORT=ifort
+    export I_MPI_F90=ifort
 elif [ "${METROMS_MYHOST}" == "nebula" ] || [ "${METROMS_MYHOST}" == "stratus" ]; then
     export FORT=ifort
     export USE_MPIF90=on
     export USE_MPI=on
 elif [ "${METROMS_MYHOST}" == "met_ppi" ] ; then
+  echo "Linux distro is `lsb_release -sc`"
+  if [ `lsb_release -sc` == 'Core' ]; then
     export FORT=ifort
-    export USE_MPI=
-    export USE_MPIF90=
+    export USE_MPI=on
+    export USE_MPIF90=on
+    export which_MPI=
+  elif [ `lsb_release -sc` == 'Ootpa' ]; then
+    export FORT=ifort
+    export USE_MPI=on
+    export USE_MPIF90=on
     export which_MPI=openmpi
+  else
+    echo "Undefined linux distro for met_ppi"
+  fi
 else
   echo " Computer not defined set environment variable METROMS_MYHOST= metlocal, vilje ... "
-  echo " Did you perhaps forget 'source ./myenv.bash' ? "
+  echo " Did you perhaps forgot 'source ./myenv.bash' ? "
   exit
 fi
 
@@ -92,7 +108,7 @@ fi
 
 if [ ! -d ${METROMS_TMPDIR} ] ; then
     echo "METROMS_TMPDIR not defined, set environment variable METROMS_TMPDIR"
-    exit 
+    exit
 fi
 if [ ! -d ${METROMS_BLDDIR} ] ; then
     echo "METROMS_BLDDIR not defined, set environment variable METROMS_BLDDIR"
@@ -100,7 +116,7 @@ if [ ! -d ${METROMS_BLDDIR} ] ; then
 fi
 if [ ! -d ${METROMS_BASEDIR} ] ; then
     echo "METROMS_BASEDIR not defined, set environment variable METROMS_TMPDIR"
-    exit 
+    exit
 fi
 
 export MY_ROMS_SRC=${METROMS_BLDDIR}/roms_src
@@ -109,14 +125,9 @@ cd ${MY_ROMS_SRC}
 if [ $roms_ver != 'roms_svn' ]; then
     tar -xf ${METROMS_BASEDIR}/static_libs/${roms_ver}.tar.gz
     rm -rf User
-    # JD : Added temporary to have place for a new file
-    touch $MY_ROMS_SRC/ROMS/Nonlinear/frazil_ice_prod_mod.F
-    # JD end
-    #SM: Same here, added temporary for new file
-    touch $MY_ROMS_SRC/ROMS/Modules/mod_ice.F
 else
 #    echo 'no checkout today'
-    svn checkout https://www.myroms.org/svn/src/trunk .
+    svn checkout -r ${svn_rev} https://www.myroms.org/svn/src/trunk .
 fi
 
 # Set path of the directory containing makefile configuration (*.mk) files.
@@ -124,9 +135,7 @@ fi
 # in a different directory than the one distributed with the source code,
 # ${MY_ROMS_SCR}/Compilers. If this is the case, the you need to keep
 # these configurations files up-to-date.
-
 export COMPILERS=${MY_ROMS_SRC}/Compilers
-
 cd ${METROMS_APPDIR}
 
 parallel=1
@@ -161,10 +170,9 @@ export MY_PROJECT_DIR=${METROMS_APPDIR}/${ROMS_APPLICATION}/
 export SCRATCH_DIR=${METROMS_BLDDIR}/build
 
 cd ${MY_PROJECT_DIR}
-
-#if [ $roms_ver != 'roms_svn' ]; then
-# # NMK - 20151030
-# # Check if we have any common modified source files
+#
+# NMK - 20151030
+# Check if we have any common modified source files
 export MODIFIED_SRC_FOLDER=${METROMS_BASEDIR}/apps/common/modified_src/${roms_ver}
 if [ -s $MODIFIED_SRC_FOLDER ]; then
   cd $MODIFIED_SRC_FOLDER
@@ -173,7 +181,7 @@ if [ -s $MODIFIED_SRC_FOLDER ]; then
 fi
 
 # # KHC - 20110209
-# # Check if we have any modified source files
+# # Check if we have any APP SPECIFIC modified source files
 if [ -s modified_src ]; then
   cd modified_src
   gotModifiedSourceAPP=`ls *.F *.h *.mk *.in`
@@ -190,34 +198,34 @@ if [ "$gotModifiedSourceAPP" != "" ] || [ "$gotModifiedSourceCOMMON" != "" ]; th
 
         # Check where original resides
         origFile=`find ${MY_ROMS_SRC} -name $ModSrc`
-	
+
         if [ -f "$origFile" ]; then
-	    
+
             # Moving original and copying user-modifed source code
             # first checking if the original already exists with
             # the .orig extension
             if [ ! -f "$origFile.orig" ]; then
-		mv $origFile $origFile.orig
-		echo "Moving $origFile to $origFile.orig"
+		            mv $origFile $origFile.orig
+		            echo "Moving $origFile to $origFile.orig"
             fi
-	    
+
             # Copying from local source directory to repository
             cp $MODIFIED_SRC_FOLDER/$ModSrc $origFile
             echo "Copying modified_src/$ModSrc to $origFile"
-	    
+
             if [ ! -f USER_MODIFIED_CODE ]; then
-		
+
                 # Touch file to notify that user modified code has been
                 # placed in the repository
                 touch USER_MODIFIED_CODE
-		
+
             fi
         else
-	    
+
             # No such file in repository, quit script
             echo "No source code file $ModSrc in repository, exiting."
             exit 3
-	    
+
         fi
     done
     # Copy locally modified source to main ROMS directory
@@ -225,34 +233,34 @@ if [ "$gotModifiedSourceAPP" != "" ] || [ "$gotModifiedSourceCOMMON" != "" ]; th
 
         # Check where original resides
         origFile=`find ${MY_ROMS_SRC} -name $ModSrc`
-	
+
         if [ -f "$origFile" ]; then
-	    
+
             # Moving original and copying user-modifed source code
             # first checking if the original already exists with
             # the .orig extension
             if [ ! -f "$origFile.orig" ]; then
-		mv $origFile $origFile.orig
-		echo "Moving $origFile to $origFile.orig"
+		            mv $origFile $origFile.orig
+		            echo "Moving $origFile to $origFile.orig"
             fi
-	    
+
             # Copying from local source directory to repository
             cp modified_src/$ModSrc $origFile
             echo "Copying modified_src/$ModSrc to $origFile"
-	    
+
             if [ ! -f USER_MODIFIED_CODE ]; then
-		
+
                 # Touch file to notify that user modified code has been
                 # placed in the repository
                 touch USER_MODIFIED_CODE
-		
+
             fi
         else
-	    
+
             # No such file in repository, quit script
             echo "No source code file $ModSrc in repository, exiting."
             exit 3
-	    
+
         fi
     done
 fi
@@ -262,9 +270,9 @@ fi
 # NMK - 2013
 rollback() {
     cd $MY_ROOT_DIR
-    
+
     if [ -f USER_MODIFIED_CODE ]; then
-	
+
     # Find source code files with ".orig"-ending and
     # remove ending
     filelist=`find "$MY_ROMS_SRC" -name *.orig`
@@ -287,24 +295,17 @@ rollback() {
     echo "Did not find any .orig-files in the repository, empty file deleted"
 
   fi
-  
+
     # Remove empty file
     rm -f USER_MODIFIED_CODE
 
   fi
 }
 trap 'rollback; exit 99' 0
-#fi # if roms_svn
 
-# 
-if [ -n "${USE_CICE:+1}" ]; then
-	export USE_MCT=on
-	export MY_CPP_FLAGS="${MY_CPP_FLAGS} -DNO_LBC_ATT -DMODEL_COUPLING -DUSE_MCT -DMCT_COUPLING -DMCT_LIB -DCICE_COUPLING -DCICE_OCEAN"
-fi
-
+#
 if [ -n "${USE_NETCDF4:+1}" ]; then
  export USE_DAP=on
- #export PATH=/usr/bin:$PATH
 fi
 
 export MY_HEADER_DIR=${MY_PROJECT_DIR}/include
@@ -325,10 +326,6 @@ if [ $parallel -eq 1 ]; then
   make $NCPUS
 else
   make
-fi
-
-if [ -n "${USE_CICE:+1}" ]; then
-	cp ${MODIFIED_SRC_FOLDER}/coupling.dat $BINDIR/
 fi
 
 # Clean up unpacked static code:
