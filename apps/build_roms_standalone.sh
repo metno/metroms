@@ -71,7 +71,7 @@ if [ "${METROMS_MYHOST}" == "metlocal" ]; then
     export FORT=gfortran
 elif [ "${METROMS_MYHOST}" == "vilje" ] || [ "${METROMS_MYHOST}" == "alvin" ] || [ "${METROMS_MYHOST}" == "elvis" ] ; then
     export FORT=ifort
-elif [ "${METROMS_MYHOST}" == "nebula" ] || [ "${METROMS_MYHOST}" == "stratus" ]; then
+elif [ "${METROMS_MYHOST}" == "nebula" ] || [ "${METROMS_MYHOST}" == "stratus" ] || [ "${METROMS_MYHOST}" == "nebula2" ] || [ "${METROMS_MYHOST}" == "stratus2" ]; then
     export FORT=ifort
     export USE_MPIF90=on
     export USE_MPI=on
