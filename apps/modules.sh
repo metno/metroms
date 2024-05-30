@@ -30,6 +30,9 @@ elif [ "$METROMS_MYHOST" == "nebula" ] || [ "$METROMS_MYHOST" == "stratus" ]; th
     module load netCDF/4.3.2-HDF5-1.8.12-nsc1-intel-2018.u1-bare
     module load NCO/4.6.3-nsc1
     module load Python/2.7.15-anaconda-5.3.0-extras-nsc1
+elif [ "$METROMS_MYHOST" == "nebula2" ] ; then
+    module load buildenv-intel/2023a-eb
+    module load netCDF-HDF5-utils/4.9.2-1.12.2-hpc1-intel-2023a-eb
 elif [ "$METROMS_MYHOST" == "fram" ]; then
     module load intel/2018b
     module load netCDF-Fortran/4.4.4-intel-2018b

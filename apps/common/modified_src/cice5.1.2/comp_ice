@@ -25,7 +25,9 @@ elif [ "$METROMS_MYHOST" == "met_ppi" ]; then
 elif [ "$METROMS_MYHOST" == "fram" ] || [ "$METROMS_MYHOST" == "nebula" ]; then
     export I_MPI_F90=ifort
     export SITE=Linux.fram
-#    export WORKDIR=/work/$LOGNAME/
+    #    export WORKDIR=/work/$LOGNAME/
+elif [ "$METROMS_MYHOST" == "nebula2" ]; then
+    export SITE=Linux.nebula2
 else
     echo $METROMS_MYHOST not implemented
     exit
@@ -54,7 +56,7 @@ esac
 if [ $GRID == "grid" ]; then echo $NRES not implemented; exit; fi
 
 
-if [ $casename == 'CASE''NAME' ]; then
+if [ "$casename" == 'CASE''NAME' ]; then
     casename=test.$NRES
 fi
 
@@ -320,6 +322,7 @@ RES=$RES
 MXBLCKS=$MXBLCKS
 TRAGE=$TRAGE
 TRFY=$TRFY
+TRLVL=$TRLVL
 TRPND=$TRPND
 NTRAERO=$NTRAERO # number of aerosol tracers
 TRBRI=$TRBRI     # brine height tracer
