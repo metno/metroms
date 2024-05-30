@@ -16,6 +16,7 @@
           apondn_bry, hpondn_bry, ipondn_bry,iage_bry
       use ice_state, only: aicen, vicen, vsnon, trcrn, ntrcr, bound_state, &
                            aice_init, aice0, aice, vice, vsno, trcr, &
+                           tr_iage,tr_lvl, & 
                            trcr_depend, tr_pond_lvl, nbtrcr, uvel, vvel, &
                            divu, shear, strength
       use ice_timers, only: ice_timer_start, ice_timer_stop, timer_bound
@@ -631,9 +632,11 @@
                   vicen_rest(i,j,n,iblk) = vicen_bry(1,j,n,iblk)
                   vsnon_rest(i,j,n,iblk) = vsnon_bry(1,j,n,iblk) 
                   trcrn_rest(i,j,nt_Tsfc,n,iblk) = Tsfc_bry(1,j,n,iblk)  
-                  trcrn_rest(i,j,nt_alvl,n,iblk) = alvln_bry(1,j,n,iblk)
-                  trcrn_rest(i,j,nt_vlvl,n,iblk) = vlvln_bry(1,j,n,iblk) 
-                  trcrn_rest(i,j,nt_iage,n,iblk) = iage_bry(1,j,n,iblk) 
+                  if (tr_lvl) then
+                     trcrn_rest(i,j,nt_alvl,n,iblk) = alvln_bry(1,j,n,iblk)
+                     trcrn_rest(i,j,nt_vlvl,n,iblk) = vlvln_bry(1,j,n,iblk)
+                  endif
+                  if (tr_iage) trcrn_rest(i,j,nt_iage,n,iblk) = iage_bry(1,j,n,iblk) 
                   if (tr_pond_lvl) then
                      trcrn_rest(i,j,nt_apnd,n,iblk) = apondn_bry(1,j,n,iblk) 
                      trcrn_rest(i,j,nt_hpnd,n,iblk) = hpondn_bry(1,j,n,iblk)
@@ -772,10 +775,12 @@
                   aicen_rest(i,j,n,iblk) = aicen_bry(ibc,j,n,iblk)
                   vicen_rest(i,j,n,iblk) = vicen_bry(ibc,j,n,iblk)
                   vsnon_rest(i,j,n,iblk) = vsnon_bry(ibc,j,n,iblk)   
-                  trcrn_rest(i,j,nt_Tsfc,n,iblk) = Tsfc_bry(ibc,j,n,iblk)  
-                  trcrn_rest(i,j,nt_alvl,n,iblk) = alvln_bry(ibc,j,n,iblk)
-                  trcrn_rest(i,j,nt_vlvl,n,iblk) = vlvln_bry(ibc,j,n,iblk) 
-                  trcrn_rest(i,j,nt_iage,n,iblk) = iage_bry(ibc,j,n,iblk) 
+                  trcrn_rest(i,j,nt_Tsfc,n,iblk) = Tsfc_bry(ibc,j,n,iblk)
+                  if (tr_lvl) then
+                     trcrn_rest(i,j,nt_alvl,n,iblk) = alvln_bry(ibc,j,n,iblk)
+                     trcrn_rest(i,j,nt_vlvl,n,iblk) = vlvln_bry(ibc,j,n,iblk)
+                  endif
+                  if (tr_iage) trcrn_rest(i,j,nt_iage,n,iblk) = iage_bry(ibc,j,n,iblk) 
                   if (tr_pond_lvl) then
                      trcrn_rest(i,j,nt_apnd,n,iblk) = apondn_bry(ibc,j,n,iblk) 
                      trcrn_rest(i,j,nt_hpnd,n,iblk) = hpondn_bry(ibc,j,n,iblk)
@@ -891,9 +896,11 @@
                   vicen_rest(i,j,n,iblk) = vicen_bry(i,1,n,iblk)
                   vsnon_rest(i,j,n,iblk) = vsnon_bry(i,1,n,iblk) 
                   trcrn_rest(i,j,nt_Tsfc,n,iblk) = Tsfc_bry(i,1,n,iblk)
-                  trcrn_rest(i,j,nt_alvl,n,iblk) = alvln_bry(i,1,n,iblk)
-                  trcrn_rest(i,j,nt_vlvl,n,iblk) = vlvln_bry(i,1,n,iblk) 
-                  trcrn_rest(i,j,nt_iage,n,iblk) = iage_bry(i,1,n,iblk) 
+                  if (tr_lvl) then
+                     trcrn_rest(i,j,nt_alvl,n,iblk) = alvln_bry(i,1,n,iblk)
+                     trcrn_rest(i,j,nt_vlvl,n,iblk) = vlvln_bry(i,1,n,iblk)
+                  endif
+                  if (tr_iage) trcrn_rest(i,j,nt_iage,n,iblk) = iage_bry(i,1,n,iblk) 
                   if (tr_pond_lvl) then
                      trcrn_rest(i,j,nt_apnd,n,iblk) = apondn_bry(i,1,n,iblk) 
                      trcrn_rest(i,j,nt_hpnd,n,iblk) = hpondn_bry(i,1,n,iblk)
@@ -1023,9 +1030,11 @@
                   vicen_rest(i,j,n,iblk) = vicen_bry(i,ibc,n,iblk)
                   vsnon_rest(i,j,n,iblk) = vsnon_bry(i,ibc,n,iblk) 
                   trcrn_rest(i,j,nt_Tsfc,n,iblk) = Tsfc_bry(i,ibc,n,iblk)   
-                  trcrn_rest(i,j,nt_alvl,n,iblk) = alvln_bry(i,ibc,n,iblk)
-                  trcrn_rest(i,j,nt_vlvl,n,iblk) = vlvln_bry(i,ibc,n,iblk) 
-                  trcrn_rest(i,j,nt_iage,n,iblk) = iage_bry(i,ibc,n,iblk) 
+                  if (tr_lvl) then
+                     trcrn_rest(i,j,nt_alvl,n,iblk) = alvln_bry(i,ibc,n,iblk)
+                     trcrn_rest(i,j,nt_vlvl,n,iblk) = vlvln_bry(i,ibc,n,iblk)
+                  endif
+                  if (tr_iage) trcrn_rest(i,j,nt_iage,n,iblk) = iage_bry(i,ibc,n,iblk) 
                   if (tr_pond_lvl) then
                      trcrn_rest(i,j,nt_apnd,n,iblk) = apondn_bry(i,ibc,n,iblk) 
                      trcrn_rest(i,j,nt_hpnd,n,iblk) = hpondn_bry(i,ibc,n,iblk)
