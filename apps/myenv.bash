@@ -24,7 +24,7 @@ if [ "$METROMS_MYHOST" == "met_ppi" ]; then
 	export METROMS_BLDDIR=$METROMS_TMPDIR
 	export METROMS_APPDIR=$HOME/metroms_apps
     fi
-elif [ "$METROMS_MYHOST" == "nebula" ]; then
+elif [ "$METROMS_MYHOST" == "nebula" ] || [ "$METROMS_MYHOST" == "nebula2" ]; then
     export METROMS_BASEDIR=$HOME/metroms
     export METROMS_TMPDIR=/nobackup/forsk/$USER/metroms_run
     export METROMS_BLDDIR=$METROMS_TMPDIR

@@ -71,13 +71,16 @@ if [ "${METROMS_MYHOST}" == "metlocal" ]; then
     export FORT=gfortran
 elif [ "${METROMS_MYHOST}" == "vilje" ] ; then
     export FORT=ifort
-elif [ "${METROMS_MYHOST}" == "fram" ] || [ "${METROMS_MYHOST}" == "nebula" ]; then
+elif [ "${METROMS_MYHOST}" == "fram" ]; then
     export FORT=ifort
     export I_MPI_F90=ifort
-elif [ "${METROMS_MYHOST}" == "nebula" ] || [ "${METROMS_MYHOST}" == "stratus" ]; then
+elif [ "${METROMS_MYHOST}" == "nebula" ] || \
+     [ "${METROMS_MYHOST}" == "nebula2" ] || \
+     [ "${METROMS_MYHOST}" == "stratus" ]; then
     export FORT=ifort
     export USE_MPIF90=on
     export USE_MPI=on
+    export which_MPI=""
 elif [ "${METROMS_MYHOST}" == "met_ppi" ] ; then
   echo "Linux distro is `lsb_release -sc`"
   if [ `lsb_release -sc` == 'Core' ]; then

@@ -7,7 +7,11 @@ NPX=1; NPY=1
 if [ "${METROMS_MYHOST}" == "metlocal" ] || [ "${METROMS_MYHOST}" == "met_ppi" ]; then
     NPX=1  
     NPY=2
-elif [ "${METROMS_MYHOST}" == "vilje" ] || [ "${METROMS_MYHOST}" == "fram" ] || [ "${METROMS_MYHOST}" == "nebula" ]; then
+elif [ "${METROMS_MYHOST}" == "vilje" ] || \
+	 [ "${METROMS_MYHOST}" == "fram" ] || \
+	 [ "${METROMS_MYHOST}" == "nebula" ] || \
+	 [ "${METROMS_MYHOST}" == "nebula2" ]
+then
     NPX=1  
     NPY=2
 fi
@@ -66,12 +70,15 @@ rm -f $CICE_DIR/rundir/cice
 echo $PWD
 ./comp_ice $ROMS_APPLICATION $NPX $NPY
 
-# Test if compilation and linking was successfull
+# Not working on nebula2 yet due to problems in the linking of stand-alone cice
+if [ ! "${METROMS_MYHOST}" == "nebula2" ]; then
 
-if [ ! -f $CICE_DIR/rundir/cice ]; then
-    echo "$CICE_DIR/rundir/cice not found"
-    echo "Error with compilation "
-    exit -1
+    # Test if compilation and linking was successfull
+    if [ ! -f $CICE_DIR/rundir/cice ]; then
+	echo "$CICE_DIR/rundir/cice not found"
+	echo "Error with compilation "
+	exit -1
+    fi
 fi
 
 # Build a library (for use in the ROMS build)

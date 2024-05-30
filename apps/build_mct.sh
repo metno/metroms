@@ -29,12 +29,18 @@ elif [ ${METROMS_MYHOST} == "vilje" ] ; then
 elif [ ${METROMS_MYHOST} == "fram" ] || [ "${METROMS_MYHOST}" == "nebula" ]; then
     FORT=ifort
     export I_MPI_F90=ifort
+elif [ "${METROMS_MYHOST}" == "nebula2" ]; then
+    FORT=ifort
+    #FORT=mpiifort
+    MPIFC=mpiifort
+    
+    #export I_MPI_F90=mpif90
 else
     echo " Computer not defined set environment variable METROMS_MYHOST= metlocal, vilje .."
     exit
 fi
 
-./configure FC=$FORT --prefix=$MCT_DIR
+./configure FC=$FORT MPIFC=$MPIFC --prefix=$MCT_DIR
 make install
 make clean
 
