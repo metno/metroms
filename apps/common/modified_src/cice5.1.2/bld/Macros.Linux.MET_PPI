@@ -17,7 +17,7 @@ endif
 FIXEDFLAGS := -132
 FREEFLAGS  := 
 # Should use this together with ROMS? 
-FFLAGS     :=  -xHost -mcmodel=large # -Nmpi
+FFLAGS     :=  -mcmodel=large # -xHost -Nmpi
 MOD_SUFFIX := mod
 LD         := $(FC)
 LDFLAGS    := $(FFLAGS) -v
@@ -40,8 +40,8 @@ endif
 
 ifeq ($(IO_TYPE), netcdf)
    CPPDEFS :=  $(CPPDEFS) -Dncdf
-   INCLDIR :=  $(INCLDIR) -I/modules/rhel8/user-apps/netcdf/4.6.0intel22-opa/include -I/modules/rhel8/user-apps/openmpi/3.1.4-opa-i22-2023/include
-   SLIBS   :=  $(SLIBS) -L/modules/rhel8/user-apps/openmpi/3.1.4-opa-i22-2023/lib  -L/modules/rhel8/user-apps/netcdf/4.6.0intel22-opa/lib -lnetcdf -lnetcdff -L/modules/rhel8/Compiler/HPC-Toolkit/2022/2022.3.1.16997/compiler/latest/linux/compiler/lib -L/modules/rhel8/user-apps/netcdf/4.6.0intel22-opa/lib -lhdf5_hl -lhdf5 -lsz -lz -lcurl -lm  #   -lhdf5_hl -lhdf5 -lsz -lz -lcurl -lm
+   INCLDIR :=  $(INCLDIR) -I/modules/rhel8/user-apps/netcdf/netcdf-4.6.1-IB-i22-2023-prod/include -I/modules/rhel8/user-apps/openmpi/3.1.4-IB-i22-2023/include 
+   SLIBS   :=  $(SLIBS) -L/modules/rhel8/user-apps/openmpi/3.1.4-IB-i22-2023/lib -L/modules/rhel8/user-apps/netcdf/netcdf-4.6.1-IB-i22-2023-prod/lib -lnetcdff -lnetcdf -L/modules/rhel8/Compiler/HPC-Toolkit/2022/2022.3.1.16997/compiler/latest/linux/compiler/lib -L/modules/rhel8/user-apps/netcdf/netcdf-4.6.1-IB-i22-2023-prod/lib -lhdf5_hl -lhdf5 -lsz -lz -lm
 endif
 
 ifeq ($(compile_threaded), true) 

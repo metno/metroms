@@ -16,12 +16,10 @@ elif [ "$METROMS_MYHOST" == "met_ppi" ]; then
     module load openmpi/3.1.4-intel2018
     module load nco/4.7.9-intel2018
   elif [ `lsb_release -sc` == 'Ootpa' ]; then
-    module use /modules/MET/rhel8/user-modules/
+    module use /modules/MET/rhel8/user-modules/ /modules/MET/rhel8/IT-modules
     module add compiler/Intel2022
     module add IB-R8-A/netcdf/4.6.1-IB-i22-2023
     module add IB-R8-A/openmpi/3.1.4-IB-i22-2023
-    #module add OPA-R8/netcdf/4.6.0intel22-opa OPA-R8/openmpi/3.1.4-i22-2023
-    #module load nco # ask nicob!! is in conda production env
   else
     echo "Undefined linux distro for met_ppi"
   fi
