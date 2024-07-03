@@ -421,7 +421,8 @@
    where (nocn > 0)
      work_per_block = nocn/work_unit + 1
    elsewhere
-     work_per_block = 0
+!jd     work_per_block = 0
+     work_per_block = 1
    end where
    deallocate(nocn)
 
