@@ -2,8 +2,17 @@
       MODULE frazil_ice_prod_mod
 #if defined CICE_OCEAN
       use mod_kinds, only: r8
-!
-!jd- MET.no                                                                     
+      use ice_constants, only: depressT,Tocnfrz
+      use ice_therm_mushy, only: liquidus_temperature_mush
+
+!     jd- MET.no
+!     Updated 20240620:
+!     
+!     Calculation of liquidius relation is taken directly from cice
+!     to increase consistency. The module ice_constants, and
+!     ice_therm_mushy are maintained in the cice code.
+!     trz_option should ideally be transfered from the cice model during 
+!     coupling initialization to ensure consistency (not implemented).
 !
 !  Frazil ice is modelled as the energi deficient required to increase the 
 !  water temperature to the freezing-point. We assume that the ice model
@@ -23,8 +32,11 @@
       implicit none
 
       PRIVATE
-      PUBLIC frazil_ice_prod, t_freeze
+      PUBLIC frazil_ice_prod, t_freeze, tfrz_option
 
+      character(len=20) :: tfrz_option = "mushy"
+
+      
       CONTAINS
 
       real(r8) function t_freeze(s1,z1)
@@ -36,7 +48,16 @@
 !  Freezing temperature (Steele et al. 1989)
 !      t_freeze = -0.0543*s1 + 0.000759*z1
 !  Freezing temperature, linear in salt, no depth dependence
-      t_freeze = -0.054_r8*s1 
+!jd      t_freeze = -0.054_r8*s1
+
+       if (trim(tfrz_option) == 'mushy') then
+         t_freeze = liquidus_temperature_mush(s1) ! deg C
+       elseif (trim(tfrz_option) == 'linear_salt') then
+          t_freeze = -depressT * s1 ! deg C
+       else
+          t_freeze = Tocnfrz
+       endif
+      
       return
       end function t_freeze
 
@@ -47,7 +68,9 @@
       USE mod_ocean
       USE mod_stepping
       USE mod_ice
-
+      USE mod_iounits, only: stdout
+      USE mod_parallel, only: master
+      
       integer, intent(in) :: ng, tile
 !
 # include "tile.h"
@@ -55,8 +78,12 @@
 # ifdef PROFILE
       CALL wclock_on (ng, iNLM, 44)
 # endif
+
+      if (master) write(stdout,*)                                       &
+     &     'frazil_ice_prod: Tfrz option ',trim(tfrz_option)
+      
 !
-      CALL frazil_ice_prod_tile (ng, tile,                                   &
+      CALL frazil_ice_prod_tile (ng, tile,                              &
      &                      LBi, UBi, LBj, UBj,                         &
      &                      IminS, ImaxS, JminS, JmaxS,                 &
      &                      nnew(ng),                                   &
@@ -69,7 +96,7 @@
      &                      GRID(ng) % Hz,                              &
      &                      GRID(ng) % z_r,                             &
      &                      OCEAN(ng) % t,                              &
-     &                      ICE(ng) % qfraz,                          &
+     &                      ICE(ng) % qfraz,                            &
      &                      ICE(ng) % qfraz_accum)
 # ifdef PROFILE
       CALL wclock_off (ng, iNLM, 44)
