@@ -92,7 +92,7 @@ ifdef USE_DEBUG
            CFLAGS += -g
          CXXFLAGS += -g
 else
-           FFLAGS += -ip -O3 
+           FFLAGS += -ip -O3 -xHost
 #           FFLAGS += -ip -O3 -g
            CFLAGS += -O3
          CXXFLAGS += -O3

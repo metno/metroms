@@ -106,14 +106,13 @@ else
     ((NPY=0))
     ((BPX=1))
     ((BPY=1))
-    ((NPY=1))
     ((NTASK=NPX*NPY))
 fi
 ORES=$RES
 ((NPXO=NPX))
 ((NPYO=NPY))
-((BPXO=BPXO))
-((NPYO=BPYO))
+((BPXO=BPX))
+((NPYO=BPY))
 
 
 
@@ -299,8 +298,15 @@ if [ $comp -eq 1 ]; then
     $MAKE -j $ncomp VPFILE=Filepath EXEC=$EXEDIR/cice \
         NXGLOB=$NXGLOB NYGLOB=$NYGLOB \
         BLCKX=$BLCKX BLCKY=$BLCKY MXBLCKS=$MXBLCKS \
-	-f  $CBLD/Makefile MACFILE=$CBLD/Macros.$SITE || exit 2
+	-f  $CBLD/Makefile MACFILE=$CBLD/Macros.$SITE || err=1
+#	-f  $CBLD/Makefile MACFILE=$CBLD/Macros.$SITE || exit 2
 fi
+
+if [ $err -eq 1 ] && [ "$METROMS_MYHOST" != "nebula2" ] ; then
+    exit 2
+else
+    echo "Continue compile script on  $METROMS_MYHOST despite makefile error "
+fi  
 
 cd ..
 pwd                                         
