@@ -5,12 +5,12 @@ module CICE_MCT
   use ice_kinds_mod
   use ice_blocks, only : block, get_block, nx_block, ny_block
   use ice_constants, only: c0,p5, field_loc_center, field_type_scalar,&
-       field_loc_NEcorner, field_type_vector
+       field_loc_NEcorner, field_type_vector, depressT,Tocnfrz
   use ice_global_reductions, only: global_minval, global_maxval
   use ice_domain, only : nblocks, blocks_ice, halo_info, distrb_info
   use ice_domain_size, only : nx_global, ny_global, max_blocks !, block_size_x, block_size_y
   use ice_flux, only: sst, uocn, vocn, zeta, ss_tltx, ss_tlty,&
-       sss,frzmlt
+       Tf,sss,frzmlt
   use ice_boundary, only: ice_HaloUpdate
   use ice_fileunits, only: ice_stdout, ice_stderr ! these might be the same
 
@@ -211,7 +211,9 @@ contains
     use ice_grid, only: HTN, HTE, dxu, dyu, dxt, dyt, tmask,umask,&
          t2ugrid_vector
     use ice_calendar, only: dt, time, write_ic ,istep, istep1
-
+    use ice_ocean, only: tfrz_option
+    use ice_therm_mushy, only: liquidus_temperature_mush
+    
     real(kind=dbl_kind), pointer :: avdata(:)
     integer     :: ilo, ihi, jlo, jhi ! beginning and end of physical domain
     type(block) :: this_block         ! block information for current block
@@ -333,7 +335,27 @@ contains
             field_loc_center, field_type_scalar)
        if (report_cpl) call o2i_report(sss,'SSS',tmask)
 
-! Melt freeze potential
+       ! Update Tf based on new SSS
+       if (trim(tfrz_option) == 'mushy') then
+          do iblk = 1, nblocks
+             this_block = get_block(blocks_ice(iblk),iblk)
+             ilo = this_block%ilo
+             ihi = this_block%ihi
+             jlo = this_block%jlo
+             jhi = this_block%jhi
+             do j = jlo, jhi
+                do i = ilo, ihi
+                   Tf(i,j,iblk) = liquidus_temperature_mush(sss(i,j,iblk)) ! deg C
+                end do
+             end do
+          end do
+       elseif (trim(tfrz_option) == 'linear_salt') then
+          Tf = -depressT * sss ! deg C
+       else
+          Tf = Tocnfrz
+       endif
+
+    ! Melt freeze potential
        CALL AttrVect_exportRAttr(ocn2cice_AV, 'FRZMLT', avdata)
 
 #ifdef REPORT_ALL
