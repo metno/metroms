@@ -813,7 +813,7 @@
          i = indxi(ij)
          j = indxj(ij)
 
-         xtmp = frzmlt(i,j)/(fbot(i,j) + fside(ij) + puny) 
+         xtmp = frzmlt(i,j)/(fbot(i,j) + fside(ij) - puny) 
          xtmp = min(xtmp, c1)
          fbot (i,j) = fbot (i,j) * xtmp
          rside(i,j) = rside(i,j) * xtmp
