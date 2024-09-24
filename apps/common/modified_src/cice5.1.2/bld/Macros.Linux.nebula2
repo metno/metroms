@@ -2,22 +2,34 @@
 # Makefile macros for MET PPI
 #==============================================================================
 
+DEBUG=no
+
 INCLDIR    := -I$(MCT_INCDIR)
 SLIBS      := -L$(MCT_LIBDIR) -lmct -lmpeu
 ULIBS      := 
 CPP        := /usr/bin/cpp
-CPPFLAGS   := -P -traditional
+CPPFLAGS   := -P -traditional 
 CPPDEFS    := -DLINUX
-CFLAGS     := -c -O2
+#CPPDEFS    := -DLINUX -DFORTRANUNDERSCORE
+
+
+ifeq ($(DEBUG), yes)
+  OPT      :=   -check bounds -traceback 
+else
+  OPT        := -O2
+endif
+
+CFLAGS     := $(OPT)
 ifeq ($(COMMDIR), mpi)
-   FC         := mpif90
+   FC         := mpiifort
+#   FC         := mpif90
 else
    FC         := ifort
 endif
 FIXEDFLAGS := -132
 FREEFLAGS  := 
 # Should use this together with ROMS? 
-FFLAGS     :=  -mcmodel=large # -xHost -Nmpi
+FFLAGS     :=  -g $(OPT) -xHost -mcmodel=large 
 MOD_SUFFIX := mod
 LD         := $(FC)
 LDFLAGS    := $(FFLAGS) -v
@@ -40,8 +52,9 @@ endif
 
 ifeq ($(IO_TYPE), netcdf)
    CPPDEFS :=  $(CPPDEFS) -Dncdf
-   INCLDIR :=  $(INCLDIR) -I/modules/rhel8/user-apps/netcdf/netcdf-4.6.1-IB-i22-2023-prod/include -I/modules/rhel8/user-apps/openmpi/3.1.4-IB-i22-2023/include 
-   SLIBS   :=  $(SLIBS) -L/modules/rhel8/user-apps/openmpi/3.1.4-IB-i22-2023/lib -L/modules/rhel8/user-apps/netcdf/netcdf-4.6.1-IB-i22-2023-prod/lib -lnetcdff -lnetcdf -L/modules/rhel8/Compiler/HPC-Toolkit/2022/2022.3.1.16997/compiler/latest/linux/compiler/lib -L/modules/rhel8/user-apps/netcdf/netcdf-4.6.1-IB-i22-2023-prod/lib -lhdf5_hl -lhdf5 -lsz -lz -lm
+   NC_CONFIG ?= nf-config
+   INCLDIR := $(INCLDIR) -I$(shell $(NC_CONFIG) --prefix)/include
+   SLIBS   :=  $(SLIBS) $(shell $(NC_CONFIG) --flibs)
 endif
 
 ifeq ($(compile_threaded), true) 
@@ -62,7 +75,7 @@ ifeq ($(IO_TYPE), pio)
 
 #   CPPDEFS :=  $(CPPDEFS) -Dncdf
 #   INCLDIR := $(INCLDIR) -I/usr/projects/climate/SHARED_CLIMATE/software/conejo/intel_openmpi/netcdf-3.6.3/include
-#   SLIBS   := $(SLIBS) -L/usr/projects/climate/SHARED_CLIMATE/software/conejo/intel_openmpi/netcdf-3.6.3/lib -lnetcdf
+   SLIBS   := $(SLIBS) -L/usr/projects/climate/SHARED_CLIMATE/software/conejo/intel_openmpi/netcdf-3.6.3/lib -lnetcdf
 
 endif
 
