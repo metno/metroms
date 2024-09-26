@@ -1,4 +1,5 @@
 #include "cppdefs.h"
+!#define debug
       MODULE frazil_ice_prod_mod
 #if defined CICE_OCEAN
       use mod_kinds, only: r8
@@ -79,9 +80,10 @@
       CALL wclock_on (ng, iNLM, 44)
 # endif
 
+#ifdef debug      
       if (master) write(stdout,*)                                       &
      &     'frazil_ice_prod: Tfrz option ',trim(tfrz_option)
-      
+#endif      
 !
       CALL frazil_ice_prod_tile (ng, tile,                              &
      &                      LBi, UBi, LBj, UBj,                         &

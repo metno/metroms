@@ -140,6 +140,7 @@
       USE mod_kinds
       USE mod_scalars
       USE mod_iounits, only: stdout
+      USE frazil_ice_prod_mod, only : tfrz_option
 
 ! 
 !  Imported variable definitions.
@@ -297,6 +298,11 @@
         deallocate (length)
       END IF
 
+      if (master) write(stdout,*)                                       &
+     &     'ROMS Ocean Coupler: Frazil ice production is calulated ',   &
+     &     'based on the ',trim(tfrz_option), 'Tfrz_option'
+
+      
 #ifdef PROFILE
       CALL wclock_off (ng, iNLM, 36)
 #endif
