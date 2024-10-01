@@ -156,13 +156,22 @@ class ModelRun(object):
             else:
                 result = os.system("/modules/centos7/OPENMPI/3.1.4-intel2018/bin/mpirun --mca mtl psm2 " + executable + " " + infile)
                 #result = os.system("/modules/centos7/OPENMPI/3.1.3-intel2018/bin/mpiexec --mca mtl psm2 " + executable + " " + infile)
-        elif architecture==Constants.MET_PPI_R8IBX:
-            print('running on MET PPI R8 IBX:')
+        elif architecture==Constants.MET_PPI_R8IBX or architecture==Constants.MET_PPI_R8IBA:
+            print('running on MET PPI R8 IBX (dataroom A):')
             if debugoption==Constants.PROFILE:
                 print("Profiling not working yet on "+architecture)
                 result = 1
             else:
+                # A: mpirun -mca btl self -mca pml ucx -x UCX_NET_DEVICES=mlx5_0:1 -x UCX_TLS=ib,shm,rc_x
                 result = os.system("mpirun -mca btl self -mca pml ucx -x UCX_NET_DEVICES=mlx5_0:1 -x UCX_TLS=ib,shm,rc_x " + executable + " " + infile)
+        elif architecture==Constants.MET_PPI_R8IBB:
+            print('running on MET PPI R8 IBX (dataroom B):')
+            if debugoption==Constants.PROFILE:
+                print("Profiling not working yet on "+architecture)
+                result = 1
+            else:
+                # B: mpirun -mca btl self -mca pml ucx -x UCX_NET_DEVICES=mlx5_2:1 -x UCX_TLS=ib,shm,rc_x
+                result = os.system("mpirun -mca btl self -mca pml ucx -x UCX_NET_DEVICES=mlx5_2:1 -x UCX_TLS=ib,shm,rc_x " + executable + " " + infile)
         elif architecture==Constants.FRAM:
             print('running on FRAM:')
             if debugoption==Constants.PROFILE:
@@ -240,6 +249,7 @@ class ModelRun(object):
 
         elif architecture==Constants.NEBULA or architecture==Constants.STRATUS or \
              architecture==Constants.MET_PPI_OPATH or architecture==Constants.MET_PPI_R8IBX or \
+             architecture==Constants.MET_PPI_R8IBA or architecture==Constants.MET_PPI_R8IBB or \
              architecture==Constants.FRAM:
             if runoption==Constants.MPI:
                 result = self._execute_roms_mpi((int(self._params.XCPU)*int(self._params.YCPU))+
