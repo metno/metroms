@@ -24,8 +24,7 @@
 # First the defaults
 #
                FC := ifort
-           FFLAGS := -mcmodel=large
-          #  FFLAGS := -heap-arrays -fp-model precise
+           FFLAGS := -mcmodel=large -ip -O3 #-xHost -O3 -ip -O3 -march=core-avx2 (ifort) -heap-arrays -fp-model precise
               CPP := /usr/bin/cpp
          CPPFLAGS := -P -traditional
           LDFLAGS :=
