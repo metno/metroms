@@ -8,7 +8,7 @@ ULIBS      :=
 CPP        := /usr/bin/cpp
 CPPFLAGS   := -P -traditional
 CPPDEFS    := -DLINUX
-CFLAGS     := -c -O2
+CFLAGS     := -c -O3
 ifeq ($(COMMDIR), mpi)
    FC         := mpif90
 else
@@ -17,7 +17,7 @@ endif
 FIXEDFLAGS := -132
 FREEFLAGS  := 
 # Should use this together with ROMS? 
-FFLAGS     :=  -mcmodel=large # -xHost -Nmpi
+FFLAGS     := -mcmodel=large -ip -O3 #-xHost -Nmpi
 MOD_SUFFIX := mod
 LD         := $(FC)
 LDFLAGS    := $(FFLAGS) -v
@@ -40,8 +40,8 @@ endif
 
 ifeq ($(IO_TYPE), netcdf)
    CPPDEFS :=  $(CPPDEFS) -Dncdf
-   INCLDIR :=  $(INCLDIR) -I/modules/rhel8/user-apps/netcdf/netcdf-4.6.1-IB-i22-2024-prod/include -I/modules/rhel8/user-apps/openmpi/5.0.5-IB-i22-2024/include 
-   SLIBS   :=  $(SLIBS) -L/modules/rhel8/user-apps/openmpi/5.0.5-IB-i22-2024/lib -L/modules/rhel8/user-apps/netcdf/netcdf-4.6.1-IB-i22-2024-prod/lib -lnetcdff -lnetcdf -L/modules/rhel8/Compiler/HPC-Toolkit/2022/2022.3.1.16997/compiler/latest/linux/compiler/lib -L/modules/rhel8/user-apps/netcdf/netcdf-4.6.1-IB-i22-2023-prod/lib -lhdf5_hl -lhdf5 -lsz -lz -lm
+   INCLDIR :=  $(INCLDIR) -I/modules/rhel8/user-apps/netcdf/netcdf-4.6.1-IB-ucx1.17-i22-2024-prod/include -I/modules/rhel8/user-apps/openmpi/5.0.5-IB-ucx1.17-i22-2024/include 
+   SLIBS   :=  $(SLIBS) -L/modules/rhel8/user-apps/openmpi/5.0.5-IB-ucx1.17-i22-2024/lib -L/modules/rhel8/user-apps/netcdf/netcdf-4.6.1-IB-ucx1.17-i22-2024-prod/lib -lnetcdff -lnetcdf -L/modules/rhel8/Compiler/HPC-Toolkit/2022/2022.3.1.16997/compiler/latest/linux/compiler/lib -L/modules/rhel8/user-apps/netcdf/nnetcdf-4.6.1-IB-ucx1.17-i22-2024-prod/lib -lhdf5_hl -lhdf5 -lsz -lz -lm
 endif
 
 ifeq ($(compile_threaded), true) 
@@ -65,4 +65,3 @@ ifeq ($(IO_TYPE), pio)
 #   SLIBS   := $(SLIBS) -L/usr/projects/climate/SHARED_CLIMATE/software/conejo/intel_openmpi/netcdf-3.6.3/lib -lnetcdf
 
 endif
-
