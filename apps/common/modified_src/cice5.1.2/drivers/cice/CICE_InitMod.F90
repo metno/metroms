@@ -167,7 +167,12 @@
       call init_flux_atm        ! initialize atmosphere fluxes sent to coupler
       call init_flux_ocn        ! initialize ocean fluxes sent to coupler
 
-      if (write_ic) call accum_hist(dt) ! write initial conditions 
+      if (write_ic) then
+         !jbd manipulate time to get it similar to the initial time
+         time = time - dt
+         call accum_hist(dt) ! write initial conditions 
+         time = time + dt
+      end if
 
 !jd#ifdef ROMSCOUPLED
 !jd      call CICE_MCT_coupling
