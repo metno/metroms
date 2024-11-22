@@ -8,23 +8,23 @@ fi
 # Always assign the first argument to METROMS_MYHOST
 METROMS_MYHOST=$1
 
-# If METROMS_MYHOST is met_ppi, check if second argument METROMS_LOGINNODE is provided
+# If METROMS_MYHOST is met_ppi, check if second argument METROMS_COMPUTENODE is provided
 if [ "$METROMS_MYHOST" == "met_ppi" ]; then
     # Check if a second argument was provided
     if [ $# -eq 2 ]; then
-        METROMS_LOGINNODE=$2
+        METROMS_COMPUTENODE=$2
     else
-        # If not, set the METROMS_LOGINNODE variable to r8_b for met_ppi
-        METROMS_LOGINNODE="r8_b"
-        echo "No login node option provided, loading $METROMS_LOGINNODE login node"
+        # If not, set the METROMS_COMPUTENODE variable to r8_b for met_ppi
+        METROMS_COMPUTENODE="r8_b"
+        echo "No login node option provided, loading $METROMS_COMPUTENODE login node"
     fi
 fi
 
 # Export the variables
 export METROMS_MYHOST
-export METROMS_LOGINNODE
+export METROMS_COMPUTENODE
 echo "Loading $METROMS_MYHOST paths"
-echo "Loading $METROMS_LOGINNODE login node if METROMS_MYHOST is met_ppi"
+echo "Loading $METROMS_COMPUTENODE login node if METROMS_MYHOST is met_ppi"
 
 if [ "$METROMS_MYHOST" == "met_ppi" ]; then
     if [ "$USER" == "havis" ]; then
