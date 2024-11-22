@@ -16,34 +16,27 @@ elif [ "$METROMS_MYHOST" == "met_ppi" ]; then
     module load openmpi/3.1.4-intel2018
     module load nco/4.7.9-intel2018
   elif [ `lsb_release -sc` == 'Ootpa' ]; then
-    if [ "$METROMS_COMPUTENODE" == "r8_a_ucx" ]; then
+    if [ "$METROMS_LOGINNODE" == "r8_a_ucx" ]; then
       # add modules for IB A ib-dev-ucx1-17-a-r8.q queue
       module use /modules/MET/rhel8/user-modules/ /modules/MET/rhel8/IT-modules
       module add compiler/Intel2022
       module add IB-R8-A/UCX1.17/netcdf/4.6.1-IB-ucx1.17-i22-2024
       module add IB-R8-A/UCX1.17/openmpi/5.0.5-IB-ucx1.17-i22-2024
-      echo "Modules for" $METROMS_COMPUTENODE "loaded"
-    elif [ "$METROMS_COMPUTENODE" == "r8_a" ]; then
+      echo "Modules for" $METROMS_LOGINNODE "loaded"
+    elif [ "$METROMS_LOGINNODE" == "r8_a" ]; then
       # add modules for IB A ib-dev-a-r8.q queue
       module use /modules/MET/rhel8/user-modules/ /modules/MET/rhel8/IT-modules
       module add compiler/Intel2022
       module add IB-R8-B/netcdf/4.6.1-IB-i22-2024
       module add IB-R8-B/openmpi/5.0.5-IB-i22-2024
-      echo "Modules for" $METROMS_COMPUTENODE "loaded"
-    elif [ "$METROMS_COMPUTENODE" == "r8_b_ucx" ]; then
-      # add modules for IB B ib-dev-ucx1-17-b-r8.q queue
-      module use /modules/MET/rhel8/user-modules/ /modules/MET/rhel8/IT-modules
-      module add compiler/Intel2022
-      module add IB-R8-A/UCX1.17/netcdf/4.6.1-IB-ucx1.17-i22-2024
-      module add IB-R8-A/UCX1.17/openmpi/5.0.5-IB-ucx1.17-i22-2024
-      echo "Modules for" $METROMS_COMPUTENODE "loaded"
-    elif [ "$METROMS_COMPUTENODE" == "r8_b" ]; then
-      # add modules for IB B ib-b-r8.q queue
+      echo "Modules for" $METROMS_LOGINNODE "loaded"
+    elif [ "$METROMS_LOGINNODE" == "r8_b" ]; then
+      # add modules for IB B
       module use /modules/MET/rhel8/user-modules/ /modules/MET/rhel8/IT-modules
       module add compiler/Intel2022
       module add IB-R8-B/netcdf/4.6.1-IB-i22-2024
       module add IB-R8-B/openmpi/5.0.5-IB-i22-2024
-      echo "Modules for" $METROMS_COMPUTENODE "loaded"
+      echo "Modules for" $METROMS_LOGINNODE "loaded"
     fi
   else
     echo "Undefined linux distro for met_ppi"
