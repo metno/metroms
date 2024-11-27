@@ -37,6 +37,14 @@ elif [ "$METROMS_MYHOST" == "met_ppi" ]; then
       module add IB-R8-B/netcdf/4.6.1-IB-i22-2024
       module add IB-R8-B/openmpi/5.0.5-IB-i22-2024
       echo "Modules for" $METROMS_LOGINNODE "loaded"
+    elif [ "$METROMS_LOGINNODE" == "r8_b_ucx" ]; then
+      # add modules for IB B
+      module use /modules/MET/rhel8/user-modules/ /modules/MET/rhel8/IT-modules
+      module add compiler/Intel2022
+      module add IB-R8-A/UCX1.17/netcdf/4.6.1-IB-ucx1.17-i22-2024
+      module add IB-R8-A/UCX1.17/openmpi/5.0.5-IB-ucx1.17-i22-2024
+      echo "Modules for" $METROMS_LOGINNODE "loaded"
+    module list
     fi
   else
     echo "Undefined linux distro for met_ppi"
