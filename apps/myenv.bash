@@ -32,6 +32,10 @@ if [ "$METROMS_MYHOST" == "met_ppi" ]; then
         export METROMS_TMPDIR=$HOME/run
         export METROMS_BLDDIR=$HOME/work/sea/ROMS/metroms
         export METROMS_APPDIR=$HOME/sea/ROMS/metroms_apps
+        echo "METROMS_BASEDIR: $METROMS_BASEDIR"
+        echo "METROMS_TMPDIR: $METROMS_TMPDIR"
+        echo "METROMS_BLDDIR: $METROMS_BLDDIR"
+        echo "METROMS_APPDIR: $METROMS_APPDIR"
     else
     	export METROMS_BASEDIR=$HOME/metroms
     if [ -d "/lustre/storeB/users/$USER" ]; then
