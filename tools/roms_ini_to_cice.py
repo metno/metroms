@@ -33,7 +33,7 @@ romsgrid = sys.argv[2]  # grid file for model
 cicefile = sys.argv[3]  # some existing CICE restart file (to be filled below)
 
 # categories (from CICE) and variables to set to zero everywhere
-NCAT = [0, 0.6445072, 1.391433, 2.470179, 4.567288, 1e+08] # upper limits of ice categories
+NCAT = [0, 0.6445072, 1.391433, 2.470179, 4.567288, 12] # upper limits of ice categories
 varlist2d_null = ['uvel','vvel','scale_factor','swvdr','swvdf','swidr','swidf','strocnxT','strocnyT',
                   'stressp_1','stressp_2','stressp_3','stressp_4','stressm_1','stressm_2','stressm_3',
                   'stressm_4','stress12_1','stress12_2','stress12_3','stress12_4','iceumask','fsnow']
